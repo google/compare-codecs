@@ -1,0 +1,77 @@
+Contributing to the Codec Comparision Project
+=============================================
+
+The intent of the project is to let people compare what they think makes sense to compare.
+
+The requirements for contributions are:
+
+* You must be willing to sign the {link:agreement.html}
+* You must make all your contributions available under the site's {link:license.html}
+
+How to run a comparision
+------------------------
+The steps for running a comparision yurself are:
+
+* Clone this site using git, onto a system running Linux. The setup
+  has been tested using Ubuntu 12.04; other Linux distributions might
+  work. Contributions to make it work on other systems are welcome!
+* Go to the \"build\" directory and run the \"install_prerequisites.sh\"
+  script.
+* Go to the \<instructions are coming\> directory, select your codecs
+  from the list of codecs given by "list_codecs", and run
+  \<instructions are coming\>. This can take quite a while.
+* At the end of the run, the name of an HTML file is printed. Open
+  this file in the browser of your choice.
+
+Using others\' encoding data
+---------------------------
+If you wish to download the result of other people's encoding runs,
+you can run \<something\> to download the GIT repository with test
+results into your test results cache. You can run \<something\> to get
+a standard set of comparisions generated; these, together with all the
+ones you generate, will be listed on \<page\>.
+
+Uploading your encoding results
+-----------------------------
+If you have run encodings that give new numbers, you are encouraged to
+share them by uploading them to the GIT repository for results.
+
+(Instructions follow)
+
+The results will be subject to some vetting to see that they are
+reasonable, but mostly, we expect to accept all results. It will be
+possible to find out who uploaded a given result, so that if any
+contributor\'s data is found to contain systematic errors, they can be
+purged from the system.
+
+Uploading new settings
+---------------------------------
+Settings are represented as encoders - a codec run with a particular
+set of parameters. If you have found a set of paramteters that work
+well in an use case, you're encouraged to upload it.
+
+For each codec, there are a set of named encoders - one called
+"default", a set called "best-\<scenario\>", and any other names that
+contributors find useful.
+
+(Instructions go here)
+
+Uploading a new codec
+---------------------
+A new codec contribution consists of:
+
+* A name for the new codec
+* A pull and build instruction added to the install-prerequisites
+  script so that the necessary binaries are available (if needed)
+* A Python module that defines the parameters for the codec, and how
+  the codec is going to be executed. Use existing files as guidelines.
+  
+The codec source must be available for use under a reasonable license
+(no secrets allowed), but does not need to be considered under the
+rules for contributing to the test set; people running the test set
+are merely using it.
+  
+  
+Uploading a new test video
+--------------------------
+More coming....
