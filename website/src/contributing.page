@@ -67,8 +67,8 @@ A new codec contribution consists of:
   the codec is going to be executed. Use existing files as guidelines.
   
 The codec source must be available for use under a reasonable license
-(no secrets allowed), but does not need to be considered under the
-rules for contributing to the test set; people running the test set
+(no secrets allowed), but does not need to be licenseable under this
+project\'s license; people running the test set
 are merely using it.
   
   

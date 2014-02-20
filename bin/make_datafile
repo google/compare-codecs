@@ -1,0 +1,29 @@
+#!/usr/bin/python
+#
+# Grab a sweep of test runs and create a datafile from them
+# that can be used as input to the visual_metrics data tool.
+#
+import argparse
+import sys
+
+# Library path relative to directory containing library.
+sys.path.append('../vpx_codec_comparison/tweaker')
+
+import encoder
+import pick_codec
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('videofile')
+  parser.add_argument('--codec')
+  args = parser.parse_args()
+  codec = pick_codec.PickCodec(args.codec)
+  videofile = encoder.Videofile(args.videofile)
+
+  # TODO:
+  # - Pick an encoder for that codec to start from
+  # - Pick the encoding set for that encoder
+  # - Print the results
+
+if __name__ == '__main__':
+  sys.exit(main())
