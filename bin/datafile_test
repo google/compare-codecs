@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Test run for making two datafiles and generating a HTML from them.
+#
+mkdir -p test/vp8
+mkdir -p test/h263
+
+set -e
+
+./make_datafile --codec vp8 --config 4795a682e239 --vary=rate ../vpx_codec_comparison/mpeg_video/RaceHorses_832x480_30.yuv > test/vp8/testfile.txt
+./make_datafile --codec h263 --config d41d8cd98f00 --vary=rate ../vpx_codec_comparison/mpeg_video/RaceHorses_832x480_30.yuv > test/h263/testfile.txt
+
+./visual_metrics.py metrics_template.html testfile.txt test/vp8 test/h263 > test/metrics.html
+
+
+

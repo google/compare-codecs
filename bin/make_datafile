@@ -16,14 +16,22 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('videofile')
   parser.add_argument('--codec')
+  parser.add_argument('--config')
+  parser.add_argument('--vary')
   args = parser.parse_args()
   codec = pick_codec.PickCodec(args.codec)
+  my_encoder = encoder.Encoder(codec, filename=args.config)
   videofile = encoder.Videofile(args.videofile)
 
-  # TODO:
-  # - Pick an encoder for that codec to start from
-  # - Pick the encoding set for that encoder
-  # - Print the results
+  encodings = []
+  if args.vary == 'rate':
+    encodings = my_encoder.AllScoredRates(videofile)
+  else:
+    encodings = my_encoder.AllScoredVariants(videofile, args.vary)
+
+  print 'Bitrate PSNR'
+  for encoding in encodings.encodings:
+    print "%d %f" % (encoding.result['bitrate'], encoding.result['psnr'])
 
 if __name__ == '__main__':
   sys.exit(main())
