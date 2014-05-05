@@ -3,11 +3,12 @@ host: lou.mtv
 port: 4000
 detach: false
 markdown: kramdown
+markdown_ext: markdown,md
 kramdown:
   auto_ids: true
   footnote_nr: 1
   entity_output: as_char
   toc_levels: 1..6
-  use_coderay: false
+  use_coderay: true
   parse_block_html: false
-pygments: true
+pygments: false
