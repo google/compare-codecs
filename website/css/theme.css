@@ -12,3 +12,17 @@ body {
 .theme-showcase > p > .btn {
   margin: 5px 0;
 }
+
+
+td, th {
+  padding: 3px 7px;
+  border: 1px solid #ddd;
+}
+
+td {}
+th {}
+table {}
+
+table + p {
+  margin-top: 10px;
+}
