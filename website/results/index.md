@@ -23,7 +23,7 @@ detailed results, and results based on other metrics.
 | VP8 2-pass  |            |        +10% |    -12% |
 | x264 2-Pass |        -8% |             |    +17% |
 | HEVC-HM     |        -6% |         +7% |         |
-
+{:.td-right}
 
 Note that the table is not symmetric; if A beats B by 12% when A is the
 baseline, A will beat B by 8% if B is the baseline. This follows from the way
@@ -42,6 +42,7 @@ accumulated delay, divided by the length of the clip.
 | VP8 2-pass  |            |        +10% |    -12% |
 | x264 2-Pass |        -8% |             |    +17% |
 | HEVC-HM     |        -6% |         +7% |         |
+{:.td-right}
 
 
 ### Interactive Results
@@ -61,3 +62,4 @@ no matter what the content of the original frame N+1 and later were.
 | VP8  |        |    +10% |     DNQ |
 | X264 |    -8% |         |     DNQ |
 | HEVC |    DNQ |     DNQ |         |
+{:.td-right}

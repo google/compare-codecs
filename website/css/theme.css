@@ -24,5 +24,16 @@ th {}
 table {}
 
 table + p {
+  /* Whitespace between tables and
+   * paragraphs.
+   ------------------------------- */
   margin-top: 10px;
+}
+
+.td-right td + td {
+  /* Right-aligns table cell data
+   * for cells not in column 1.
+   * Useful for numeric values.
+   ------------------------------- */
+  text-align: right;
 }
