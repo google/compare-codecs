@@ -1,0 +1,37 @@
+#!/usr/bin/python
+#
+# Generates a list of all encodings for a given filename / bitrate.
+#
+import argparse
+import sys
+
+import encoder
+import pick_codec
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('rate')
+  parser.add_argument('videofile')
+  parser.add_argument("--codec")
+  args = parser.parse_args()
+
+  videofile = encoder.Videofile(args.videofile)
+
+  bitrate = int(args.rate)
+
+  print "Codec is", args.codec
+
+  videofile = encoder.Videofile(args.videofile)
+
+  codec = pick_codec.PickCodec(args.codec)
+
+  print codec.DisplayHeading()
+  for encoding in codec.AllScoredEncodings(bitrate, videofile).encodings:
+    print encoding.encoder.Hashname(),
+    print encoding.Score(), encoding.encoder.DisplayValues(),
+    print encoding.result
+
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())
+
