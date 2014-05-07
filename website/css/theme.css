@@ -37,3 +37,13 @@ table + p {
    ------------------------------- */
   text-align: right;
 }
+
+div.well p:last-child {
+  /* No bottom margin on the last
+   * para in a visible container.
+   * Pertains to other block-level
+   * element types in other kinds
+   * of containers (blockquotes?).
+   ------------------------------- */
+  margin-bottom: 0;
+}
