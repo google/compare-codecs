@@ -1,0 +1,39 @@
+#!/usr/bin/python
+#
+# Compare a number of codecs for what they do when presented with the
+# "MPEG" test suite.
+#
+# Outputs a table with the samples down and the codecs across, giving
+# bitrate and PSNR for each target.
+#
+import argparse
+import sys
+
+import mpeg_settings
+import encoder
+import pick_codec
+
+def ListOneTarget(rate, videofile):
+  print '%-28.28s %5d ' % (videofile.basename, rate),
+  for codec_name in ('h261', 'h263', 'mjpeg', 'vp8'):
+    codec = pick_codec.PickCodec(codec_name)
+    bestsofar = codec.BestEncoding(rate, videofile)
+    assert(bestsofar.Score())
+    print '%6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
+  print ''
+
+def ListResults():
+  print '%-28s %5s %11s %11s %11s %11s' % (
+    'File', 'Rate', 'H.261', 'H.263p', 'MJPEG', 'VP8')
+  for classname in mpeg_settings.files.keys():
+    for filename in mpeg_settings.files[classname]:
+      videofile = encoder.Videofile(filename)
+      for rate in mpeg_settings.rates[classname]:
+        ListOneTarget(rate, videofile)
+
+def main():
+  ListResults()
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

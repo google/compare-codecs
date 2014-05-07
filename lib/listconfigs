@@ -1,0 +1,40 @@
+#!/usr/bin/python
+"""List configs with scores.
+
+"""
+
+import argparse
+import sys
+
+import encoder
+import pick_codec
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('rate')
+  parser.add_argument('videofile')
+  parser.add_argument("--codec")
+
+  args = parser.parse_args()
+
+  videofile = encoder.Videofile(args.videofile)
+
+  codec = pick_codec.PickCodec(args.codec)
+
+  bitrate = int(args.rate)
+
+  encodings = codec.AllScoredEncodings(bitrate, videofile)
+  encodings.encodings.sort(key=lambda foo: foo.Score())
+  for encoding in encodings.encodings:
+    if args.cq_mode:
+      minq = encoding.encoder.OptionValue('fixed-q')
+    else:
+      minq = encoding.encoder.OptionValue('min-q')
+    best = encoding.encoder.ChoiceValue(['good', 'best', 'rt'])
+    print encoding.encoder.Hashname(), best, minq, encoding.Score(), \
+        encoding.result
+    print encoding.encoder.OptionValues()
+
+if __name__ == '__main__':
+  sys.exit(main())

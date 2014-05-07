@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# Runs all unit tests for the tweaker
+#
+set -e
+
+WORKDIR=$(dirname $0)
+
+$WORKDIR/encoder_unittest.py
+$WORKDIR/vp8_unittest.py
+$WORKDIR/vp8_cq_unittest.py
+$WORKDIR/vp8_mpeg_1d_unittest.py

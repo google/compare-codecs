@@ -1,0 +1,94 @@
+#!/usr/bin/python
+#
+# List the best MPEG settings for CQ mode encodings.
+#
+
+import argparse
+import sys
+
+import encoder
+import mpeg_settings
+import pick_codec
+
+class WrongestTracker(object):
+  """Keep track of the worst performer of a set of encoders.
+
+  The concept of "worst performer" is not the same as encoder.Score().
+  This is used to indicate which candidate it makes most sense to spend
+  additional cycles on testing.
+  """
+  def __init__(self):
+    self.wrongest = None
+    self.performance = 10000.0
+
+  def Update(self, encoding, performance):
+    if performance < self.performance:
+      self.wrongest = encoding
+      self.performance = performance
+
+
+def ListOne(codec, file_stem, rate, run_score, worst_perf):
+  """Output one line describing the best encoding for this file."""
+  global wrongest
+  global wrongest_score
+
+  file = '../mpeg_video/' + file_stem
+  videofile = encoder.Videofile(file)
+  bestsofar = codec.BestEncoding(rate, videofile)
+  if not bestsofar.Score():
+    if run_score:
+      bestsofar.Execute()
+      bestsofar.Store()
+    else:
+      # An unscored encoding is always the worst one.
+      worst_perf.Update(bestsofar, -10000.0)
+      return (0, 0)
+  # Compute how many percent we are below the target bitrate.
+  # Numbers far below the target indicate room for improvement.
+  bitsleft = 100.0* (1.0 - float(bestsofar.result['bitrate']) / rate )
+  print \
+    bestsofar.encoder.Hashname(), \
+    bestsofar.encoder.DisplayValues(), \
+    bestsofar.Score(), \
+    file_stem, rate,\
+    bestsofar.result['bitrate'], bestsofar.result['psnr'], \
+    bitsleft, '%'
+  worst_perf.Update(bestsofar, bitsleft)
+  return (1, bitsleft)
+
+def ListBest(codec, run_score, worst_perf):
+  count = 0
+  wasted = 0.0
+  overrun = 0
+  print ('ID           %s Score File     Target Rate PSNR Over/under'
+         % codec.DisplayHeading())
+  for classname in mpeg_settings.files.keys():
+    for file in mpeg_settings.files[classname]:
+      for rate in mpeg_settings.rates[classname]:
+        (this_count, this_wasted) = ListOne(codec, file, rate, run_score,
+                                            worst_perf)
+        count += this_count
+        wasted += this_wasted
+        if this_wasted < 0.0:
+          overrun += 1
+  if count > 0:
+    print "Average waste ", wasted / count, "%"
+  print "Number scored: %d, over target rate %d" % (count, overrun)
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--codec', default = 'vp8_cq')
+  parser.add_argument('--score', action='store_true', default=False)
+  args = parser.parse_args()
+  codec = pick_codec.PickCodec(args.codec)
+  worst_perf = WrongestTracker()
+  ListBest(codec, args.score, worst_perf)
+  if worst_perf.performance < 0:
+    print "Most in need of work to get under bitrate target:"
+    print './vp8tweaker --codec=%s --loop %d %s &' % (
+      args.codec, worst_perf.wrongest.bitrate,
+      worst_perf.wrongest.videofile.filename)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

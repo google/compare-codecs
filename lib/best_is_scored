@@ -1,0 +1,41 @@
+#!/usr/bin/python
+"""Make sure the best encoding for a rate/file has a score.
+
+This script consults the run database for the codec,
+picks the best encoding so far, and makes sure it's executed.
+This ensures that at least one executed encoding exists for this
+parameter set.
+"""
+
+import argparse
+import sys
+
+import encoder
+import pick_codec
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('rate')
+  parser.add_argument('videofile')
+  parser.add_argument('--codec')
+  args = parser.parse_args()
+
+  videofile = encoder.Videofile(args.videofile)
+
+  codec = pick_codec.PickCodec(args.codec)
+
+  bitrate = int(args.rate)
+
+  bestsofar = codec.BestEncoding(bitrate, videofile)
+  bestsofar.Recover()
+  if not bestsofar.Score():
+    print "Best so far is unscored, trying it"
+    bestsofar.Execute()
+    bestsofar.Store()
+  print "Best encoder is", bestsofar.encoder.Hashname(), \
+      "score", bestsofar.Score()
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())
+
