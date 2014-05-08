@@ -1,7 +1,4 @@
 name: Compare Video Codecs
-host:
-port:
-detach: false
 markdown: kramdown
 markdown_ext: markdown,md
 kramdown:
