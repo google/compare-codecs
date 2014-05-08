@@ -20,7 +20,3 @@ atomic, temporal and has metadata. Maybe Jekyll's "blog-awareness" can be adapte
     <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
   {% endfor %}
 </ul>
-
-### Other Stuff
-
-* [Available Bootstrap Components (sample)](/bootstrap/)
