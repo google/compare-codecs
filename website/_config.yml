@@ -11,4 +11,4 @@ kramdown:
   toc_levels: 1..6
   use_coderay: true
   parse_block_html: true
-pygments: false
+highlighter: null
