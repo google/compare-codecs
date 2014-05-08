@@ -1,6 +1,6 @@
 name: Compare Video Codecs
-host: lou.mtv
-port: 4000
+host:
+port:
 detach: false
 markdown: kramdown
 markdown_ext: markdown,md
