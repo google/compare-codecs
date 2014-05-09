@@ -1,0 +1,49 @@
+body {
+  padding-top: 70px;
+  padding-bottom: 30px;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+
+td, th {
+  padding: 3px 7px;
+  border: 1px solid #ddd;
+}
+
+td {}
+th {}
+table {}
+
+table + p {
+  /* Whitespace between tables and
+   * paragraphs.
+   ------------------------------- */
+  margin-top: 10px;
+}
+
+.td-right td + td {
+  /* Right-aligns table cell data
+   * for cells not in column 1.
+   * Useful for numeric values.
+   ------------------------------- */
+  text-align: right;
+}
+
+div.well p:last-child {
+  /* No bottom margin on the last
+   * para in a visible container.
+   * Pertains to other block-level
+   * element types in other kinds
+   * of containers (blockquotes?).
+   ------------------------------- */
+  margin-bottom: 0;
+}

@@ -1,4 +1,8 @@
 *~
+*.pyc
+.directory
 vpx_codec_comparison/
 website/out/
 website/tmp/
+_site
+_config-local.yml
