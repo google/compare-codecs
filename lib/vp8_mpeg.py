@@ -26,16 +26,19 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
       encoder.ChoiceOption(['good', 'best', 'rt']),
       ]
     # The start encoder is exactly the same as for VP8,
-    # except that min-q and max-q have the same value.
+    # except that fixed-q, gold-q, alt-q and key-q parameters are set.
     # TODO(hta): Remove the options that have no effect in this mode.
-    self.start_encoder = encoder.Encoder(self, """ --lag-in-frames=0 \
+    self.start_encoder_parameters = """ --lag-in-frames=0 \
       --kf-min-dist=3000 \
       --kf-max-dist=3000 --cpu-used=0 --static-thresh=0 \
       --token-parts=1 --drop-frame=0 --end-usage=cbr \
       --fixed-q=32 --gold-q=30 --alt-q=31 --key-q=28 \
       --undershoot-pct=100 --overshoot-pct=15 --buf-sz=1000 \
       --buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 \
-      --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """)
+      --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """
+
+  def StartEncoder(self):
+    return encoder.Encoder(self, self.start_encoder_parameters)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # This is exactly the same as vp8.Execute, except that there is

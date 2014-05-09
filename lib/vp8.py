@@ -31,7 +31,9 @@ class Vp8Codec(encoder.Codec):
       encoder.Option('max-intra-rate', ['100', '200', '400', '600', '800', '1200']),
       encoder.ChoiceOption(['good', 'best', 'rt']),
       ]
-    self.start_encoder = encoder.Encoder(self, """ --lag-in-frames=0 \
+
+  def StartEncoder(self):
+    return encoder.Encoder(self, """ --lag-in-frames=0 \
       --kf-min-dist=3000 \
       --kf-max-dist=3000 --cpu-used=0 --static-thresh=0 \
       --token-parts=1 --drop-frame=0 --end-usage=cbr --min-q=2 --max-q=56 \
@@ -41,7 +43,7 @@ class Vp8Codec(encoder.Codec):
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     nullinput = open('/dev/null', 'r')
-    commandline = ("../bin/vpxenc " + parameters
+    commandline = (encoder.Tool('vpxenc') + ' ' + parameters
                    + ' --target-bitrate=' + str(bitrate)
                    + ' --fps=' + str(videofile.framerate) + '/1'
                    + ' -w ' + str(videofile.width)
@@ -62,12 +64,12 @@ class Vp8Codec(encoder.Codec):
     if os.path.isfile(tempyuvfile):
       print "Removing tempfile before decode:", tempyuvfile
       os.unlink(tempyuvfile)
-    commandline = "../bin/ffmpeg -i %s/%s.webm %s 2>&1 | awk '/bitrate:/ { print $6 }'" % (workdir, videofile.basename,
+    commandline = encoder.Tool("ffmpeg") + " -i %s/%s.webm %s 2>&1 | awk '/bitrate:/ { print $6 }'" % (workdir, videofile.basename,
                          tempyuvfile)
     print commandline
     with open('/dev/null', 'r') as nullinput:
       bitrate = subprocess.check_output(commandline, shell=True, stdin=nullinput)
-      commandline = "../bin/psnr %s %s %d %d 9999" % (
+      commandline = encoder.Tool("psnr") + " %s %s %d %d 9999" % (
         videofile.filename, tempyuvfile, videofile.width,
         videofile.height)
       print commandline

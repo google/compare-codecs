@@ -17,13 +17,11 @@ import vp8_mpeg
 class Vp8CodecMpeg1dMode(vp8_mpeg.Vp8CodecMpegMode):
   def __init__(self):
     super(Vp8CodecMpeg1dMode, self).__init__()
-    # Set the parts that are different from the VP8 codec.
+    # Set the parts that are different from the VP8 MPEG codec.
     self.name = 'vp8-mp1'
     self.options = [
       encoder.IntegerOption('key-q', 0, 63),
       ]
-    self.start_encoder = encoder.Encoder(self,
-      self.ConfigurationFixups(self.start_encoder.parameters))
 
   def ConfigurationFixups(self, config):
     """Ensure that gold-q and key-q are set from fixed-q. """

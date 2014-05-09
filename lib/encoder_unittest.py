@@ -13,7 +13,9 @@ class DummyCodec(encoder.Codec):
     self.options = [
       encoder.Option('score',  ['0', '5', '10']),
       ]
-    self.start_encoder = encoder.Encoder(self, "echo --score=5")
+
+  def StartEncoder(self):
+    return encoder.Encoder(self, "echo --score=5")
 
   def Execute(self, parameters, rate, videofile, workdir):
     m = re.search(r'--score=(\d+)', parameters)
@@ -29,9 +31,13 @@ class StorageOnlyCodec(object):
   """A codec that is only useful for testing storage."""
   def __init__(self):
     self.name = 'unittest'
+    self.cache = None
 
   def SpeedGroup(self, bitrate):
-    return str(bitrate)
+   return str(bitrate)
+
+  def ConfigurationFixups(self, parameters):
+    return parameters
 
 
 class TestConfig(unittest.TestCase):
@@ -184,6 +190,27 @@ class TestEncodingDiskCache(unittest.TestCase):
     my_encoding.result = None
     cache.ReadEncodingResult(my_encoding)
     self.assertEquals(my_encoding.result, testresult)
+
+  def testStoreMultipleEncodings(self):
+    codec = StorageOnlyCodec()
+    cache = encoder.EncodingDiskCache(codec)
+    codec.cache = cache  # This particular test needs the link.
+    my_encoder = encoder.Encoder(codec, "parameters")
+    cache.StoreEncoder(my_encoder)
+    videofile = encoder.Videofile('x/foo_640_480_20.yuv')
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    my_encoding = encoder.Encoding(my_encoder, 246, videofile)
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    result = cache.AllScoredRates(my_encoder, videofile)
+    self.assertEquals(2, len(result.encodings))
+    result = cache.AllScoredEncodings(123, videofile)
+    self.assertEquals(1, len(result.encodings))
+
 
 if __name__ == '__main__':
     unittest.main()
