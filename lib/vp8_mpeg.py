@@ -44,7 +44,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     # This is exactly the same as vp8.Execute, except that there is
     # no target-bitrate parameter.
     # TODO(hta): Redefine "parameters" so that the removal can be specified.
-    commandline = ("../bin/vpxenc-mpeg " + parameters
+    commandline = (encoder.Tool('vpxenc-mpeg') + ' ' + parameters
                    + ' --fps=' + str(videofile.framerate) + '/1'
                    + ' -w ' + str(videofile.width)
                    + ' -h ' + str(videofile.height)

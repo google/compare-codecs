@@ -356,9 +356,9 @@ class Encoding(object):
     return EncodingSet(result)
 
   def Workdir(self):
-    workdir = (self.encoder.codec.name + '/' + self.encoder.Hashname()
+    workdir = (self.encoder.codec.cache.WorkDir()
+               + '/' + self.encoder.Hashname()
                + '/' + self.encoder.codec.SpeedGroup(self.bitrate))
-    # TODO(hta): Make this storage subsys dependent.
     if not os.path.isdir(workdir):
       os.makedirs(workdir)
     return workdir
@@ -408,10 +408,13 @@ class EncodingDiskCache(object):
   def __init__(self, codec):
     self.codec = codec
     # Default work directory is current directory.
-    self.workdir = '%s/%s' % (os.getenv('CODEC_WORKDIR', '.'),
+    self.workdir = '%s/%s' % (os.getenv('CODEC_WORKDIR'),
                               codec.name)
     if not os.path.isdir(self.workdir):
       os.mkdir(self.workdir)
+
+  def WorkDir(self):
+    return self.workdir
 
   def _FilesToEncodings(self, files, videofile, bitrate=0, encoder_in=None):
     candidates = []
@@ -511,6 +514,9 @@ class EncodingMemoryCache(object):
     self.codec = codec
     self.encoders = {}
     self.encodings = []
+
+  def WorkDir(self):
+    return '/tmp'
 
   def AllScoredEncodings(self, bitrate, videofile):
     result = []

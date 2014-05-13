@@ -33,7 +33,7 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
   def Execute(self, parameters, bitrate, videofile, workdir):
     # This is exactly the same as vp8.Execute, except that there is
     # no target-bitrate parameter.
-    commandline = ("../bin/vpxenc " + parameters
+    commandline = (encoder.Tool('vpxenc') + ' ' + parameters
                    + ' --fps=' + str(videofile.framerate) + '/1'
                    + ' -w ' + str(videofile.width)
                    + ' -h ' + str(videofile.height)

@@ -14,16 +14,19 @@ class H261Codec(ffmpeg.FfmpegCodec):
     super(H261Codec, self).__init__(name)
     self.codecname = 'h261'
     self.extension = 'h261'
-    self.start_encoder = encoder.Encoder(self, """\
+
+  def StartEncoder(self):
+    return encoder.Encoder(self, """\
  """)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # TODO(hta): Merge the common parts of this with vp8.Execute.
     commandline = (
-      '../bin/ffmpeg %s -s %dx%d -i %s -codec:v %s -b:v %dk -y -s 352x288 %s/%s.%s' % (
+      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y -s 352x288 %s/%s.%s' % (
+        encoder.Tool('ffmpeg'),
         parameters, videofile.width, videofile.height,
         videofile.filename, self.codecname,
-        str(bitrate), workdir, videofile.basename, self.extension))
+        bitrate, workdir, videofile.basename, self.extension))
 
     print commandline
     returncode = subprocess.call(commandline, shell=True)
@@ -39,7 +42,8 @@ class H261Codec(ffmpeg.FfmpegCodec):
       os.unlink(tempyuvfile)
     # The special thing here is that it rescales back to the original size.
     # TODO(hta): Factor out the difference by itself.
-    commandline = "../bin/ffmpeg -i %s/%s.h261 -s %sx%s %s" % (
+    commandline = "%s -i %s/%s.h261 -s %sx%s %s" % (
+      encoder.Tool('ffmpeg'),
       workdir, videofile.basename, videofile.width, videofile.height,
       tempyuvfile)
     print commandline
@@ -48,9 +52,10 @@ class H261Codec(ffmpeg.FfmpegCodec):
       raise encoder.Error('Decode failed')
     bitrate = videofile.MeasuredBitrate(
       os.path.getsize('%s/%s.h261' % (workdir, videofile.basename)))
-    commandline = "../bin/psnr %s %s %d %d 9999" % (
-                         videofile.filename, tempyuvfile, videofile.width,
-                         videofile.height)
+    commandline = "%s %s %s %d %d 9999" % (
+      encoder.Tool('psnr'),
+      videofile.filename, tempyuvfile, videofile.width,
+      videofile.height)
     print commandline
     psnr = subprocess.check_output(commandline, shell=True)
     print "Bitrate", bitrate, "PSNR", psnr
