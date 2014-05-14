@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Compare a number of codecs for what they do when presented with the
+# Compares a number of codecs for what they do when presented with the
 # "MPEG" test suite.
 #
 # Outputs a table with the samples down and the codecs across, giving
@@ -14,7 +14,7 @@ import encoder
 import pick_codec
 
 def ListOneTarget(rate, videofile, do_score):
-  print '%-28.28s %5d ' % (videofile.basename, rate),
+  print '%-28.28s %5d' % (videofile.basename, rate),
   for codec_name in ('h261', 'h263', 'mjpeg', 'vp8'):
     codec = pick_codec.PickCodec(codec_name)
     bestsofar = codec.BestEncoding(rate, videofile)
@@ -22,11 +22,11 @@ def ListOneTarget(rate, videofile, do_score):
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Score())
-    print '%6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
+    print ' %6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
   print ''
 
 def ListResults(do_score):
-  print '%-28s %5s %11s %11s %11s %11s' % (
+  print '%-28s %5s %12s %12s %12s %12s' % (
     'File', 'Rate', 'H.261', 'H.263p', 'MJPEG', 'VP8')
   for classname in mpeg_settings.files.keys():
     for filename in mpeg_settings.files[classname]:

@@ -32,7 +32,7 @@ class Error(Exception):
   pass
 
 def Tool(name):
-  return os.getenv('CODEC_TOOLPATH') + '/' + name
+  return os.path.join(os.getenv('CODEC_TOOLPATH'), name)
 
 
 class Option(object):
@@ -356,9 +356,9 @@ class Encoding(object):
     return EncodingSet(result)
 
   def Workdir(self):
-    workdir = (self.encoder.codec.cache.WorkDir()
-               + '/' + self.encoder.Hashname()
-               + '/' + self.encoder.codec.SpeedGroup(self.bitrate))
+    workdir = os.path.join(self.encoder.codec.cache.WorkDir(),
+                           self.encoder.Hashname(),
+                           self.encoder.codec.SpeedGroup(self.bitrate))
     if not os.path.isdir(workdir):
       os.makedirs(workdir)
     return workdir
@@ -445,16 +445,16 @@ class EncodingDiskCache(object):
   def AllScoredEncodings(self, bitrate, videofile):
     videofilename = videofile.filename
     basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = (self.workdir + '/*/' + self.codec.SpeedGroup(bitrate) +
-                      '/' + basename + '.result')
+    pattern = os.path.join(self.workdir, '*', self.codec.SpeedGroup(bitrate),
+                           basename + '.result')
     files = glob.glob(pattern)
     return self._FilesToEncodings(files, videofile, bitrate=bitrate)
 
   def AllScoredRates(self, encoder, videofile):
     videofilename = videofile.filename
     basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = (self.workdir + '/' + encoder.Hashname()
-               + '/*/' + basename + '.result')
+    pattern = os.path.join(self.workdir, encoder.Hashname(),
+                           '*', basename + '.result')
     files = glob.glob(pattern)
     return self._FilesToEncodings(files, videofile, encoder_in=encoder)
 
@@ -466,16 +466,16 @@ class EncodingDiskCache(object):
     representation."""
     if encoder.stored:
       return
-    dirname = self.workdir + '/' + encoder.Hashname()
+    dirname = os.path.join(self.workdir, encoder.Hashname())
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
-    with open(dirname + '/parameters', 'w') as parameterfile:
+    with open(os.path.join(dirname, 'parameters'), 'w') as parameterfile:
       parameterfile.write(encoder.parameters)
     encoder.stored = True
 
   def ReadEncoderParameters(self, hashname):
-    dirname = self.workdir + '/' + hashname
-    with open(dirname + '/parameters', 'r') as parameterfile:
+    dirname = os.path.join(self.workdir, hashname)
+    with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
       return parameterfile.read()
 
   def StoreEncoding(self, encoding):
