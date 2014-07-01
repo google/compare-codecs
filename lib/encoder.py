@@ -12,6 +12,11 @@ An encoder is a codec with a given set of options.
 An encoding is an encoder applied to a given filename and target bitrate.
 
 A variant is an encoder with at least one option changed.
+
+This module uses two external variables:
+
+os.getenv(CODEC_WORKDIR) gives the place where data is stored.
+os.getenv(CODEC_TOOLPATH) gives the directory of encoder/decoder tools.
 """
 
 import ast
@@ -25,6 +30,9 @@ import sys
 
 class Error(Exception):
   pass
+
+def Tool(name):
+  return os.path.join(os.getenv('CODEC_TOOLPATH'), name)
 
 
 class Option(object):
@@ -146,14 +154,24 @@ class Videofile(object):
 class Codec(object):
   """Abstract class representing a codec.
 
-  Subclasses must define the name, options and start_encoder variables
+  Subclasses must define the options and start_encoder variables
   """
   def __init__(self, name, cache=None):
     self.name = name
+    self.options = []
     if cache:
       self.cache = cache
     else:
       self.cache = EncodingDiskCache(self)
+
+  def Option(self, name):
+    for option in self.options:
+      if option.name == name:
+        return option
+    raise KeyError(name)
+
+  def StartEncoder(self):
+    raise Error("The base codec class has no start encoder")
 
   def AllScoredEncodings(self, bitrate, videofile):
     return self.cache.AllScoredEncodings(bitrate, videofile)
@@ -163,7 +181,7 @@ class Codec(object):
     if not encodings.Empty():
       return encodings.BestEncoding()
     else:
-      return self.start_encoder.Encoding(bitrate, videofile)
+      return self.StartEncoder().Encoding(bitrate, videofile)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     raise Error("The base codec class can't execute anything")
@@ -216,7 +234,6 @@ class Encoder(object):
     It makes sense to give either the parameters or the filename.
     """
     self.codec = codec
-    self.parameters = parameters
     self.stored = False
     if parameters is None:
       if filename is None:
@@ -225,6 +242,8 @@ class Encoder(object):
         self.parameters = self.codec.cache.ReadEncoderParameters(filename)
         if self.Hashname() != filename:
           raise Error("Filename contains wrong arguments")
+    else:
+      self.parameters = codec.ConfigurationFixups(parameters)
 
   def Encoding(self, bitrate, videofile):
     return Encoding(self, bitrate, videofile)
@@ -270,6 +289,20 @@ class Encoder(object):
     """
     return ' '.join([option.GetValue(self.parameters)
                      for option in self.codec.options])
+
+  def AllScoredRates(self, videofile):
+    return self.codec.cache.AllScoredRates(self, videofile)
+
+  def AllScoredVariants(self, videofile, vary):
+    option = self.codec.Option(vary)
+    encodings = []
+    for value in option.values:
+      variant_encoder = Encoder(self.codec,
+                                option.SetValue(self.parameters, value))
+      encodings.extend(self.codec.cache.AllScoredRates(variant_encoder,
+                                                       videofile).encodings)
+    return EncodingSet(encodings)
+
 
 class Encoding(object):
   """The encoding represents the result of applying a specific encoder
@@ -323,9 +356,9 @@ class Encoding(object):
     return EncodingSet(result)
 
   def Workdir(self):
-    workdir = (self.encoder.codec.name + '/' + self.encoder.Hashname()
-               + '/' + self.encoder.codec.SpeedGroup(self.bitrate))
-    # TODO(hta): Make this storage subsys dependent.
+    workdir = os.path.join(self.encoder.codec.cache.WorkDir(),
+                           self.encoder.Hashname(),
+                           self.encoder.codec.SpeedGroup(self.bitrate))
     if not os.path.isdir(workdir):
       os.makedirs(workdir)
     return workdir
@@ -374,25 +407,56 @@ class EncodingDiskCache(object):
   """Encoder and encoding information, saved to disk."""
   def __init__(self, codec):
     self.codec = codec
-    if not os.path.isdir(codec.name):
-      os.mkdir(codec.name)
+    # Default work directory is current directory.
+    self.workdir = '%s/%s' % (os.getenv('CODEC_WORKDIR'),
+                              codec.name)
+    if not os.path.isdir(self.workdir):
+      os.mkdir(self.workdir)
 
-  def AllScoredEncodings(self, bitrate, videofile):
+  def WorkDir(self):
+    return self.workdir
+
+  def _FilesToEncodings(self, files, videofile, bitrate=0, encoder_in=None):
     candidates = []
-    videofilename = videofile.filename
-    basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = (self.codec.name + '/*/' + self.codec.SpeedGroup(bitrate) +
-                      '/' + basename + '.result')
-    files = glob.glob(pattern)
     for file in files:
-      filename = os.path.dirname(file)  # Cut off resultfile
-      filename = os.path.dirname(filename)  # Cut off bitrate dir
-      filename = os.path.basename(filename)  # Cut off leading codec name
-      encoder = Encoder(self.codec, filename=filename)
-      candidate = Encoding(encoder, bitrate, videofile)
+      encoder = encoder_in
+      if encoder is None:
+        filename = os.path.dirname(file)  # Cut off resultfile
+        filename = os.path.dirname(filename)  # Cut off bitrate dir
+        filename = os.path.basename(filename)  # Cut off leading codec name
+        encoder = Encoder(self.codec, filename=filename)
+      if bitrate == 0:
+        filename = os.path.dirname(file)
+        target_bitrate = os.path.basename(filename)
+        try:
+          this_bitrate = int(target_bitrate)
+        except ValueError:
+          # The bitrate is not encoded in the filename.
+          # Let it remain zero, we don't know what the target rate is.
+          this_bitrate = 0
+      else:
+        this_bitrate = bitrate
+      candidate = Encoding(encoder, this_bitrate, videofile)
       candidate.Recover()
       candidates.append(candidate)
     return EncodingSet(candidates)
+
+
+  def AllScoredEncodings(self, bitrate, videofile):
+    videofilename = videofile.filename
+    basename = os.path.splitext(os.path.basename(videofilename))[0]
+    pattern = os.path.join(self.workdir, '*', self.codec.SpeedGroup(bitrate),
+                           basename + '.result')
+    files = glob.glob(pattern)
+    return self._FilesToEncodings(files, videofile, bitrate=bitrate)
+
+  def AllScoredRates(self, encoder, videofile):
+    videofilename = videofile.filename
+    basename = os.path.splitext(os.path.basename(videofilename))[0]
+    pattern = os.path.join(self.workdir, encoder.Hashname(),
+                           '*', basename + '.result')
+    files = glob.glob(pattern)
+    return self._FilesToEncodings(files, videofile, encoder_in=encoder)
 
   def StoreEncoder(self, encoder):
     """Stores an encoder object on disk.
@@ -402,16 +466,16 @@ class EncodingDiskCache(object):
     representation."""
     if encoder.stored:
       return
-    dirname = self.codec.name + '/' + encoder.Hashname()
+    dirname = os.path.join(self.workdir, encoder.Hashname())
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
-    with open(dirname + '/parameters', 'w') as parameterfile:
+    with open(os.path.join(dirname, 'parameters'), 'w') as parameterfile:
       parameterfile.write(encoder.parameters)
     encoder.stored = True
 
   def ReadEncoderParameters(self, hashname):
-    dirname = self.codec.name + '/' + hashname
-    with open(dirname + '/parameters', 'r') as parameterfile:
+    dirname = os.path.join(self.workdir, hashname)
+    with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
       return parameterfile.read()
 
   def StoreEncoding(self, encoding):
@@ -421,7 +485,7 @@ class EncodingDiskCache(object):
     The bitrate is encoded as a directory, the videofilename
     is encoded as part of the output filename.
     """
-    dirname = '%s/%s/%s' % (self.codec.name, encoding.encoder.Hashname(),
+    dirname = '%s/%s/%s' % (self.workdir, encoding.encoder.Hashname(),
                             self.codec.SpeedGroup(encoding.bitrate))
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
@@ -435,7 +499,7 @@ class EncodingDiskCache(object):
     """Reads an encoding result back from storage, if present.
 
     Encoder is unchanged if file does not exist."""
-    dirname = ('%s/%s/%s' % (self.codec.name, encoding.encoder.Hashname(),
+    dirname = ('%s/%s/%s' % (self.workdir, encoding.encoder.Hashname(),
                              self.codec.SpeedGroup(encoding.bitrate)))
     filename = '%s/%s.result' % (dirname, encoding.videofile.basename)
     if os.path.isfile(filename):
@@ -451,11 +515,23 @@ class EncodingMemoryCache(object):
     self.encoders = {}
     self.encodings = []
 
+  def WorkDir(self):
+    return '/tmp'
+
   def AllScoredEncodings(self, bitrate, videofile):
     result = []
     for encoding in self.encodings:
       if (bitrate == encoding.bitrate and
           videofile == encoding.videofile and
+          encoding.Score()):
+        result.append(encoding)
+    return EncodingSet(result)
+
+  def AllScoredRates(self, encoder, videofile):
+    result = []
+    for encoding in self.encodings:
+      if (videofile == encoding.videofile and
+          encoder == encoding.encoder and
           encoding.Score()):
         result.append(encoding)
     return EncodingSet(result)

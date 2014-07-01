@@ -1,0 +1,45 @@
+#!/usr/bin/python
+#
+# Compares a number of codecs for what they do when presented with the
+# "MPEG" test suite.
+#
+# Outputs a table with the samples down and the codecs across, giving
+# bitrate and PSNR for each target.
+#
+import argparse
+import sys
+
+import mpeg_settings
+import encoder
+import pick_codec
+
+def ListOneTarget(rate, videofile, do_score):
+  print '%-28.28s %5d' % (videofile.basename, rate),
+  for codec_name in ('h261', 'h263', 'mjpeg', 'vp8'):
+    codec = pick_codec.PickCodec(codec_name)
+    bestsofar = codec.BestEncoding(rate, videofile)
+    if do_score and not bestsofar.Score():
+      bestsofar.Execute()
+      bestsofar.Store()
+    assert(bestsofar.Score())
+    print ' %6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
+  print ''
+
+def ListResults(do_score):
+  print '%-28s %5s %12s %12s %12s %12s' % (
+    'File', 'Rate', 'H.261', 'H.263p', 'MJPEG', 'VP8')
+  for classname in mpeg_settings.files.keys():
+    for filename in mpeg_settings.files[classname]:
+      videofile = encoder.Videofile('video/mpeg_video/' + filename)
+      for rate in mpeg_settings.rates[classname]:
+        ListOneTarget(rate, videofile, do_score)
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--score', action='store_true', default=False)
+  args = parser.parse_args()
+  ListResults(args.score)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

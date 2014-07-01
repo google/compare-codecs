@@ -14,7 +14,7 @@ class TestVp8Mpeg1dCodec(unittest.TestCase):
 
   def test_StartParams(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
-    params = codec.start_encoder.parameters
+    params = codec.StartEncoder().parameters
     self.assertEqual(int(encoder.Option('key-q').GetValue(params))*2,
                      int(encoder.Option('fixed-q').GetValue(params)))
 

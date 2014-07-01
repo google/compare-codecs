@@ -6,9 +6,6 @@
 import argparse
 import sys
 
-# Library path relative to directory containing library.
-sys.path.append('../vpx_codec_comparison/tweaker')
-
 import encoder
 import pick_codec
 

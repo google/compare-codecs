@@ -20,11 +20,14 @@ class FfmpegCodec(encoder.Codec):
     super(FfmpegCodec, self).__init__(name)
     self.options = [
       ]
-    self.start_encoder = encoder.Encoder(self, '')
+
+  def StartEncoder(self):
+    return encoder.Encoder(self, '')
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     commandline = (
-      '../bin/ffmpeg %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s/%s.%s' % (
+      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s/%s.%s' % (
+        encoder.Tool('ffmpeg'),
         parameters, videofile.width, videofile.height,
         videofile.filename, self.codecname,
         bitrate, workdir, videofile.basename, self.extension))
@@ -40,7 +43,8 @@ class FfmpegCodec(encoder.Codec):
     if os.path.isfile(tempyuvfile):
       print "Removing tempfile before decode:", tempyuvfile
       os.unlink(tempyuvfile)
-    commandline = "../bin/ffmpeg -codec:v %s -i %s/%s.%s %s" % (
+    commandline = "%s -codec:v %s -i %s/%s.%s %s" % (
+      encoder.Tool('ffmpeg'),
       self.codecname,
       workdir, videofile.basename, self.extension, tempyuvfile)
     print commandline
@@ -50,9 +54,10 @@ class FfmpegCodec(encoder.Codec):
     bitrate = videofile.MeasuredBitrate(
       os.path.getsize('%s/%s.%s' % (workdir, videofile.basename,
                                     self.extension)))
-    commandline = "../bin/psnr %s %s %d %d 9999" % (
-                         videofile.filename, tempyuvfile, videofile.width,
-                         videofile.height)
+    commandline = "%s %s %s %d %d 9999" % (
+      encoder.Tool('psnr'),
+      videofile.filename, tempyuvfile, videofile.width,
+      videofile.height)
     print commandline
     psnr = subprocess.check_output(commandline, shell=True)
     print "Bitrate", bitrate, "PSNR", psnr
