@@ -13,9 +13,9 @@ import mpeg_settings
 import encoder
 import pick_codec
 
-def ListOneTarget(rate, videofile, do_score):
+def ListOneTarget(codecs, rate, videofile, do_score):
   print '%-28.28s %5d' % (videofile.basename, rate),
-  for codec_name in ('h261', 'h263', 'mjpeg', 'vp8'):
+  for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
     bestsofar = codec.BestEncoding(rate, videofile)
     if do_score and not bestsofar.Score():
@@ -25,20 +25,23 @@ def ListOneTarget(rate, videofile, do_score):
     print ' %6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
   print ''
 
-def ListResults(do_score):
-  print '%-28s %5s %12s %12s %12s %12s' % (
-    'File', 'Rate', 'H.261', 'H.263p', 'MJPEG', 'VP8')
+def ListResults(codecs, do_score):
+  print '%-28s %5s' % ('File', 'Rate'),
+  for c in codecs:
+    print '%12s' % pick_codec.ShortName(c),
+  print
   for classname in mpeg_settings.files.keys():
     for filename in mpeg_settings.files[classname]:
       videofile = encoder.Videofile('video/mpeg_video/' + filename)
       for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(rate, videofile, do_score)
+        ListOneTarget(codecs, rate, videofile, do_score)
 
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('codecs', nargs='*')
   args = parser.parse_args()
-  ListResults(args.score)
+  ListResults(args.codecs, args.score)
   return 0
 
 if __name__ == '__main__':

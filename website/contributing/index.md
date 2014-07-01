@@ -21,12 +21,19 @@ The requirements for contributions are:
 The steps for running a comparision yourself are:
 
   * Clone this site using git, onto a system running Linux. The setup has been
-    tested using Ubuntu 12.04; other Linux distributions might work.Contributions to make it work on other systems are welcome!
+    tested using Ubuntu 12.04; other Linux distributions might work.
+    Contributions to make it work on other systems are welcome!
 
-  * Go to the `build` directory and run the `install_prerequisites.sh` script.
+  * Go to the main directory and run the `install_prerequisites.sh` script.
+    Run the `FIXME` script to install your test video clips.
 
-  * Go to the `FIXME` directory, select your codecs from the list of codecs
-    given by `list_codecs`, and run `FIXME`. This can take quite a while.
+  * Source the `init.sh` file. This sets your path and environment variables
+    correctly.
+
+  * Select your codecs from the list of codecs
+    given by `list_codecs`, and run `compare_codecs --score <codec1> <codec2>`.
+    This can take quite a while, and produce quite a bit of output. Run it
+    again to view the results in text format.
 
   * At the end of the run, the name of an HTML file is printed. Open this file
     in the browser of your choice.

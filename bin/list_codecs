@@ -1,0 +1,14 @@
+#!/usr/bin/python
+#
+# Lists the available codecs in this distribution.
+#
+
+import pick_codec
+import sys
+
+def main():
+  for codec in pick_codec.codec_map:
+    print codec, ' - ', pick_codec.LongName(codec)
+
+if __name__ == '__main__':
+  sys.exit(main())

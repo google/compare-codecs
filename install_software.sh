@@ -17,6 +17,11 @@ git checkout -f master
 ./install_software.sh
 cd ..
 
+# Install prerequisites for running Jekyll as a web server
+sudo apt-get install ruby1.9.1-dev
+sudo apt-get install nodejs
+sudo gem install jekyll
+
 # More stuff will go here.
 
 echo "All software installed"
