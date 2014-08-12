@@ -135,6 +135,11 @@ def HasMetrics(line):
 
 
 def ParseMetricFile(file_name, metric_column):
+  """
+  Convert a metrics file into a set of numbers.
+  This returns a sorted list of tuples with the first number
+  being from the first column (bitrate) and the second being from metric_column (counting from 0).
+  """
   metric_set1 = set([])
   metric_file = open(file_name, "r")
   for line in metric_file:
@@ -149,10 +154,75 @@ def ParseMetricFile(file_name, metric_column):
   return metric_set1_sorted
 
 
+def GraphBetter(metric_set1_sorted, metric_set2_sorted, use_set2_as_base):
+  """
+  Search through the sorted metric file for metrics on either side of
+  the metric from file 1.  Since both lists are sorted we really
+  should not have to search through the entire range, but these
+  are small files."""
+  total_bitrate_difference_ratio = 0.0
+  count = 0
+  # TODO(hta): Replace whole thing with a call to numpy.interp()
+  for bitrate, metric in metric_set1_sorted:
+    for i in range(len(metric_set2_sorted) - 1):
+      s2_bitrate_0, s2_metric_0 = metric_set2_sorted[i]
+      s2_bitrate_1, s2_metric_1 = metric_set2_sorted[i + 1]
+      # We have a point on either side of our metric range.
+      if s2_metric_0 < metric <= s2_metric_1:
+        # Calculate a slope.
+        if s2_metric_1 - s2_metric_0 != 0:
+          metric_slope = ((s2_bitrate_1 - s2_bitrate_0) /
+                          (s2_metric_1 - s2_metric_0))
+        else:
+          metric_slope = 0
+
+        estimated_s2_bitrate = (s2_bitrate_0 + (metric - s2_metric_0) *
+                                metric_slope)
+
+        # Calculate percentage difference as given by base.
+        if use_set2_as_base:
+          bitrate_difference_ratio = ((bitrate - estimated_s2_bitrate) /
+                                        estimated_s2_bitrate)
+        else:
+          bitrate_difference_ratio = ((bitrate - estimated_s2_bitrate) /
+                                      bitrate)
+
+        total_bitrate_difference_ratio += bitrate_difference_ratio
+        count += 1
+        break
+
+  # Calculate the average improvement between graphs.
+  if count != 0:
+    avg = total_bitrate_difference_ratio / count
+
+  else:
+    avg = 0.0
+
+  return avg
+
+def DataSetBetter(metric_set1, metric_set2, method):
+  """
+  Compares two data sets and determines which is better and by how
+  much.
+  The input metric set is sorted on bitrate.
+  """
+  # Be fair to both graphs by testing all the points in each.
+  if method == 'avg':
+    avg_improvement = 50 * (
+                       GraphBetter(metric_set1, metric_set2, use_set2_as_base=True) -
+                       GraphBetter(metric_set2, metric_set1, use_set2_as_base=False))
+  elif method == 'dsnr':
+    avg_improvement = bdsnr(metric_set1, metric_set2)
+  else:
+    avg_improvement = bdrate(metric_set2, metric_set1)
+
+  return avg_improvement
+
+
 def FileBetter(file_name_1, file_name_2, metric_column, method):
   """
   Compares two data files and determines which is better and by how
-  much. Also produces a histogram of how much better, by PSNR.
+  much.
   metric_column is the metric.
   """
   # Store and parse our two files into lists of unique tuples.
@@ -161,64 +231,22 @@ def FileBetter(file_name_1, file_name_2, metric_column, method):
   metric_set1_sorted = ParseMetricFile(file_name_1, metric_column)
   metric_set2_sorted = ParseMetricFile(file_name_2, metric_column)
 
+  return DataSetBetter(metric_set1_sorted, metric_set2_sorted, method)
 
-  def GraphBetter(metric_set1_sorted, metric_set2_sorted, base_is_set_2):
-    """
-    Search through the sorted metric file for metrics on either side of
-    the metric from file 1.  Since both lists are sorted we really
-    should not have to search through the entire range, but these
-    are small files."""
-    total_bitrate_difference_ratio = 0.0
-    count = 0
-    for bitrate, metric in metric_set1_sorted:
-      for i in range(len(metric_set2_sorted) - 1):
-        s2_bitrate_0, s2_metric_0 = metric_set2_sorted[i]
-        s2_bitrate_1, s2_metric_1 = metric_set2_sorted[i + 1]
-        # We have a point on either side of our metric range.
-        if metric > s2_metric_0 and metric <= s2_metric_1:
 
-          # Calculate a slope.
-          if s2_metric_1 - s2_metric_0 != 0:
-            metric_slope = ((s2_bitrate_1 - s2_bitrate_0) /
-                            (s2_metric_1 - s2_metric_0))
-          else:
-            metric_slope = 0
-
-          estimated_s2_bitrate = (s2_bitrate_0 + (metric - s2_metric_0) *
-                                  metric_slope)
-
-          # Calculate percentage difference as given by base.
-          if base_is_set_2 == 0:
-            bitrate_difference_ratio = ((bitrate - estimated_s2_bitrate) /
-                                        bitrate)
-          else:
-            bitrate_difference_ratio = ((bitrate - estimated_s2_bitrate) /
-                                        estimated_s2_bitrate)
-
-          total_bitrate_difference_ratio += bitrate_difference_ratio
-          count += 1
-          break
-
-    # Calculate the average improvement between graphs.
-    if count != 0:
-      avg = total_bitrate_difference_ratio / count
-
-    else:
-      avg = 0.0
-
-    return avg
-
-  # Be fair to both graphs by testing all the points in each.
-  if method == 'avg':
-    avg_improvement = 50 * (
-                       GraphBetter(metric_set1_sorted, metric_set2_sorted, 1) -
-                       GraphBetter(metric_set2_sorted, metric_set1_sorted, 0))
-  elif method == 'dsnr':
-      avg_improvement = bdsnr(metric_set1_sorted, metric_set2_sorted)
-  else:
-      avg_improvement = bdrate(metric_set2_sorted, metric_set1_sorted)
-
-  return avg_improvement
+def HtmlPage(page_template, filestable, snrs, formatters):
+  """
+  Creates a HTML page from the template and variables passed to it.
+  """
+  # Build up a dictionary of the five variables actually used in the template.
+  dict = {
+    'filestable_dpsnr': filestable['dsnr'],
+    'filestable_avg': filestable['avg'],
+    'filestable_drate': filestable['drate'],
+    'snrs': snrs,
+    'formatters': formatters
+    }
+  return FillForm(page_template, dict)
 
 
 def HandleFiles(variables):
@@ -267,11 +295,7 @@ def HandleFiles(variables):
   visual_metrics.py template.html "*stt" vp8 vp8b vp8c > metrics.html
   """
 
-  # The template file is the html file into which we will write the
-  # data from the stats file, formatted correctly for the gviz_api.
-  template_file = open(variables[1], "r")
-  page_template = template_file.read()
-  template_file.close()
+  template_file_name = variables[1]
 
   # This is the path match pattern for finding stats files amongst
   # all the other files it could be.  eg: *.stt
@@ -280,6 +304,10 @@ def HandleFiles(variables):
   # This is the directory with files that we will use to do the comparison
   # against.
   baseline_dir = variables[3]
+
+  # Dirs is directories after the baseline to compare to the base.
+  dirs = variables[4:len(variables)]
+
   snrs = ''
   filestable = {}
   filestable['dsnr'] = ''
@@ -288,9 +316,6 @@ def HandleFiles(variables):
 
   # Go through each metric in the list.
   for column in range(1,2):
-
-    # Dirs is directories after the baseline to compare to the base.
-    dirs = variables[4:len(variables)]
 
     # Find the metric files in the baseline directory.
     dir_list = sorted(fnmatch.filter(os.listdir(baseline_dir), file_pattern))
@@ -303,7 +328,7 @@ def HandleFiles(variables):
       sumoverall = {}
 
       for directory in dirs:
-        description[directory] = ("number", directory)
+        description[directory] = ("number", basename(directory))
         countoverall[directory] = 0
         sumoverall[directory] = 0
 
@@ -332,11 +357,11 @@ def HandleFiles(variables):
         data.append(row)
 
       # Add the overall numbers.
-      row = {"file": "OVERALL" }
-      if countoverall[directory]:
-        for directory in dirs:
+      row = {"file": "OVERALL " + metric}
+      for directory in dirs:
+        if countoverall[directory]:
           row[directory] = sumoverall[directory] / countoverall[directory]
-      data.append(row)
+        data.append(row)
 
       # write the tables out
       data_table = gviz_api.DataTable(description)
@@ -346,18 +371,14 @@ def HandleFiles(variables):
                              "[" + str(column) + "]=" + data_table.ToJSon()
                              + "\n" )
 
-    filestable_avg = filestable['avg']
-    filestable_dpsnr = filestable['dsnr']
-    filestable_drate = filestable['drate']
-
     # Now we collect all the data for all the graphs.  First the column
     # headers which will be Datarate and then each directory.
-    columns = ("datarate",baseline_dir)
+    columns = ("datarate", baseline_dir)
     description = {"datarate":("number", "Datarate")}
     for directory in dirs:
-      description[directory] = ("number", directory)
+      description[directory] = ("number", basename(directory))
 
-    description[baseline_dir] = ("number", baseline_dir)
+    description[baseline_dir] = ("number", basename(baseline_dir))
 
     snrs = snrs + "snrs[" + str(column) + "] = ["
 
@@ -392,7 +413,13 @@ def HandleFiles(variables):
     for i in range(len(dirs)):
       formatters = "%s   formatter.format(better, %d);" % (formatters, i+1)
 
-  print FillForm(page_template, vars())
+  # The template file is the html file into which we will write the
+  # data from the stats file, formatted correctly for the gviz_api.
+  template_file = open(template_file_name, "r")
+  page_template = template_file.read()
+  template_file.close()
+
+  print HtmlPage(page_template, filestable, snrs, formatters)
   return
 
 if __name__ == '__main__':
