@@ -35,7 +35,8 @@ The steps for running a comparision yourself are:
     This can take quite a while, and produce quite a bit of output. Run it
     again to view the results in text format.
 
-  * Run `compare_html <codec1> <codec2> > <somefile.html> to generate a HTML
+  * Run `compare_html <codec1> <codec2> > <somefile.html>` to
+    generate a HTML
     formatted comparision. View the result
     in the browser of your choice.
 
