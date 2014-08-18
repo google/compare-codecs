@@ -6,3 +6,12 @@ the performance of codecs -- consistently, openly, and usefully.
 
 For a complete description of what it does, how it does it, and why, check out
 the website, the source for which is in `website/_site`.
+
+To fire up the Web server to read the web site, run the following steps:
+
+* source init.sh
+* ./install_software.sh (installs all required software, this takes time)
+* cd website; jekyll serve --watch
+
+The website will now be visible as "localhost:4000".
+
