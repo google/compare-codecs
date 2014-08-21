@@ -20,20 +20,23 @@ class X264Codec(encoder.Codec):
 
 
   def Execute(self, parameters, bitrate, videofile, workdir):
-    commandline = "%s \
-      --vbv-maxrate %d --vbv-bufsize %d --vbv-init 0.8 \
-      --bitrate %d --fps %d \
-      --threads 1 \
-      --rc-lookahead 0 \
-      --ref 2 \
-      --profile baseline --no-scenecut --keyint infinite --preset veryslow \
-      --input-res %dx%d \
-      --tune psnr \
-      -o %s %s" % (
-      encoder.Tool('x264'), bitrate, bitrate, bitrate,
-      videofile.framerate, videofile.width, videofile.height,
-      workdir + '/' + videofile.basename + self.extension,
-      videofile.filename)
+    commandline = ("%(x264)s "
+      "--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d --vbv-init 0.8 "
+      "--bitrate %(bitrate)d --fps %(framerate)d "
+      "--threads 1 "
+      "--rc-lookahead 0 "
+      "--ref 2 "
+      "--profile baseline --no-scenecut --keyint infinite --preset veryslow "
+      "--input-res %(width)dx%(height)d "
+      "--tune psnr "
+      "-o %(outputfile)s %(inputfile)s") % {
+     'x264': encoder.Tool('x264'),
+     'bitrate': bitrate,
+     'framerate': videofile.framerate,
+     'width': videofile.width,
+     'height': videofile.height,
+      'outputfile': workdir + '/' + videofile.basename + self.extension,
+      'inputfile': videofile.filename}
     print commandline
     with open('/dev/null', 'r') as nullinput:
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
