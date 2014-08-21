@@ -9,6 +9,7 @@ import vp8_cq
 import vp8_mpeg
 import vp8_mpeg_1d
 import ffmpeg
+import x264
 
 class CodecInfo(object):
   def __init__(self, constructor, shortname, longname):
@@ -28,6 +29,7 @@ codec_map = {
   'mjpeg' : CodecInfo(mjpeg.MotionJpegCodec, 'MJPEG', 'Motion JPEG'),
   'h261': CodecInfo(h261.H261Codec, 'H261', 'H.261'),
   'h263': CodecInfo(h263.H263Codec, 'H263', 'H.263'),
+  'x264': CodecInfo(x264.X264Codec, 'H264', 'H.264 - x264 implementation'),
 }
 
 def PickCodec(name):
