@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Get some videos to run comparisions on.
+#
+set -e
+
+cd $WORKDIR/video
+
+# The Derf collection is easily available via rsync.
+rsync -avz --max-size=100M rsync://media.xiph.org/y4m derf
+
+# The WEBM collection is accessible via a script that expects the
+# dirname "video", but not via rsync.
+if [ ! -d webm ]; then
+   mkdir webm
+   cd webm
+   ../../vpx_codec_comparison/fetch_videos.sh
+   mv video/* .
+   rmdir video
+fi
+
+# Some test files
+if [ ! -d testclips ]; then mkdir testclips; fi
+
+framesize=$(expr 1024 \* 768 \* 3 / 2)
+# One frame, all black.
+dd if=/dev/zero of=testclips/one_black_frame_1024_768_30.yuv \
+    bs=$framesize count=1
+
