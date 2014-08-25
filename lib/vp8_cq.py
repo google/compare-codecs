@@ -15,20 +15,24 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
   def __init__(self):
     super(Vp8CodecCqMode, self).__init__('vp8-cq')
     # Set the parts that are different from the VP8 codec.
-    self.options = [
+    self.option_set = encoder.OptionSet(
       encoder.IntegerOption('min-q', 0, 63),
       encoder.ChoiceOption(['good', 'best', 'rt']),
-      ]
+      encoder.DummyOption('max-q'),
+    )
     # The start encoder is exactly the same as for VP8,
     # except that min-q and max-q have the same value.
     # TODO(hta): Remove the options that have no effect in this mode.
-    self.start_encoder = encoder.Encoder(self, """ --lag-in-frames=0 \
+  def StartEncoder(self):
+    return encoder.Encoder(self, encoder.OptionValueSet(
+      self.option_set,
+      """ --lag-in-frames=0 \
       --kf-min-dist=3000 \
       --kf-max-dist=3000 --cpu-used=0 --static-thresh=0 \
       --token-parts=1 --drop-frame=0 --end-usage=cbr --min-q=32 --max-q=32 \
       --undershoot-pct=100 --overshoot-pct=15 --buf-sz=1000 \
       --buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 \
-      --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """)
+      --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """))
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # This is exactly the same as vp8.Execute, except that there is
@@ -53,8 +57,7 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
 
   def ConfigurationFixups(self, config):
     """Ensure fixed CQ by setting min-q and max-q to the same value."""
-    return encoder.Option('max-q').SetValue(
-      config, encoder.Option('min-q').GetValue(config))
+    return config.ChangeValue('max-q', config.GetValue('min-q'))
 
   def SuggestTweak(self, encoding):
     """Suggest a tweak based on an encoding result.
@@ -67,14 +70,14 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
     else:
       delta = -1
     parameters = encoding.encoder.parameters
-    value = int(encoder.Option('min-q').GetValue(parameters))
+    value = int(parameters.GetValue('min-q'))
     # The range of min-q is from 0 to 63.
     if value + delta > 63:
       return None # Already maxed out
     if value + delta < 0:
       return None # Already at bottom
     new_value = value + delta
-    parameters = encoder.Option('min-q').SetValue(parameters, str(new_value))
+    parameters = parameters.ChangeValue('min-q', str(new_value))
     parameters = self.ConfigurationFixups(parameters)
     return encoder.Encoding(encoder.Encoder(self, parameters),
                     encoding.bitrate, encoding.videofile)

@@ -19,12 +19,12 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     super(Vp8CodecMpegMode, self).__init__()
     # Set the parts that are different from the VP8 codec.
     self.name = 'vp8-mpeg'
-    self.options = [
+    self.option_set = encoder.OptionSet(
       encoder.IntegerOption('fixed-q', 0, 63),
       encoder.IntegerOption('gold-q', 0, 63),
       encoder.IntegerOption('key-q', 0, 63),
       encoder.ChoiceOption(['good', 'best', 'rt']),
-      ]
+    )
     # The start encoder is exactly the same as for VP8,
     # except that fixed-q, gold-q, alt-q and key-q parameters are set.
     # TODO(hta): Remove the options that have no effect in this mode.
@@ -38,7 +38,9 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
       --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """
 
   def StartEncoder(self):
-    return encoder.Encoder(self, self.start_encoder_parameters)
+    return encoder.Encoder(self,
+                           encoder.OptionValueSet(self.option_set,
+                             self.start_encoder_parameters))
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # This is exactly the same as vp8.Execute, except that there is

@@ -45,11 +45,14 @@ class Option(object):
     self.name = name
     self.values = frozenset(values)
 
+  def CanChange(self):
+    return len(self.values) > 1
+
   def PickAnother(self, not_this):
     """Find a new value for the option, different from not_this.
     not_this doesn't have to be a member of the values list, but can be.
     """
-    assert(len(self.values) > 1)
+    assert(self.CanChange)
     rest = list(self.values - set([not_this]))
     return rest[random.randint(0, len(rest) - 1)]
 
@@ -59,21 +62,12 @@ class Option(object):
   def _OptionSearchExpression(self):
     return r'--%s=(\S+)' % self.name
 
-  def GetValue(self, config):
-    m = re.search(self._OptionSearchExpression(), config)
-    if not m:
-      raise Error('No value for option %s' % self.name)
-    return m.group(1)
+  def FlagIsValue(self, flag):
+    """ Return true if a flag can represent a value of this option."""
+    return False
 
-  def SetValue(self, config, new_value):
-    return re.sub(self._OptionSearchExpression(),
-                  self.OptionString(new_value), config)
-
-  def RandomlyPatchConfig(self, config):
-    """ Modify a configuration by changing the value of this parameter."""
-    newconfig = self.SetValue(config, self.PickAnother(self.GetValue(config)))
-    assert(config != newconfig)
-    return newconfig
+  def Format(self, value, formatter):
+    return formatter.Format(self.name, value)
 
 
 class ChoiceOption(Option):
@@ -91,7 +85,7 @@ class ChoiceOption(Option):
     return '--%s' % value
 
   def GetValue(self, config):
-    current_flags = set([flag[2:] for flag in config.split()
+    current_flags = set([flag[2:] for flag in config.ToString().split()
                          if flag.startswith('--')])
     these_flags = current_flags & self.values
     if len(these_flags) == 0:
@@ -105,9 +99,15 @@ class ChoiceOption(Option):
     current_flag = self.GetValue(config)
     next_flag = self.PickAnother(current_flag)
     newconfig = re.sub(r'--%s\b' % current_flag,
-                       '--%s' % next_flag, config)
+                       '--%s' % next_flag, config.ToString())
     assert(config != newconfig)
     return newconfig
+
+  def FlagIsValue(self, value):
+    return (value in self.values)
+
+  def Format(self, value, formatter):
+    return formatter.Format(value, None)
 
 
 class IntegerOption(Option):
@@ -119,6 +119,146 @@ class IntegerOption(Option):
     self.values = frozenset([str(s) for s in xrange(min, max+1)])
     self.min = min
     self.max = max
+
+
+class DummyOption(Option):
+  """This class represents an option that cannot be set by the tweaking
+  methods, but can be set by SetValue."""
+  def __init__(self, name):
+    self.name = name
+
+  def CanChange(self):
+    return False
+
+
+class OptionSet(object):
+  """A set of option definitions.
+  Together, these constitute all possible variation dimensions for a codec.
+  """
+  def __init__(self, *args):
+    self.options = {}
+    for arg in args:
+      self.RegisterOption(arg)
+
+  def RegisterOption(self, option):
+    self.options[option.name] = option
+
+  def Option(self, name):
+    return self.options[name]
+
+  def HasOption(self, name):
+    return name in self.options
+
+  def AllOptions(self):
+    return self.options.values()
+
+  def AllChangeableOptions(self):
+    return [option for option in self.AllOptions() if option.CanChange()]
+
+  def FindFlagOption(self, flag):
+    for name in self.options:
+      if self.options[name].FlagIsValue(flag):
+        return name
+    return None
+
+  def Format(self, name, value, formatter):
+    return self.options[name].Format(value, formatter)
+
+
+class OptionFormatter(object):
+  """Formatter for the command line form of an option.
+
+  Intended to be called by the option class in order to format
+  in a codec-specific fashion."""
+
+  def __init__(self, prefix='--', infix='='):
+    self.prefix = prefix
+    self.infix = infix
+
+  def Format(self, name, value):
+    if value is None:
+      return '%s%s' % (self.prefix, name)
+    else:
+      return '%s%s%s%s' % (self.prefix, name, self.infix, value)
+
+
+class OptionValueSet(object):
+  """Values for a set of options.
+
+  The values are immutable.
+  This class knows how to parse the set from a string (via an injected
+  formatter module + an OptionSet for the names), and how to generate
+  a string from the set of values.
+  """
+  def __init__(self, option_set, string, formatter=OptionFormatter()):
+    self.option_set = option_set
+    self.formatter= formatter
+    self.values = {}
+    self.other_parts = []
+    for flag in string.split():
+      m = re.match(r'%s([^%s]*)(%s)?' % (formatter.prefix, formatter.infix[0:1],
+                                         formatter.infix),
+                   flag)
+      if m:
+        name = m.group(1)
+        if m.group(2) and option_set.HasOption(name):
+          # Known name=value option.
+          name = m.group(1)
+          value = m.string[m.end():]
+          self.values[name] = value
+          continue
+        option_name = option_set.FindFlagOption(m.group(1))
+        if option_name:
+          # Known flag option (no value)
+          self.values[option_name] = name
+          continue
+      # It is not a known name=value or a known flag.
+      # Remember it, but don't make it available for manipulation.
+      self.other_parts.append(flag)
+
+  def ToString(self):
+    # ToString returns parts in sorted order, for consistency.
+    parts = [self.option_set.Format(name, value, self.formatter)
+                       for name, value in self.values.iteritems()]
+    return ' '.join(sorted(parts + self.other_parts))
+
+  def __eq__(self, other):
+    if isinstance(other, self.__class__):
+      return self.ToString() == other.ToString()
+    else:
+      # If the other is a string that's acceptable as an OVS,
+      # accept it. (This may reorder options.)
+      return self == OptionValueSet(self.option_set, other)
+
+  def GetValue(self, name):
+    try:
+      return self.values[name]
+    except KeyError:
+      raise Error('No value for option %s' % name)
+
+  def ChangeValue(self, name, value):
+    """Return an OptionValueSet with the specified parameter changed."""
+    if not self.option_set.HasOption(name):
+      raise Error('Unknown option name %s' % name)
+    new_set = OptionValueSet(self.option_set, "", self.formatter)
+    new_set.values = self.values
+    new_set.values[name] = value  # Will fail if name is not initialized
+    new_set.other_parts = self.other_parts
+    return new_set
+
+  def RandomlyPatchOption(self, option):
+    """ Modify a configuration by changing the value of this option."""
+    newconfig = self.ChangeValue(option.name,
+                                 option.PickAnother(self.GetValue(option.name)))
+    assert(self != newconfig)
+    return newconfig
+
+  def RandomlyPatchConfig(self):
+    """ Modify a configuration by changing the value of a random parameter."""
+    options = self.option_set.AllChangeableOptions()
+    assert(len(options) >= 1)
+    option_to_change = options[random.randint(0, len(options)-1)]
+    return self.RandomlyPatchOption(option_to_change)
 
 
 class Videofile(object):
@@ -158,17 +298,17 @@ class Codec(object):
   """
   def __init__(self, name, cache=None):
     self.name = name
-    self.options = []
+    self.option_set = OptionSet()
     if cache:
       self.cache = cache
     else:
       self.cache = EncodingDiskCache(self)
 
   def Option(self, name):
-    for option in self.options:
-      if option.name == name:
-        return option
-    raise KeyError(name)
+    return self.option_set.Option(name)
+
+  def AllOptions(self):
+    return self.option_set.AllOptions()
 
   def StartEncoder(self):
     raise Error("The base codec class has no start encoder")
@@ -191,10 +331,7 @@ class Codec(object):
     return config
 
   def RandomlyChangeConfig(self, parameters):
-    assert(len(self.options) >= 1)
-    option_to_change = self.options[random.randint(0, len(self.options)-1)]
-    config = option_to_change.RandomlyPatchConfig(parameters)
-    return self.ConfigurationFixups(config)
+    return self.ConfigurationFixups(parameters.RandomlyPatchConfig())
 
   def ScoreResult(self, bitrate, result):
     """Returns the score of a particular encoding result.
@@ -219,7 +356,7 @@ class Codec(object):
   def DisplayHeading(self):
     """A short string suitable for displaying on top of a column
     showing parameter values for a given encoder."""
-    return ' '.join([option.name for option in self.options])
+    return ' '.join([option.name for option in self.AllOptions()])
 
 
 class Encoder(object):
@@ -229,7 +366,7 @@ class Encoder(object):
   def __init__(self, codec, parameters=None, filename=None):
     """Parameters:
     codec - a Codec object
-    parameters - a string
+    parameters - an OptionValueSet object
     filename - a string, passed to the cache for fetching the parameters
     It makes sense to give either the parameters or the filename.
     """
@@ -256,7 +393,7 @@ class Encoder(object):
 
   def Hashname(self):
     m = md5.new()
-    m.update(self.parameters)
+    m.update(self.parameters.ToString())
     hashname = m.hexdigest()[:12]
     return hashname
 
@@ -277,8 +414,8 @@ class Encoder(object):
   def OptionValues(self):
     """Returns a dictionary of all current option values."""
     values = {}
-    for option in self.codec.options:
-      values[option.name] = option.GetValue(self.parameters)
+    for option in self.codec.AllOptions():
+      values[option.name] = self.parameters.GetValue(option.name)
     return values
 
   def DisplayValues(self):
@@ -287,8 +424,8 @@ class Encoder(object):
     This is intended to be displayed in a column under codec.DisplayHeading,
     so it is important that sequence here is the same as for DisplayHeading.
     """
-    return ' '.join([option.GetValue(self.parameters)
-                     for option in self.codec.options])
+    return ' '.join([self.parameters.GetValue(option.name)
+                     for option in self.codec.AllOptions()])
 
   def AllScoredRates(self, videofile):
     return self.codec.cache.AllScoredRates(self, videofile)
@@ -470,13 +607,13 @@ class EncodingDiskCache(object):
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
     with open(os.path.join(dirname, 'parameters'), 'w') as parameterfile:
-      parameterfile.write(encoder.parameters)
+      parameterfile.write(encoder.parameters.ToString())
     encoder.stored = True
 
   def ReadEncoderParameters(self, hashname):
     dirname = os.path.join(self.workdir, hashname)
     with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
-      return parameterfile.read()
+      return OptionValueSet(self.codec.option_set, parameterfile.read())
 
   def StoreEncoding(self, encoding):
     """Stores an encoding object on disk.

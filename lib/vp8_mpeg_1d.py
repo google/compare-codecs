@@ -19,21 +19,23 @@ class Vp8CodecMpeg1dMode(vp8_mpeg.Vp8CodecMpegMode):
     super(Vp8CodecMpeg1dMode, self).__init__()
     # Set the parts that are different from the VP8 MPEG codec.
     self.name = 'vp8-mp1'
-    self.options = [
+    self.option_set = encoder.OptionSet(
       encoder.IntegerOption('key-q', 0, 63),
-      ]
+      encoder.DummyOption('fixed-q'),
+      encoder.DummyOption('gold-q'),
+    )
 
   def ConfigurationFixups(self, config):
     """Ensure that gold-q and key-q are set from fixed-q. """
-    key_q_value = encoder.Option('key-q').GetValue(config)
+    key_q_value = config.GetValue('key-q')
     fixed_q = float(key_q_value) * 2.0
     gold_q = float(fixed_q) / 1.5
     if fixed_q > 63:
       fixed_q = 63
     if gold_q > 63:
       gold_q = 63
-    config = encoder.Option('gold-q').SetValue(config, str(int(gold_q)))
-    config = encoder.Option('fixed-q').SetValue(config, str(int(fixed_q)))
+    config = config.ChangeValue('gold-q', str(int(gold_q)))
+    config = config.ChangeValue('fixed-q', str(int(fixed_q)))
     return config
 
   def SuggestTweak(self, encoding):
