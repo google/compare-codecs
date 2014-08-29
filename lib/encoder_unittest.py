@@ -47,32 +47,15 @@ class TestConfig(unittest.TestCase):
 
   def test_ChoiceOption(self):
     option = encoder.ChoiceOption(['foo', 'bar'])
-    # Option occurs in the middle of the config.
-    config = encoder.OptionValueSet(encoder.OptionSet(), '--foo ')
-    newconfig = option.RandomlyPatchConfig(config)
-    self.assertEqual(newconfig, '--bar ')
-    # Option occurs at the end of the config.
-    config = encoder.OptionValueSet(encoder.OptionSet(), '--foo')
-    newconfig = option.RandomlyPatchConfig(config)
-    self.assertEqual(newconfig, '--bar')
-    # Verify that prefixes are not matched.
-    config = encoder.OptionValueSet(encoder.OptionSet(), '--foobar --foo')
-    newconfig = option.RandomlyPatchConfig(config)
-    self.assertEqual(newconfig, '--foobar --bar')
-    # Check FlagIsValue function.
-    self.assertFalse(option.FlagIsValue('baz'))
-    self.assertTrue(option.FlagIsValue('foo'))
+    # Check FlagIsValidValue function.
+    self.assertFalse(option.FlagIsValidValue('baz'))
+    self.assertTrue(option.FlagIsValidValue('foo'))
 
   def test_IntegerOption(self):
     option = encoder.IntegerOption('foo', 5, 6)
     config = encoder.OptionValueSet(encoder.OptionSet(option), '--foo=5')
-    self.assertEqual(config.RandomlyPatchConfig(), '--foo=6')
-
-  def test_ChoiceOption(self):
-    config = encoder.OptionValueSet(encoder.OptionSet(), '--foo')
-    option = encoder.ChoiceOption(['foo', 'bar'])
-    newconfig = option.RandomlyPatchConfig(config)
-    self.assertEqual(newconfig, '--bar')
+    self.assertTrue(str(6) in option.values)
+    self.assertFalse(str(4) in option.values)
 
 
 class TestOptionSet(unittest.TestCase):
@@ -82,22 +65,26 @@ class TestOptionSet(unittest.TestCase):
   def test_InitSingle(self):
     opts = encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']))
     self.assertTrue(opts.Option('foo'))
+    self.assertFalse(opts.HasOption('bar'))
 
   def test_InitMany(self):
     opts = encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']),
                              encoder.Option('bar', ['bar', 'baz']))
     self.assertTrue(opts.Option('foo'))
     self.assertTrue(opts.Option('bar'))
+    self.assertFalse(opts.HasOption('baz'))
 
   def test_RegisterOption(self):
     opts = encoder.OptionSet()
+    self.assertFalse(opts.HasOption('foo'))
     opts.RegisterOption(encoder.Option('foo', ['foo', 'bar']))
+    self.assertTrue(opts.HasOption('foo'))
     self.assertTrue(opts.Option('foo'))
 
   def test_FindFlagOption(self):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     self.assertIsNone(opts.FindFlagOption('baz'))
-    self.assertEquals('foo/bar', opts.FindFlagOption('foo'))
+    self.assertEquals('foo/bar', opts.FindFlagOption('foo').name)
 
   def test_Format(self):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
@@ -112,7 +99,7 @@ class TestOptionValueSet(unittest.TestCase):
 
   def test_GetValue(self):
     valueset = encoder.OptionValueSet(
-      encoder.OptionSet(encoder.Option('foo', ['bar'])), '--foo=bar')
+      encoder.OptionSet(encoder.Option('foo', ['baz', 'bar'])), '--foo=bar')
     self.assertEqual('bar', valueset.GetValue('foo'))
 
   def test_GetValueNotPresent(self):
@@ -189,14 +176,14 @@ class TestCodec(unittest.TestCase):
     otherconfig = codec.RandomlyChangeConfig(
       encoder.OptionValueSet(codec.option_set, '--score=5'))
     self.assertNotEqual(otherconfig, '--score=5')
-    self.assertTrue(otherconfig == '--score=0' or
-                    otherconfig == '--score=10')
+    self.assertIn(otherconfig, ['--score=0', '--score=10'])
 
 
 class TestEncoder(unittest.TestCase):
   def test_CreateStoreFetch(self):
     codec = DummyCodec()
-    my_encoder = encoder.Encoder(codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     my_encoder.Store()
     filename = my_encoder.Hashname()
     next_encoder = encoder.Encoder(codec, filename=filename)
@@ -204,7 +191,9 @@ class TestEncoder(unittest.TestCase):
 
   def test_OptionValues(self):
     codec = DummyCodec()
-    my_encoder = encoder.Encoder(codec, encoder.OptionValueSet(encoder.OptionSet(encoder.IntegerOption('score', 0, 100)), '--score=77'))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(
+            encoder.IntegerOption('score', 0, 100)), '--score=77'))
     self.assertEqual(repr(my_encoder.OptionValues()), "{'score': '77'}")
     self.assertEqual(my_encoder.DisplayValues(), '77')
 
@@ -248,7 +237,8 @@ class TestEncodingDiskCache(unittest.TestCase):
   def testStoreFetchEncoder(self):
     codec = StorageOnlyCodec()
     cache = encoder.EncodingDiskCache(codec)
-    my_encoder = encoder.Encoder(codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     new_encoder_data = cache.ReadEncoderParameters(my_encoder.Hashname())
     self.assertEquals(new_encoder_data, my_encoder.parameters)
@@ -256,7 +246,8 @@ class TestEncodingDiskCache(unittest.TestCase):
   def testStoreFetchEncoding(self):
     codec = StorageOnlyCodec()
     cache = encoder.EncodingDiskCache(codec)
-    my_encoder = encoder.Encoder(codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     my_encoding = encoder.Encoding(my_encoder, 123,
                                    encoder.Videofile('x/foo_640_480_20.yuv'))
@@ -273,7 +264,8 @@ class TestEncodingDiskCache(unittest.TestCase):
     codec = StorageOnlyCodec()
     cache = encoder.EncodingDiskCache(codec)
     codec.cache = cache  # This particular test needs the link.
-    my_encoder = encoder.Encoder(codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     videofile = encoder.Videofile('x/foo_640_480_20.yuv')
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)

@@ -62,7 +62,7 @@ class Option(object):
   def _OptionSearchExpression(self):
     return r'--%s=(\S+)' % self.name
 
-  def FlagIsValue(self, flag):
+  def FlagIsValidValue(self, flag):
     """ Return true if a flag can represent a value of this option."""
     return False
 
@@ -74,6 +74,7 @@ class ChoiceOption(Option):
   """This class represents a set of exclusive options (without values).
 
   One example is the --good, --best option to vpxenc.
+  The "name" of this option is a concatenation of the set of legal values.
   """
   def __init__(self, flags):
     # The name is just for output, it does not affect the behaviour
@@ -84,26 +85,7 @@ class ChoiceOption(Option):
   def OptionString(self, value):
     return '--%s' % value
 
-  def GetValue(self, config):
-    current_flags = set([flag[2:] for flag in config.ToString().split()
-                         if flag.startswith('--')])
-    these_flags = current_flags & self.values
-    if len(these_flags) == 0:
-      raise Error('No choice option alternative given')
-    if len(these_flags) > 1:
-      raise Error('Mutually exclusive option alternatives given')
-    return these_flags.pop()
-
-  def RandomlyPatchConfig(self, config):
-    """ Modify a configuration by replacing the instance of this option."""
-    current_flag = self.GetValue(config)
-    next_flag = self.PickAnother(current_flag)
-    newconfig = re.sub(r'--%s\b' % current_flag,
-                       '--%s' % next_flag, config.ToString())
-    assert(config != newconfig)
-    return newconfig
-
-  def FlagIsValue(self, value):
+  def FlagIsValidValue(self, value):
     return (value in self.values)
 
   def Format(self, value, formatter):
@@ -122,10 +104,12 @@ class IntegerOption(Option):
 
 
 class DummyOption(Option):
-  """This class represents an option that cannot be set by the tweaking
-  methods, but can be set by SetValue."""
+  """This class represents an option that cannot be set by
+  OptionValueSet.RandomlyChangeConfig, but can be set by
+  OptionValueSet.ChangeValue."""
+
   def __init__(self, name):
-    self.name = name
+    super(DummyOption, self).__init__(name, [])
 
   def CanChange(self):
     return False
@@ -157,8 +141,8 @@ class OptionSet(object):
 
   def FindFlagOption(self, flag):
     for name in self.options:
-      if self.options[name].FlagIsValue(flag):
-        return name
+      if self.options[name].FlagIsValidValue(flag):
+        return self.options[name]
     return None
 
   def Format(self, name, value, formatter):
@@ -169,7 +153,8 @@ class OptionFormatter(object):
   """Formatter for the command line form of an option.
 
   Intended to be called by the option class in order to format
-  in a codec-specific fashion."""
+  in a codec-specific fashion.
+  This class is used as a default argument, so needs to be immutable."""
 
   def __init__(self, prefix='--', infix='='):
     self.prefix = prefix
@@ -191,6 +176,13 @@ class OptionValueSet(object):
   a string from the set of values.
   """
   def __init__(self, option_set, string, formatter=OptionFormatter()):
+    """Initialization.
+    Arguments:
+    option_set - OptionSet, the set of parseable names and flags
+    string - all the values, in "--name=value --flag" format
+    formatter - OptionFormatter that gives the prefix and infix separators
+    """
+
     self.option_set = option_set
     self.formatter= formatter
     self.values = {}
@@ -200,21 +192,31 @@ class OptionValueSet(object):
                                          formatter.infix),
                    flag)
       if m:
-        name = m.group(1)
-        if m.group(2) and option_set.HasOption(name):
-          # Known name=value option.
-          name = m.group(1)
-          value = m.string[m.end():]
-          self.values[name] = value
+        if self._HandleNameValueFlag(m):
           continue
-        option_name = option_set.FindFlagOption(m.group(1))
-        if option_name:
-          # Known flag option (no value)
-          self.values[option_name] = name
+        if self._HandleChoiceFlag(m):
           continue
       # It is not a known name=value or a known flag.
       # Remember it, but don't make it available for manipulation.
       self.other_parts.append(flag)
+
+  def _HandleNameValueFlag(self, m):
+    name = m.group(1)
+    if m.group(2) and self.option_set.HasOption(name):
+      # Known name=value option.
+      name = m.group(1)
+      value = m.string[m.end():]
+      self.values[name] = value
+      return True
+    return False
+
+  def _HandleChoiceFlag(self, m):
+    option = self.option_set.FindFlagOption(m.group(1))
+    if option:
+      # Known flag option (no value)
+      self.values[option.name] = m.group(1)
+      return True
+    return False
 
   def ToString(self):
     # ToString returns parts in sorted order, for consistency.
@@ -226,7 +228,7 @@ class OptionValueSet(object):
     if isinstance(other, self.__class__):
       return self.ToString() == other.ToString()
     else:
-      # If the other is a string that's acceptable as an OVS,
+      # If the other is something that can be used to construct an OVS,
       # accept it. (This may reorder options.)
       return self == OptionValueSet(self.option_set, other)
 
@@ -242,7 +244,7 @@ class OptionValueSet(object):
       raise Error('Unknown option name %s' % name)
     new_set = OptionValueSet(self.option_set, "", self.formatter)
     new_set.values = self.values
-    new_set.values[name] = value  # Will fail if name is not initialized
+    new_set.values[name] = value
     new_set.other_parts = self.other_parts
     return new_set
 

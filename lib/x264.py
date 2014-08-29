@@ -35,7 +35,7 @@ class X264Codec(encoder.Codec):
       'framerate': videofile.framerate,
       'width': videofile.width,
       'height': videofile.height,
-      'outputfile': workdir + '/' + videofile.basename + self.extension,
+      'outputfile': workdir + '/' + videofile.basename + '.' + self.extension,
       'inputfile': videofile.filename}
     print commandline
     with open('/dev/null', 'r') as nullinput:
