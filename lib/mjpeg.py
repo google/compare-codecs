@@ -14,6 +14,4 @@ class MotionJpegCodec(ffmpeg.FfmpegCodec):
     super(MotionJpegCodec, self).__init__(name)
     self.codecname = 'mjpeg'
     self.extension = 'mjpeg'
-    self.options = [
-      ]
     self.start_encoder = encoder.Encoder(self, '')

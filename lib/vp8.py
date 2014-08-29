@@ -15,7 +15,7 @@ class Vp8Codec(encoder.Codec):
   def __init__(self, name='vp8'):
     super(Vp8Codec, self).__init__(name)
     self.extension = 'webm'
-    self.options = [
+    self.option_set = encoder.OptionSet(
       encoder.Option('overshoot-pct', ['0', '15', '30', '45']),
       encoder.Option('undershoot-pct', ['0', '25', '50', '75', '100']),
       # CQ mode is not considered for end-usage at the moment.
@@ -30,20 +30,21 @@ class Vp8Codec(encoder.Codec):
       encoder.Option('buf-initial-sz', ['200', '400', '800', '1000', '2000', '4000', '8000', '16000']),
       encoder.Option('max-intra-rate', ['100', '200', '400', '600', '800', '1200']),
       encoder.ChoiceOption(['good', 'best', 'rt']),
-      ]
+    )
 
   def StartEncoder(self):
-    return encoder.Encoder(self, """ --lag-in-frames=0 \
+    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set,
+      """ --lag-in-frames=0 \
       --kf-min-dist=3000 \
       --kf-max-dist=3000 --cpu-used=0 --static-thresh=0 \
       --token-parts=1 --drop-frame=0 --end-usage=cbr --min-q=2 --max-q=56 \
       --undershoot-pct=100 --overshoot-pct=15 --buf-sz=1000 \
       --buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 \
-      --resize-allowed=0 --drop-frame=0 --passes=1 --good --noise-sensitivity=0 """)
+      --resize-allowed=0 --drop-frame=0 --passes=1 --good --noise-sensitivity=0 """))
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     nullinput = open('/dev/null', 'r')
-    commandline = (encoder.Tool('vpxenc') + ' ' + parameters
+    commandline = (encoder.Tool('vpxenc') + ' ' + parameters.ToString()
                    + ' --target-bitrate=' + str(bitrate)
                    + ' --fps=' + str(videofile.framerate) + '/1'
                    + ' -w ' + str(videofile.width)

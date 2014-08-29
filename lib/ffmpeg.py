@@ -18,8 +18,6 @@ class FfmpegCodec(encoder.Codec):
     self.codecname = 'mpeg4'
     self.extension = 'avi'
     super(FfmpegCodec, self).__init__(name)
-    self.options = [
-      ]
 
   def StartEncoder(self):
     return encoder.Encoder(self, '')
