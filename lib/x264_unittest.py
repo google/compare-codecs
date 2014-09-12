@@ -1,12 +1,12 @@
 #!/usr/bin/python
-"""Unit tests for encoder module."""
+"""Unit tests for X.264 encoder module."""
 
 import unittest
 import encoder
-
+import test_tools
 import x264
 
-class TestX264(unittest.TestCase):
+class TestX264(test_tools.FileUsingCodecTest):
   def test_Init(self):
     codec = x264.X264Codec()
     self.assertEqual(codec.name, 'x264')
@@ -24,8 +24,8 @@ class TestX264(unittest.TestCase):
 
   def test_OneBlackFrame(self):
     codec = x264.X264Codec()
-    videofile = encoder.Videofile(
-      'video/testclips/one_black_frame_1024_768_30.yuv')
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
     encoding = codec.BestEncoding(1000, videofile)
     encoding.Execute()
     score = encoding.Score()
