@@ -23,8 +23,8 @@ def MakeYuvFileWithOneBlankFrame(name):
                                            name))
   # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
   framesize = videofile.width * videofile.height * 3 / 2
-  with open(videofile.filename, 'w') as file:
-    file.write('\0' * framesize)
+  with open(videofile.filename, 'w') as real_file:
+    real_file.write('\0' * framesize)
   return videofile
 
 def FinishWorkDir(dirname):
