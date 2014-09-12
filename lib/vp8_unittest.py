@@ -3,10 +3,12 @@
 
 import unittest
 import encoder
+import test_tools
 
 import vp8
 
-class TestVp8(unittest.TestCase):
+class TestVp8(test_tools.FileUsingCodecTest):
+
   def test_Init(self):
     codec = vp8.Vp8Codec()
     self.assertEqual(codec.name, 'vp8')
@@ -24,8 +26,8 @@ class TestVp8(unittest.TestCase):
 
   def test_OneBlackFrame(self):
     codec = vp8.Vp8Codec()
-    videofile = encoder.Videofile(
-      'video/testclips/one_black_frame_1024_768_30.yuv')
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
     encoding = codec.BestEncoding(1000, videofile)
     encoding.Execute()
     score = encoding.Score()
