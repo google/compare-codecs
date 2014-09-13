@@ -22,7 +22,8 @@ def ListOneTarget(codecs, rate, videofile, do_score):
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Score())
-    print ' %6d %4.1f' % (bestsofar.result['bitrate'], bestsofar.result['psnr']),
+    print ' %6d %4.1f' % (bestsofar.result['bitrate'],
+                          bestsofar.result['psnr']),
   print ''
 
 def ListResults(codecs, do_score):

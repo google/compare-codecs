@@ -21,9 +21,10 @@ class TestVp8Mpeg1dCodec(unittest.TestCase):
   def test_ConfigFixups(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
     fixups = codec.ConfigurationFixups(
-      encoder.OptionValueSet(codec.option_set, '--fixed-q=1 --gold-q=1 --key-q=3'))
+      encoder.OptionValueSet(codec.option_set,
+                             '--fixed-q=1 --gold-q=1 --key-q=3'))
     self.assertEqual('--fixed-q=6 --gold-q=4 --key-q=3', fixups.ToString())
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()
 

@@ -28,8 +28,11 @@ def main():
 
   print 'Bitrate PSNR'
   for encoding in encodings.encodings:
-    # The trailing 0.0 is a dummy metric required by the graph-generating script.
-    print "%d %f %f" % (encoding.result['bitrate'], encoding.result['psnr'], 0.0)
+    # The trailing 0.0 is a dummy metric required by the graph-generating
+    # script.
+    print "%d %f %f" % (encoding.result['bitrate'],
+                        encoding.result['psnr'],
+                        0.0)
 
 if __name__ == '__main__':
   sys.exit(main())

@@ -25,7 +25,6 @@ import md5
 import os
 import random
 import re
-import sys
 
 
 class Error(Exception):
@@ -42,6 +41,8 @@ class Option(object):
   This class provides functions to modify an option in a command line string.
   """
   def __init__(self, name, values=[]):
+    # The default value is never changed, so it's safe to use [] here.
+    # pylint: disable=W0102
     self.name = name
     self.values = frozenset(values)
 
@@ -63,7 +64,9 @@ class Option(object):
     return r'--%s=(\S+)' % self.name
 
   def FlagIsValidValue(self, flag):
-    """ Return true if a flag can represent a value of this option."""
+    """ Return true if a flag can represent a value of this option.
+    Overridden by ChoiceOption. """
+    # pylint: disable=W0613, R0201
     return False
 
   def Format(self, value, formatter):
@@ -79,8 +82,7 @@ class ChoiceOption(Option):
   def __init__(self, flags):
     # The name is just for output, it does not affect the behaviour
     # of the program.
-    self.name = '/'.join(flags)
-    self.values = frozenset(flags)
+    super(ChoiceOption, self).__init__('/'.join(flags), flags)
 
   def OptionString(self, value):
     return '--%s' % value
@@ -95,12 +97,12 @@ class ChoiceOption(Option):
 class IntegerOption(Option):
   """This class represents an option with a range of values.
   """
-  def __init__(self, name, min, max):
+  def __init__(self, name, min_in, max_in):
     """Note that the value of the max parameter is included in the set."""
-    self.name = name
-    self.values = frozenset([str(s) for s in xrange(min, max+1)])
-    self.min = min
-    self.max = max
+    super(IntegerOption, self).__init__(
+      name, frozenset([str(s) for s in xrange(min_in, max_in+1)]))
+    self.min = min_in
+    self.max = max_in
 
 
 class DummyOption(Option):
@@ -184,7 +186,7 @@ class OptionValueSet(object):
     """
 
     self.option_set = option_set
-    self.formatter= formatter
+    self.formatter = formatter
     self.values = {}
     self.other_parts = []
     for flag in string.split():
@@ -313,6 +315,7 @@ class Codec(object):
     return self.option_set.AllOptions()
 
   def StartEncoder(self):
+    # pylint: disable=R0201
     raise Error("The base codec class has no start encoder")
 
   def AllScoredEncodings(self, bitrate, videofile):
@@ -326,10 +329,12 @@ class Codec(object):
       return self.StartEncoder().Encoding(bitrate, videofile)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
+    # pylint: disable=W0613, R0201
     raise Error("The base codec class can't execute anything")
 
   def ConfigurationFixups(self, config):
     """Hook for applying inter-parameter tweaks."""
+    # pylint: disable=R0201
     return config
 
   def RandomlyChangeConfig(self, parameters):
@@ -349,10 +354,12 @@ class Codec(object):
     reasonable encoders to try.
     The default is to have one directory per target bitrate, since
     encodings with different target bitrates will be different."""
+    # pylint: disable=R0201
     return str(bitrate)
 
   def SuggestTweak(self, encoding):
     """Suggest a tweaked encoder based on an encoding result."""
+    # pylint: disable=W0613, R0201
     return None
 
   def DisplayHeading(self):
@@ -459,7 +466,7 @@ class Encoding(object):
     self.videofile = videofile
     self.result = None
 
-  def SomeUntriedVariants(self, num_tweaks=1):
+  def SomeUntriedVariants(self):
     """Returns some variant encodings that have not been tried.
 
     If no such variant can be found, returns an empty EncodingSet.
@@ -472,6 +479,8 @@ class Encoding(object):
       if not suggested_tweak.Score():
         result.append(suggested_tweak)
     # Generate up to 10 single-hop variants.
+    # Just using a variable as a counter doesn't satisfy pylint.
+    # pylint: disable=W0612
     for i in range(10):
       variant_encoder = Encoder(
         self.encoder.codec,
@@ -487,7 +496,9 @@ class Encoding(object):
           self.encoder.codec,
           self.encoder.codec.RandomlyChangeConfig(
             self.encoder.codec.RandomlyChangeConfig(self.encoder.parameters)))
-        variant_encoding = Encoding(variant_encoder, self.bitrate, self.videofile)
+        variant_encoding = Encoding(variant_encoder,
+                                    self.bitrate,
+                                    self.videofile)
         variant_encoding.Recover()
         if not variant_encoding.Score():
           result.append(variant_encoding)
@@ -516,12 +527,6 @@ class Encoding(object):
 
   def Recover(self):
     self.encoder.codec.cache.ReadEncodingResult(self)
-
-  @staticmethod
-  def FromFile(self, encoder, bitrate, videofile, filename):
-    encoding = Encoding(encoder, bitrate, videofile)
-    encoding.Recover()
-    return encoding
 
 
 class EncodingSet(object):
@@ -557,15 +562,15 @@ class EncodingDiskCache(object):
 
   def _FilesToEncodings(self, files, videofile, bitrate=0, encoder_in=None):
     candidates = []
-    for file in files:
+    for full_filename in files:
       encoder = encoder_in
       if encoder is None:
-        filename = os.path.dirname(file)  # Cut off resultfile
+        filename = os.path.dirname(full_filename)  # Cut off resultfile
         filename = os.path.dirname(filename)  # Cut off bitrate dir
         filename = os.path.basename(filename)  # Cut off leading codec name
         encoder = Encoder(self.codec, filename=filename)
       if bitrate == 0:
-        filename = os.path.dirname(file)
+        filename = os.path.dirname(full_filename)
         target_bitrate = os.path.basename(filename)
         try:
           this_bitrate = int(target_bitrate)
@@ -655,6 +660,7 @@ class EncodingMemoryCache(object):
     self.encodings = []
 
   def WorkDir(self):
+    # pylint: disable=R0201
     return '/tmp'
 
   def AllScoredEncodings(self, bitrate, videofile):

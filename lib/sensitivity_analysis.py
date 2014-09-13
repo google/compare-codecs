@@ -57,11 +57,11 @@ def main():
 
   codec = pick_codec.PickCodec(args.codec)
   for classname in mpeg_settings.files.keys():
-    for file in mpeg_settings.files[classname]:
+    for filename in mpeg_settings.files[classname]:
       for rate in mpeg_settings.rates[classname]:
-        videofile = encoder.Videofile('../mpeg_video/%s' % file)
+        videofile = encoder.Videofile('../mpeg_video/%s' % filename)
         encoding = codec.BestEncoding(rate, videofile)
-        print rate, file, encoding.Score(), encoding.result
+        print rate, filename, encoding.Score(), encoding.result
         AnalyzeVariants(encoding, args.score)
   return 0
 

@@ -2,10 +2,6 @@
 
 This uses ffmpeg for encoding and decoding.
 """
-import os
-import re
-import subprocess
-
 import encoder
 import ffmpeg
 
