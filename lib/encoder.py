@@ -100,7 +100,7 @@ class IntegerOption(Option):
   def __init__(self, name, min_in, max_in):
     """Note that the value of the max parameter is included in the set."""
     super(IntegerOption, self).__init__(
-      name, frozenset([str(s) for s in xrange(min_in, max_in+1)]))
+      name, [str(s) for s in xrange(min_in, max_in+1)])
     self.min = min_in
     self.max = max_in
 
