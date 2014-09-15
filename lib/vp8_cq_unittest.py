@@ -12,7 +12,6 @@ class TestVp8Cq(unittest.TestCase):
     self.assertEqual('vp8-cq', codec.name)
     # Verifying that the default config's value for min-q is still 32.
     # This is required for later tests to work properly.
-    print codec.StartEncoder().parameters
     self.assertEqual('32',
                      codec.StartEncoder().parameters.GetValue('min-q'))
 
@@ -43,6 +42,4 @@ class TestVp8Cq(unittest.TestCase):
     self.assertEqual('31', new_encoding.encoder.parameters.GetValue('min-q'))
 
 if __name__ == '__main__':
-    unittest.main()
-
-
+  unittest.main()

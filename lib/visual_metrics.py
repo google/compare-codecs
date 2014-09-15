@@ -40,16 +40,16 @@ def bdsnr(metric_set1, metric_set2):
   rate2 = [x[0] for x in metric_set2]
   psnr2 = [x[1] for x in metric_set2]
 
-  log_rate1 = map(lambda x: math.log(x), rate1)
-  log_rate2 = map(lambda x: math.log(x), rate2)
+  log_rate1 = map(math.log, rate1)
+  log_rate2 = map(math.log, rate2)
 
   # Best cubic poly fit for graph represented by log_ratex, psrn_x.
   p1 = numpy.polyfit(log_rate1, psnr1, 3)
   p2 = numpy.polyfit(log_rate2, psnr2, 3)
 
   # Integration interval.
-  min_int = max([min(log_rate1),min(log_rate2)])
-  max_int = min([max(log_rate1),max(log_rate2)])
+  min_int = max([min(log_rate1), min(log_rate2)])
+  max_int = min([max(log_rate1), max(log_rate2)])
 
   # Integrate p1, and p2.
   p_int1 = numpy.polyint(p1)
@@ -80,16 +80,16 @@ def bdrate(metric_set1, metric_set2):
   rate2 = [x[0] for x in metric_set2]
   psnr2 = [x[1] for x in metric_set2]
 
-  log_rate1 = map(lambda x: math.log(x), rate1)
-  log_rate2 = map(lambda x: math.log(x), rate2)
+  log_rate1 = map(math.log, rate1)
+  log_rate2 = map(math.log, rate2)
 
   # Best cubic poly fit for graph represented by log_ratex, psrn_x.
   p1 = numpy.polyfit(psnr1, log_rate1, 3)
   p2 = numpy.polyfit(psnr2, log_rate2, 3)
 
   # Integration interval.
-  min_int = max([min(psnr1),min(psnr2)])
-  max_int = min([max(psnr1),max(psnr2)])
+  min_int = max([min(psnr1), min(psnr2)])
+  max_int = min([max(psnr1), max(psnr2)])
 
   # find integral
   p_int1 = numpy.polyint(p1)
@@ -138,7 +138,8 @@ def ParseMetricFile(file_name, metric_column):
   """
   Convert a metrics file into a set of numbers.
   This returns a sorted list of tuples with the first number
-  being from the first column (bitrate) and the second being from metric_column (counting from 0).
+  being from the first column (bitrate) and the second being from
+  metric_column (counting from 0).
   """
   metric_set1 = set([])
   metric_file = open(file_name, "r")
@@ -146,10 +147,10 @@ def ParseMetricFile(file_name, metric_column):
     metrics = string.split(line)
     if HasMetrics(line):
       if metric_column < len(metrics):
-        tuple = float(metrics[0]), float(metrics[metric_column])
+        my_tuple = float(metrics[0]), float(metrics[metric_column])
       else:
-        tuple = float(metrics[0]), 0
-      metric_set1.add(tuple)
+        my_tuple = float(metrics[0]), 0
+      metric_set1.add(my_tuple)
   metric_set1_sorted = sorted(metric_set1)
   return metric_set1_sorted
 
@@ -209,8 +210,10 @@ def DataSetBetter(metric_set1, metric_set2, method):
   # Be fair to both graphs by testing all the points in each.
   if method == 'avg':
     avg_improvement = 50 * (
-                       GraphBetter(metric_set1, metric_set2, use_set2_as_base=True) -
-                       GraphBetter(metric_set2, metric_set1, use_set2_as_base=False))
+                       GraphBetter(metric_set1, metric_set2,
+                                   use_set2_as_base=True) -
+                       GraphBetter(metric_set2, metric_set1,
+                                   use_set2_as_base=False))
   elif method == 'dsnr':
     avg_improvement = bdsnr(metric_set1, metric_set2)
   else:
@@ -239,14 +242,14 @@ def HtmlPage(page_template, filestable, snrs, formatters):
   Creates a HTML page from the template and variables passed to it.
   """
   # Build up a dictionary of the five variables actually used in the template.
-  dict = {
+  my_dict = {
     'filestable_dpsnr': filestable['dsnr'],
     'filestable_avg': filestable['avg'],
     'filestable_drate': filestable['drate'],
     'snrs': snrs,
     'formatters': formatters
     }
-  return FillForm(page_template, dict)
+  return FillForm(page_template, my_dict)
 
 
 def HandleFiles(variables):
@@ -315,12 +318,12 @@ def HandleFiles(variables):
   filestable['avg'] = ''
 
   # Go through each metric in the list.
-  for column in range(1,2):
+  for column in range(1, 2):
 
     # Find the metric files in the baseline directory.
     dir_list = sorted(fnmatch.filter(os.listdir(baseline_dir), file_pattern))
 
-    for metric in ['avg','dsnr','drate']:
+    for metric in ['avg', 'dsnr', 'drate']:
       description = {"file": ("string", "File")}
 
       # Go through each directory and add a column header to our description.
@@ -373,7 +376,7 @@ def HandleFiles(variables):
 
     # Now we collect all the data for all the graphs.  First the column
     # headers which will be Datarate and then each directory.
-    columns = ("datarate", baseline_dir)
+    # Unused: columns = ("datarate", baseline_dir)
     description = {"datarate":("number", "Datarate")}
     for directory in dirs:
       description[directory] = ("number", basename(directory))

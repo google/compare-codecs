@@ -21,7 +21,8 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable):
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Score())
-    datatable[codec_name][videofile.basename].append((bestsofar.result['bitrate'], bestsofar.result['psnr']))
+    datatable[codec_name][videofile.basename].append(
+      (bestsofar.result['bitrate'], bestsofar.result['psnr']))
 
 
 def ListResults(codecs, do_score, datatable):
@@ -52,7 +53,7 @@ def FormatAsHtml(codecs, datatable):
   # Find the metric files in the baseline codec.
   videofile_name_list = datatable[baseline_codec].keys()
 
-  for metric in ['avg','dsnr','drate']:
+  for metric in ['avg', 'dsnr', 'drate']:
     # TODO(hta): Break this loop up into appropriate functions.
     description = {"file": ("string", "File")}
 
@@ -65,21 +66,23 @@ def FormatAsHtml(codecs, datatable):
       countoverall[this_codec] = 0
       sumoverall[this_codec] = 0
 
-      # Data holds the data for the visualization, name given comes from
-      # gviz_api sample code.
+    # Data holds the data for the visualization, name given comes from
+    # gviz_api sample code.
     data = []
     for filename in videofile_name_list:
       row = {'file': filename }
 
-        # Read the metric file from each of the directories in our list.
+      # Read the metric file from each of the directories in our list.
       for this_codec in other_codecs:
 
-          # If there is a metric file in the current this_codec, open it
-          # and calculate its overall difference between it and the baseline
-          # this_codec's metric file.
-        if filename in datatable[this_codec] and filename in datatable[baseline_codec]:
-          overall = visual_metrics.DataSetBetter(datatable[baseline_codec][filename],
-                                  datatable[this_codec][filename], metric)
+        # If there is a metric file in the current this_codec, open it
+        # and calculate its overall difference between it and the baseline
+        # this_codec's metric file.
+        if (filename in datatable[this_codec]
+            and filename in datatable[baseline_codec]):
+          overall = visual_metrics.DataSetBetter(
+            datatable[baseline_codec][filename],
+            datatable[this_codec][filename], metric)
           row[this_codec] = overall
 
           sumoverall[this_codec] += overall
@@ -87,7 +90,7 @@ def FormatAsHtml(codecs, datatable):
 
       data.append(row)
 
-      # Add the overall numbers.
+    # Add the overall numbers.
     row = {"file": "OVERALL " + metric}
     for this_codec in other_codecs:
       if countoverall[this_codec]:
@@ -102,9 +105,9 @@ def FormatAsHtml(codecs, datatable):
                            "[1]=" + data_table.ToJSon()
                            + "\n" )
 
-    # Now we collect all the data for all the graphs.  First the column
-    # headers which will be Datarate and then each this_codec.
-  columns = ("datarate", baseline_codec)
+  # Now we collect all the data for all the graphs.  First the column
+  # headers which will be Datarate and then each this_codec.
+  # columns = ("datarate", baseline_codec)
   description = {"datarate":("number", "Datarate")}
   for this_codec in other_codecs:
     description[this_codec] = ("number", this_codec)
@@ -123,7 +126,6 @@ def FormatAsHtml(codecs, datatable):
     # in the associated gviz metrics table.
     for this_codec in codecs:
 
-      metric_file_name = this_codec + "/" + filename
       if not filename in datatable[this_codec]:
         continue
 

@@ -2,7 +2,6 @@
 """Unit tests for encoder module."""
 
 import unittest
-import encoder
 import test_tools
 
 import vp8
@@ -30,12 +29,11 @@ class TestVp8(test_tools.FileUsingCodecTest):
       'one_black_frame_1024_768_30.yuv')
     encoding = codec.BestEncoding(1000, videofile)
     encoding.Execute()
-    score = encoding.Score()
     # Most codecs should be good at this.
     self.assertLess(50.0, encoding.Score())
     
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()
 
 

@@ -5,8 +5,6 @@ This constraint set operates in fixed QP mode.
 It works by setting fixed-q, gold-q and key-q to given fixed values.
 This requires a patch to the vpxenc binary.
 """
-import os
-import re
 import subprocess
 
 import encoder

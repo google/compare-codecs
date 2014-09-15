@@ -20,6 +20,8 @@ class DummyCodec(encoder.Codec):
                                                         "--score=5"))
 
   def Execute(self, parameters, rate, videofile, workdir):
+    # rate is unused. This is known.
+    # pylint: disable=W0613
     m = re.search(r'--score=(\d+)', parameters.ToString())
     if m:
       return int(m.group(1))
@@ -27,6 +29,8 @@ class DummyCodec(encoder.Codec):
       return -100
 
   def ScoreResult(self, target_bitrate, result):
+    # target_bitrate is unused.
+    # pylint: disable=W0613
     return result
 
 class StorageOnlyCodec(object):
@@ -37,9 +41,11 @@ class StorageOnlyCodec(object):
     self.option_set = encoder.OptionSet()
 
   def SpeedGroup(self, bitrate):
-   return str(bitrate)
+    # pylint: disable=R0201
+    return str(bitrate)
 
   def ConfigurationFixups(self, parameters):
+    # pylint: disable=R0201
     return parameters
 
 
@@ -53,7 +59,6 @@ class TestConfig(unittest.TestCase):
 
   def test_IntegerOption(self):
     option = encoder.IntegerOption('foo', 5, 6)
-    config = encoder.OptionValueSet(encoder.OptionSet(option), '--foo=5')
     self.assertTrue(str(6) in option.values)
     self.assertFalse(str(4) in option.values)
 
@@ -61,6 +66,7 @@ class TestConfig(unittest.TestCase):
 class TestOptionSet(unittest.TestCase):
   def test_InitNoArgs(self):
     opts = encoder.OptionSet()
+    self.assertFalse(opts.HasOption('foo'))
 
   def test_InitSingle(self):
     opts = encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']))
@@ -133,6 +139,7 @@ class TestOptionValueSet(unittest.TestCase):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     valueset = encoder.OptionValueSet(opts, '--foo')
     with self.assertRaises(encoder.Error):
+      # pylint: disable=W0612
       newset = valueset.ChangeValue('nosuchname', 'bar')
 
   def test_RandomlyPatchConfig(self):
@@ -233,6 +240,7 @@ class TestVideofile(unittest.TestCase):
 class TestEncodingDiskCache(unittest.TestCase):
   def testInit(self):
     cache = encoder.EncodingDiskCache(StorageOnlyCodec())
+    self.assertTrue(cache)
 
   def testStoreFetchEncoder(self):
     codec = StorageOnlyCodec()
@@ -283,4 +291,4 @@ class TestEncodingDiskCache(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()

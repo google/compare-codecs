@@ -5,7 +5,6 @@ The default FFMPEG encoder uses mpeg4, so that we can see if it's roughly
 compatible with the vpxenc-produced qualities.
 """
 import os
-import re
 import subprocess
 
 import encoder

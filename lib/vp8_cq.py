@@ -4,8 +4,6 @@ This constraint set operates in fixed QP mode.
 
 It works by picking min-q and forcing max-q to the same value.
 """
-import os
-import re
 import subprocess
 
 import encoder

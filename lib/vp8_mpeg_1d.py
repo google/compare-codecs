@@ -5,10 +5,6 @@ between fixed-q, gold-q and key-q.
 
 It exists for easily generating consistent sets for MPEG tests.
 """
-import os
-import re
-import subprocess
-
 import encoder
 
 import vp8_mpeg
