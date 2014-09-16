@@ -44,7 +44,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     # This is exactly the same as vp8.Execute, except that there is
     # no target-bitrate parameter.
     # TODO(hta): Redefine "parameters" so that the removal can be specified.
-    commandline = (encoder.Tool('vpxenc-mpeg') + ' ' + parameters
+    commandline = (encoder.Tool('vpxenc-mpeg') + ' ' + parameters.ToString()
                    + ' --fps=' + str(videofile.framerate) + '/1'
                    + ' -w ' + str(videofile.width)
                    + ' -h ' + str(videofile.height)
@@ -64,11 +64,11 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
 
   def ConfigurationFixups(self, config):
     """Ensure that gold-q and key-q are smaller than fixed-q. """
-    fixed_q_value = encoder.Option('fixed-q').GetValue(config)
-    if encoder.Option('gold-q').GetValue(config) > fixed_q_value:
-      config = encoder.Option('gold-q').SetValue(config, fixed_q_value)
-    if encoder.Option('key-q').GetValue(config) > fixed_q_value:
-      config = encoder.Option('key-q').SetValue(config, fixed_q_value)
+    fixed_q_value = config.GetValue('fixed-q')
+    if int(config.GetValue('gold-q')) > int(fixed_q_value):
+      config = config.ChangeValue('gold-q', fixed_q_value)
+    if int(config.GetValue('key-q')) > int(fixed_q_value):
+      config = config.ChangeValue('key-q', fixed_q_value)
 
     return config
 

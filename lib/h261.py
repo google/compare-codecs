@@ -15,15 +15,14 @@ class H261Codec(ffmpeg.FfmpegCodec):
     self.extension = 'h261'
 
   def StartEncoder(self):
-    return encoder.Encoder(self, """\
- """)
+    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # TODO(hta): Merge the common parts of this with vp8.Execute.
     commandline = (
       '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y -s 352x288 %s/%s.%s' % (
         encoder.Tool('ffmpeg'),
-        parameters, videofile.width, videofile.height,
+        parameters.ToString(), videofile.width, videofile.height,
         videofile.filename, self.codecname,
         bitrate, workdir, videofile.basename, self.extension))
 

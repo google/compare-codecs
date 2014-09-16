@@ -40,7 +40,8 @@ def ListResults(codecs, do_score):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
-  parser.add_argument('codecs', nargs='*')
+  parser.add_argument('codecs', nargs='*',
+                      default=pick_codec.codec_map.keys())
   args = parser.parse_args()
   ListResults(args.codecs, args.score)
   return 0

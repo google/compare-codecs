@@ -19,13 +19,13 @@ class FfmpegCodec(encoder.Codec):
     super(FfmpegCodec, self).__init__(name)
 
   def StartEncoder(self):
-    return encoder.Encoder(self, '')
+    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     commandline = (
       '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s/%s.%s' % (
         encoder.Tool('ffmpeg'),
-        parameters, videofile.width, videofile.height,
+        parameters.ToString(), videofile.width, videofile.height,
         videofile.filename, self.codecname,
         bitrate, workdir, videofile.basename, self.extension))
     print commandline
