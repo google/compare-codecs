@@ -16,7 +16,8 @@ git pull
 git checkout -f master
 ./install_software.sh
 cd ..
-
+# More tools called by the scripts
+sudo apt-get install mkvtoolnix
 # Install prerequisites for running Jekyll as a web server
 sudo apt-get install ruby1.9.1-dev
 sudo update-alternatives --set ruby /usr/bin/ruby1.9.1

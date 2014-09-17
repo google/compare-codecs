@@ -13,10 +13,9 @@ import vp8
 
 
 class Vp8CodecMpegMode(vp8.Vp8Codec):
-  def __init__(self):
-    super(Vp8CodecMpegMode, self).__init__()
+  def __init__(self, name='vp8-mpeg'):
+    super(Vp8CodecMpegMode, self).__init__(name)
     # Set the parts that are different from the VP8 codec.
-    self.name = 'vp8-mpeg'
     self.option_set = encoder.OptionSet(
       encoder.IntegerOption('fixed-q', 0, 63),
       encoder.IntegerOption('gold-q', 0, 63),

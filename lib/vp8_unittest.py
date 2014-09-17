@@ -31,7 +31,11 @@ class TestVp8(test_tools.FileUsingCodecTest):
     encoding.Execute()
     # Most codecs should be good at this.
     self.assertLess(50.0, encoding.Score())
-    
+    self.assertEqual(1, len(encoding.result['frame']))
+
+  def test_SpeedGroup(self):
+    codec = vp8.Vp8Codec()
+    self.assertEqual('5000', codec.SpeedGroup(5000))
 
 if __name__ == '__main__':
   unittest.main()

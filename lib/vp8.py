@@ -7,6 +7,7 @@ It tells the generic codec the following:
 - Options table
 """
 import os
+import re
 import subprocess
 
 import encoder
@@ -86,6 +87,18 @@ class Vp8Codec(encoder.Codec):
     print "Bitrate", bitrate, "PSNR", psnr
     result['bitrate'] = int(bitrate)
     result['psnr'] = float(psnr)
+    # Run the mkvinfo tool across the file to get frame size info.
+    commandline = ('mkvinfo -v %s/%s.%s' %
+                   (workdir, videofile.basename, self.extension))
+    print commandline
+    mkvinfo = subprocess.check_output(commandline, shell=True)
+    frameinfo = []
+    for line in mkvinfo.splitlines():
+      m = re.search(r'Frame with size (\d+)', line)
+      if m:
+        # The mkvinfo tool gives frame size in bytes. We want bits.
+        frameinfo.append({'size': int(m.group(1))*8})
+    result['frame'] = frameinfo
     os.unlink(tempyuvfile)
     return result
 
