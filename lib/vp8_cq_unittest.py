@@ -1,12 +1,13 @@
 #!/usr/bin/python
 """Unit tests for encoder module."""
 
-import unittest
 import encoder
+import test_tools
+import unittest
 
 import vp8_cq
 
-class TestVp8Cq(unittest.TestCase):
+class TestVp8Cq(test_tools.FileUsingCodecTest):
   def test_Init(self):
     codec = vp8_cq.Vp8CodecCqMode()
     self.assertEqual('vp8-cq', codec.name)
@@ -40,6 +41,16 @@ class TestVp8Cq(unittest.TestCase):
     # Since the bitrate is too high, the suggstion should be to increase it.
     new_encoding = codec.SuggestTweak(encoding)
     self.assertEqual('31', new_encoding.encoder.parameters.GetValue('min-q'))
+
+  def test_OneBlackFrame(self):
+    codec = vp8_cq.Vp8CodecCqMode()
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
+    encoding = codec.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # Most codecs should be good at this.
+    self.assertLess(50.0, encoding.Score())
+
 
 if __name__ == '__main__':
   unittest.main()
