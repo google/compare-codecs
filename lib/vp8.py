@@ -59,7 +59,10 @@ class Vp8Codec(encoder.Codec):
                    + ' -o ' + workdir + '/' + videofile.basename + '.webm')
     print commandline
     with open('/dev/null', 'r') as nullinput:
+      subprocess_cpu_start = os.times()[2]
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
+      subprocess_cpu = os.times()[2] - subprocess_cpu_start
+      print "Encode took %f seconds" % subprocess_cpu
       if returncode:
         raise Exception("Encode failed with returncode %d" % returncode)
     return self.Measure(bitrate, videofile, workdir)
@@ -77,8 +80,12 @@ class Vp8Codec(encoder.Codec):
                    (workdir, videofile.basename, tempyuvfile))
     print commandline
     with open('/dev/null', 'r') as nullinput:
+      subprocess_cpu_start = os.times()[2]
       bitrate = subprocess.check_output(commandline, shell=True,
                                         stdin=nullinput)
+      subprocess_cpu = os.times()[2] - subprocess_cpu_start
+      print "Decode took %f seconds" % subprocess_cpu
+      result['decode_time'] = subprocess_cpu
       commandline = encoder.Tool("psnr") + " %s %s %d %d 9999" % (
         videofile.filename, tempyuvfile, videofile.width,
         videofile.height)
