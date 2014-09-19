@@ -3,12 +3,10 @@
 This file defines how to run encode and decode for the x264 implementation
 of H.264.
 """
-import os
-import subprocess
-
 import encoder
+import file_codec
 
-class X264Codec(encoder.Codec):
+class X264Codec(file_codec.FileCodec):
   def __init__(self, name='x264'):
     super(X264Codec, self).__init__(name)
     self.extension = 'mkv'
@@ -19,7 +17,7 @@ class X264Codec(encoder.Codec):
     return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
 
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = ('%(x264)s '
       '--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d --vbv-init 0.8 '
       '--bitrate %(bitrate)d --fps %(framerate)d '
@@ -35,50 +33,18 @@ class X264Codec(encoder.Codec):
       'framerate': videofile.framerate,
       'width': videofile.width,
       'height': videofile.height,
-      'outputfile': workdir + '/' + videofile.basename + '.' + self.extension,
+      'outputfile': encodedfile,
       'inputfile': videofile.filename}
-    print commandline
-    with open('/dev/null', 'r') as nullinput:
-      returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      if returncode:
-        raise Exception('Encode failed with returncode %d' % returncode)
-    return self.Measure(bitrate, videofile, workdir)
+    return commandline
 
-  def Measure(self, bitrate, videofile, workdir):
-    result = {}
-    tempyuvfile = '%s/%stempyuvfile.yuv' % (workdir, videofile.basename)
-    if os.path.isfile(tempyuvfile):
-      print 'Removing tempfile before decode:', tempyuvfile
-      os.unlink(tempyuvfile)
-    commandline = '%s -i %s/%s.%s %s' % (
-      encoder.Tool('ffmpeg'),
-      workdir, videofile.basename, self.extension, tempyuvfile)
-    print commandline
-    returncode = subprocess.call(commandline, shell=True)
-    if returncode:
-      raise encoder.Error('Decode failed')
 
-    bitrate = videofile.MeasuredBitrate(
-      os.path.getsize('%s/%s.%s' % (workdir, videofile.basename,
-                                    self.extension)))
-    commandline = '%s %s %s %d %d 9999' % (
-      encoder.Tool('psnr'),
-      videofile.filename, tempyuvfile, videofile.width,
-      videofile.height)
-    print commandline
-    psnr = subprocess.check_output(commandline, shell=True)
-    print 'Bitrate', bitrate, 'PSNR', psnr
-    result['bitrate'] = int(bitrate)
-    result['psnr'] = float(psnr)
-    os.unlink(tempyuvfile)
-    return result
+  def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
+    commandline = '%s -i %s %s' % (encoder.Tool("ffmpeg"),
+                                    encodedfile, yuvfile)
+    return commandline
 
-  def ScoreResult(self, target_bitrate, result):
-    if not result:
-      return None
-    score = result['psnr']
-    if result['bitrate'] > int(target_bitrate):
-      score -= (result['bitrate'] - int(target_bitrate)) * 0.1
-      if abs(score) < 0.01:
-        score = 0.01
-    return score
+  def ResultData(self, encodedfile):
+    more_results = {}
+    more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
+    return more_results
+

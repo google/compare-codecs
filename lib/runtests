@@ -16,5 +16,6 @@ $WORKDIR/h261_unittest.py
 $WORKDIR/mjpeg_unittest.py
 $WORKDIR/visual_metrics_unittest.py
 $WORKDIR/pick_codec_unittest.py
+$WORKDIR/file_codec_unittest.py
 
 pylint $(ls lib/*.py | grep -v 'gviz_api.py')

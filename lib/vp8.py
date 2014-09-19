@@ -6,13 +6,10 @@ It tells the generic codec the following:
 - File extension
 - Options table
 """
-import os
-import re
-import subprocess
-
 import encoder
+import file_codec
 
-class Vp8Codec(encoder.Codec):
+class Vp8Codec(file_codec.FileCodec):
   def __init__(self, name='vp8'):
     super(Vp8Codec, self).__init__(name)
     self.extension = 'webm'
@@ -47,8 +44,7 @@ class Vp8Codec(encoder.Codec):
       '--resize-allowed=0 --drop-frame=0 '
       '--passes=1 --good --noise-sensitivity=0'))
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
-    nullinput = open('/dev/null', 'r')
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (encoder.Tool('vpxenc') + ' ' + parameters.ToString()
                    + ' --target-bitrate=' + str(bitrate)
                    + ' --fps=' + str(videofile.framerate) + '/1'
@@ -56,68 +52,15 @@ class Vp8Codec(encoder.Codec):
                    + ' -h ' + str(videofile.height)
                    + ' ' + videofile.filename
                    + ' --codec=vp8 '
-                   + ' -o ' + workdir + '/' + videofile.basename + '.webm')
-    print commandline
-    with open('/dev/null', 'r') as nullinput:
-      subprocess_cpu_start = os.times()[2]
-      returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      subprocess_cpu = os.times()[2] - subprocess_cpu_start
-      print "Encode took %f seconds" % subprocess_cpu
-      if returncode:
-        raise Exception("Encode failed with returncode %d" % returncode)
-    return self.Measure(bitrate, videofile, workdir)
+                   + ' -o ' + encodedfile)
+    return commandline
 
-  def Measure(self, bitrate, videofile, workdir):
-    # This method could be a function, but isn't.
-    # pylint: disable=R0201
-    result = {}
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
-    if os.path.isfile(tempyuvfile):
-      print "Removing tempfile before decode:", tempyuvfile
-      os.unlink(tempyuvfile)
-    commandline = (encoder.Tool("ffmpeg") +
-                   " -i %s/%s.webm %s 2>&1 | awk '/bitrate:/ { print $6 }'" %
-                   (workdir, videofile.basename, tempyuvfile))
-    print commandline
-    with open('/dev/null', 'r') as nullinput:
-      subprocess_cpu_start = os.times()[2]
-      bitrate = subprocess.check_output(commandline, shell=True,
-                                        stdin=nullinput)
-      subprocess_cpu = os.times()[2] - subprocess_cpu_start
-      print "Decode took %f seconds" % subprocess_cpu
-      result['decode_time'] = subprocess_cpu
-      commandline = encoder.Tool("psnr") + " %s %s %d %d 9999" % (
-        videofile.filename, tempyuvfile, videofile.width,
-        videofile.height)
-      print commandline
-      psnr = subprocess.check_output(commandline, shell=True, stdin=nullinput)
-    print "Bitrate", bitrate, "PSNR", psnr
-    result['bitrate'] = int(bitrate)
-    result['psnr'] = float(psnr)
-    # Run the mkvinfo tool across the file to get frame size info.
-    commandline = ('mkvinfo -v %s/%s.%s' %
-                   (workdir, videofile.basename, self.extension))
-    print commandline
-    mkvinfo = subprocess.check_output(commandline, shell=True)
-    frameinfo = []
-    for line in mkvinfo.splitlines():
-      m = re.search(r'Frame with size (\d+)', line)
-      if m:
-        # The mkvinfo tool gives frame size in bytes. We want bits.
-        frameinfo.append({'size': int(m.group(1))*8})
-    result['frame'] = frameinfo
-    os.unlink(tempyuvfile)
-    return result
-
-  def ScoreResult(self, target_bitrate, result):
-    if not result:
-      return None
-    score = result['psnr']
-    # Check that target_bitrate is an integer.
-    assert(type(target_bitrate) == type(0))
-    if result['bitrate'] > target_bitrate:
-      score -= (result['bitrate'] - target_bitrate) * 0.1
-      # Avoid accidentally-false scores.
-      if abs(score) < 0.01:
-        score = 0.01
-    return score
+  def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
+    commandline = '%s -i %s %s' % (encoder.Tool("ffmpeg"),
+                                    encodedfile, yuvfile)
+    return commandline
+    
+  def ResultData(self, encodedfile):
+    more_results = {}
+    more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
+    return more_results

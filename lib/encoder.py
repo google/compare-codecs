@@ -340,14 +340,6 @@ class Codec(object):
   def RandomlyChangeConfig(self, parameters):
     return self.ConfigurationFixups(parameters.RandomlyPatchConfig())
 
-  def ScoreResult(self, bitrate, result):
-    """Returns the score of a particular encoding result.
-
-    The score is a number that can be positive or negative, but it MUST NOT
-    be zero, because the Score() is also used as a boolean to check if the
-    result is present or not."""
-    raise NotImplementedError
-
   def SpeedGroup(self, bitrate):
     """Return the speed group of a bitrate.
     Intended for making subdirectories to search in when finding
@@ -519,7 +511,7 @@ class Encoding(object):
     return self
 
   def Score(self):
-    return self.encoder.codec.ScoreResult(self.bitrate, self.result)
+    return ScoreResult(self.bitrate, self.result)
 
   def Store(self):
     self.encoder.Store()
@@ -545,6 +537,22 @@ class EncodingSet(object):
     for encoding in self.encodings:
       if not encoding.Score():
         return encoding
+
+def ScoreResult(target_bitrate, result):
+  """Returns the score of a particular encoding result.
+
+  The score is a number that can be positive or negative, but it MUST NOT
+  be zero, because the Score() is also used as a boolean to check if the
+  result is present or not."""
+  if not result:
+    return None
+  score = result['psnr']
+  # We penalize bitrates that exceed the target bitrate. 
+  if result['bitrate'] > int(target_bitrate):
+    score -= (result['bitrate'] - int(target_bitrate)) * 0.1
+    if abs(score) < 0.01:
+      score = 0.01
+  return score
 
 
 class EncodingDiskCache(object):

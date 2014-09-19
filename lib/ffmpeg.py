@@ -4,12 +4,14 @@ This uses ffmpeg for encoding and decoding.
 The default FFMPEG encoder uses mpeg4, so that we can see if it's roughly
 compatible with the vpxenc-produced qualities.
 """
+import ast
 import os
 import subprocess
 
 import encoder
+import file_codec
 
-class FfmpegCodec(encoder.Codec):
+class FfmpegCodec(file_codec.FileCodec):
   def __init__(self, name='ffmpeg-mpeg4'):
     # Subclasses need to override name, codecname and extension.
     # At the moment, no parameters are defined.
@@ -21,55 +23,34 @@ class FfmpegCodec(encoder.Codec):
   def StartEncoder(self):
     return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (
-      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s/%s.%s' % (
+      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s' % (
         encoder.Tool('ffmpeg'),
         parameters.ToString(), videofile.width, videofile.height,
         videofile.filename, self.codecname,
-        bitrate, workdir, videofile.basename, self.extension))
-    print commandline
-    returncode = subprocess.call(commandline, shell=True)
-    if returncode:
-      raise Exception("Encode failed with returncode " + str(returncode))
-    return self.Measure(bitrate, videofile, workdir)
+        bitrate, encodedfile))
+    return commandline
 
-  def Measure(self, bitrate, videofile, workdir):
-    result = {}
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
-    if os.path.isfile(tempyuvfile):
-      print "Removing tempfile before decode:", tempyuvfile
-      os.unlink(tempyuvfile)
-    commandline = "%s -codec:v %s -i %s/%s.%s %s" % (
+  def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
+    commandline = "%s -codec:v %s -i %s %s" % (
       encoder.Tool('ffmpeg'),
       self.codecname,
-      workdir, videofile.basename, self.extension, tempyuvfile)
-    print commandline
-    returncode = subprocess.call(commandline, shell=True)
-    if returncode:
-      raise encoder.Error('Decode failed')
-    bitrate = videofile.MeasuredBitrate(
-      os.path.getsize('%s/%s.%s' % (workdir, videofile.basename,
-                                    self.extension)))
-    commandline = "%s %s %s %d %d 9999" % (
-      encoder.Tool('psnr'),
-      videofile.filename, tempyuvfile, videofile.width,
-      videofile.height)
-    print commandline
-    psnr = subprocess.check_output(commandline, shell=True)
-    print "Bitrate", bitrate, "PSNR", psnr
-    result['bitrate'] = int(bitrate)
-    result['psnr'] = float(psnr)
-    os.unlink(tempyuvfile)
-    return result
+      encodedfile, yuvfile)
+    return commandline
 
-  def ScoreResult(self, target_bitrate, result):
-    if not result:
-      return None
-    score = result['psnr']
-    if result['bitrate'] > int(target_bitrate):
-      score -= (result['bitrate'] - int(target_bitrate)) * 0.1
-      if abs(score) < 0.01:
-        score = 0.01
-    return score
-
+  def ResultData(self, encodedfile):
+    commandline = '%s -show_frames -of json %s' % (encoder.Tool('ffprobe'),
+                                                   encodedfile)
+    ffprobeinfo = subprocess.check_output(commandline, shell=True)
+    probeinfo = ast.literal_eval(ffprobeinfo)
+    pos = 0
+    frameinfo = []
+    print probeinfo
+    for frame in probeinfo['frames']:
+      if pos != 0:
+        frameinfo.append({'size': 8*(int(frame['pkt_pos']) - pos)})
+      pos = int(frame['pkt_pos'])
+    frameinfo.append({'size': 8*(os.path.getsize(encodedfile) - pos)})
+    print frameinfo
+    return {'frame': frameinfo}

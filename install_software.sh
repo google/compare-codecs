@@ -15,6 +15,12 @@ git pull
 # Note: We clobber all local changes to this repository by doing this.
 git checkout -f master
 ./install_software.sh
+# Compile one more tool
+cd ffmpeg
+make ffprobe
+cp ffprobe ../bin
+cd ..
+# Exit vpx_codec_comparison
 cd ..
 # More tools called by the scripts
 sudo apt-get install mkvtoolnix
