@@ -68,7 +68,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     parameter identified by "name" changed in a way worth testing.
     If no sensible change is found, returns None."""
     parameters = encoding.encoder.parameters
-    value = int(encoder.Option(name).GetValue(parameters))
+    value = int(parameters.GetValue(name))
     new_value = None
     if encoding.result['bitrate'] > encoding.bitrate:
       delta = 1
@@ -89,8 +89,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     # the starting point is the highest score), try the middle value
     # between this and that. If none exists, go for the extreme values.
     for search_value in candidates:
-      temp_params = encoder.Option(name).SetValue(parameters,
-                                                  str(search_value))
+      temp_params = parameters.ChangeValue(name, str(search_value))
       temp_params = self.ConfigurationFixups(temp_params)
       temp_encoder = encoder.Encoder(self, temp_params)
       temp_encoding = encoder.Encoding(temp_encoder, encoding.bitrate,
@@ -105,7 +104,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
         break
 
     print name, "suggesting value", new_value
-    parameters = encoder.Option(name).SetValue(parameters, str(new_value))
+    parameters = parameters.ChangeValue(name, str(new_value))
     parameters = self.ConfigurationFixups(parameters)
     return parameters
 

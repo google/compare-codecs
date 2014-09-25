@@ -1,8 +1,9 @@
 #!/usr/bin/python
 """Unit tests for encoder module."""
 
-import unittest
+import test_tools
 import re
+import unittest
 
 import encoder
 
@@ -233,7 +234,7 @@ class TestVideofile(unittest.TestCase):
       encoder.Videofile('no_numbers_here.yuv')
 
 
-class TestEncodingDiskCache(unittest.TestCase):
+class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
   def testInit(self):
     cache = encoder.EncodingDiskCache(StorageOnlyCodec())
     self.assertTrue(cache)

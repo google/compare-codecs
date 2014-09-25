@@ -22,14 +22,15 @@ def ListOneTarget(codecs, rate, videofile, do_score):
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Score())
-    print ' %6d %4.1f' % (bestsofar.result['bitrate'],
-                          bestsofar.result['psnr']),
+    print ' %6d %4.1f %4.1f' % (bestsofar.result['bitrate'],
+                                bestsofar.result['psnr'],
+                                bestsofar.Score()),
   print ''
 
 def ListResults(codecs, do_score):
   print '%-28s %5s' % ('File', 'Rate'),
   for c in codecs:
-    print '%12s' % pick_codec.ShortName(c),
+    print '%17s' % pick_codec.ShortName(c),
   print
   for classname in mpeg_settings.files.keys():
     for filename in mpeg_settings.files[classname]:

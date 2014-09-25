@@ -46,11 +46,9 @@ class FfmpegCodec(file_codec.FileCodec):
     probeinfo = ast.literal_eval(ffprobeinfo)
     pos = 0
     frameinfo = []
-    print probeinfo
     for frame in probeinfo['frames']:
       if pos != 0:
         frameinfo.append({'size': 8*(int(frame['pkt_pos']) - pos)})
       pos = int(frame['pkt_pos'])
     frameinfo.append({'size': 8*(os.path.getsize(encodedfile) - pos)})
-    print frameinfo
     return {'frame': frameinfo}

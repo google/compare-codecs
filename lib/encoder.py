@@ -379,7 +379,7 @@ class Encoder(object):
       else:
         self.parameters = self.codec.cache.ReadEncoderParameters(filename)
         if self.Hashname() != filename:
-          raise Error("Filename contains wrong arguments")
+          raise Error("Filename %s contains wrong arguments" % filename)
     else:
       self.parameters = codec.ConfigurationFixups(parameters)
 
@@ -547,7 +547,7 @@ def ScoreResult(target_bitrate, result):
   if not result:
     return None
   score = result['psnr']
-  # We penalize bitrates that exceed the target bitrate. 
+  # We penalize bitrates that exceed the target bitrate.
   if result['bitrate'] > int(target_bitrate):
     score -= (result['bitrate'] - int(target_bitrate)) * 0.1
     if abs(score) < 0.01:
