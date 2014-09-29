@@ -1,7 +1,6 @@
 #!/usr/bin/python
-"""Unit tests for VP8 MPEG mode encoder module."""
+"""Unit tests for H.261 encoder module."""
 
-import encoder
 import unittest
 import test_tools
 

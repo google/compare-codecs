@@ -4,8 +4,6 @@ This constraint set operates in fixed QP mode.
 
 It works by picking min-q and forcing max-q to the same value.
 """
-import subprocess
-
 import encoder
 import vp8
 
@@ -32,7 +30,7 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
       --buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 \
       --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """))
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     # This is exactly the same as vp8.Execute, except that there is
     # no target-bitrate parameter.
     commandline = (encoder.Tool('vpxenc') + ' ' + parameters.ToString()
@@ -41,13 +39,8 @@ class Vp8CodecCqMode(vp8.Vp8Codec):
                    + ' -h ' + str(videofile.height)
                    + ' ' + videofile.filename
                    + ' --codec=vp8 '
-                   + ' -o ' + workdir + '/' + videofile.basename + '.webm')
-    print commandline
-    with open('/dev/null', 'r') as nullinput:
-      returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      if returncode:
-        raise Exception("Encode failed with returncode " + str(returncode))
-    return self.Measure(bitrate, videofile, workdir)
+                   + ' -o ' + encodedfile)
+    return commandline
 
   def SpeedGroup(self, bitrate):
     """CQ encodings are independent of speed, so should not be grouped."""

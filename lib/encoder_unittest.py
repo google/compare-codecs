@@ -1,8 +1,9 @@
 #!/usr/bin/python
 """Unit tests for encoder module."""
 
-import unittest
+import test_tools
 import re
+import unittest
 
 import encoder
 
@@ -24,14 +25,10 @@ class DummyCodec(encoder.Codec):
     # pylint: disable=W0613
     m = re.search(r'--score=(\d+)', parameters.ToString())
     if m:
-      return int(m.group(1))
+      return {'psnr': int(m.group(1)), 'bitrate': 100}
     else:
-      return -100
+      return {'psnr': -100, 'bitrate': 100}
 
-  def ScoreResult(self, target_bitrate, result):
-    # target_bitrate is unused.
-    # pylint: disable=W0613
-    return result
 
 class StorageOnlyCodec(object):
   """A codec that is only useful for testing storage."""
@@ -237,7 +234,7 @@ class TestVideofile(unittest.TestCase):
       encoder.Videofile('no_numbers_here.yuv')
 
 
-class TestEncodingDiskCache(unittest.TestCase):
+class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
   def testInit(self):
     cache = encoder.EncodingDiskCache(StorageOnlyCodec())
     self.assertTrue(cache)
@@ -288,6 +285,19 @@ class TestEncodingDiskCache(unittest.TestCase):
     self.assertEquals(2, len(result.encodings))
     result = cache.AllScoredEncodings(123, videofile)
     self.assertEquals(1, len(result.encodings))
+
+
+class TestEncodingFunctions(unittest.TestCase):
+
+  def test_ScoreResult(self):
+    result = {'bitrate': 100, 'psnr': 10.0}
+    self.assertEqual(10.0, encoder.ScoreResult(100, result))
+    self.assertEqual(10.0, encoder.ScoreResult(1000, result))
+    # Score is reduced by 0.1 per kbps overrun.
+    self.assertAlmostEqual(10.0 - 0.1, encoder.ScoreResult(99, result))
+    # Score floors at 0.1 for very large overruns.
+    self.assertAlmostEqual(0.1, encoder.ScoreResult(1, result))
+    self.assertFalse(encoder.ScoreResult(100, None))
 
 
 if __name__ == '__main__':

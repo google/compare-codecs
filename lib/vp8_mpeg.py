@@ -5,18 +5,14 @@ This constraint set operates in fixed QP mode.
 It works by setting fixed-q, gold-q and key-q to given fixed values.
 This requires a patch to the vpxenc binary.
 """
-import subprocess
-
 import encoder
-
 import vp8
 
 
 class Vp8CodecMpegMode(vp8.Vp8Codec):
-  def __init__(self):
-    super(Vp8CodecMpegMode, self).__init__()
+  def __init__(self, name='vp8-mpeg'):
+    super(Vp8CodecMpegMode, self).__init__(name)
     # Set the parts that are different from the VP8 codec.
-    self.name = 'vp8-mpeg'
     self.option_set = encoder.OptionSet(
       encoder.IntegerOption('fixed-q', 0, 63),
       encoder.IntegerOption('gold-q', 0, 63),
@@ -40,7 +36,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
                            encoder.OptionValueSet(self.option_set,
                              self.start_encoder_parameters))
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     # This is exactly the same as vp8.Execute, except that there is
     # no target-bitrate parameter.
     # TODO(hta): Redefine "parameters" so that the removal can be specified.
@@ -50,13 +46,8 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
                    + ' -h ' + str(videofile.height)
                    + ' ' + videofile.filename
                    + ' --codec=vp8 '
-                   + ' -o ' + workdir + '/' + videofile.basename + '.webm')
-    print commandline
-    with open('/dev/null', 'r') as nullinput:
-      returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      if returncode:
-        raise Exception("Encode failed with returncode " + str(returncode))
-    return self.Measure(bitrate, videofile, workdir)
+                   + ' -o ' + encodedfile)
+    return commandline
 
   def SpeedGroup(self, bitrate):
     """CQ encodings are independent of speed, so should not be grouped."""
@@ -77,7 +68,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     parameter identified by "name" changed in a way worth testing.
     If no sensible change is found, returns None."""
     parameters = encoding.encoder.parameters
-    value = int(encoder.Option(name).GetValue(parameters))
+    value = int(parameters.GetValue(name))
     new_value = None
     if encoding.result['bitrate'] > encoding.bitrate:
       delta = 1
@@ -98,8 +89,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     # the starting point is the highest score), try the middle value
     # between this and that. If none exists, go for the extreme values.
     for search_value in candidates:
-      temp_params = encoder.Option(name).SetValue(parameters,
-                                                  str(search_value))
+      temp_params = parameters.ChangeValue(name, str(search_value))
       temp_params = self.ConfigurationFixups(temp_params)
       temp_encoder = encoder.Encoder(self, temp_params)
       temp_encoding = encoder.Encoding(temp_encoder, encoding.bitrate,
@@ -114,7 +104,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
         break
 
     print name, "suggesting value", new_value
-    parameters = encoder.Option(name).SetValue(parameters, str(new_value))
+    parameters = parameters.ChangeValue(name, str(new_value))
     parameters = self.ConfigurationFixups(parameters)
     return parameters
 

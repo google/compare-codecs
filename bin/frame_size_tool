@@ -1,0 +1,58 @@
+#!/usr/bin/python
+""" Tool for looking at frame sizes for a given configuration.
+"""
+import argparse
+import encoder
+import pick_codec
+import score_tools
+import sys
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('rate')
+  parser.add_argument('videofile')
+  parser.add_argument('--codec')
+  parser.add_argument('--score', action='store_true', default=False)
+  args = parser.parse_args()
+
+  videofile = encoder.Videofile(args.videofile)
+
+  bitrate = int(args.rate)
+  codec = pick_codec.PickCodec(args.codec)
+
+  encoding = codec.BestEncoding(bitrate, videofile)
+  if args.score:
+    encoding.Execute().Store()
+  else:
+    encoding.Recover()
+  if not encoding.result:
+    print "No encoding result"
+    return 1
+  if not 'frame' in encoding.result:
+    print "No frame info in score"
+    return 1
+  counter = 0
+  totalsize = 0
+  for frame in encoding.result['frame']:
+    print "Frame %d size %d" % (counter, frame['size'])
+    counter += 1
+    totalsize += frame['size']
+  print 'Total size %d bits %d bytes' % (totalsize, totalsize / 8)
+  print 'Average bits per frame: %d' % (totalsize / counter)
+  framerate = videofile.framerate
+  print 'Available bits per frame: %d' % (bitrate * 1000 / framerate)
+  # Calculate accumulated delay with 0.1 and 1 second bit buffer
+  delay_score = score_tools.DelayCalculation(encoding.result['frame'],
+                                             framerate,
+                                             bitrate * 1000, 0.1,
+                                             print_trace=True)
+  print 'Delay at 0.1 s buffer: %f' % delay_score
+  delay_score = score_tools.DelayCalculation(encoding.result['frame'],
+                                             framerate,
+                                             bitrate * 1000, 1.0,
+                                             print_trace=True)
+  print 'Delay at 1 s buffer: %f' % delay_score
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

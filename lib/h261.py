@@ -2,9 +2,6 @@
 
 This uses ffmpeg for encoding and decoding.
 """
-import os
-import subprocess
-
 import encoder
 import ffmpeg
 
@@ -17,48 +14,21 @@ class H261Codec(ffmpeg.FfmpegCodec):
   def StartEncoder(self):
     return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
+  def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     # TODO(hta): Merge the common parts of this with vp8.Execute.
     commandline = (
-      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y -s 352x288 %s/%s.%s' % (
+      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y -s 352x288 %s' % (
         encoder.Tool('ffmpeg'),
         parameters.ToString(), videofile.width, videofile.height,
         videofile.filename, self.codecname,
-        bitrate, workdir, videofile.basename, self.extension))
+        bitrate, encodedfile))
+    return commandline
 
-    print commandline
-    returncode = subprocess.call(commandline, shell=True)
-    if returncode:
-      raise Exception("Encode failed with returncode " + str(returncode))
-    return self.Measure(bitrate, videofile, workdir)
-
-  def Measure(self, bitrate, videofile, workdir):
-    result = {}
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
-    if os.path.isfile(tempyuvfile):
-      print "Removing tempfile before decode:", tempyuvfile
-      os.unlink(tempyuvfile)
+  def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
     # The special thing here is that it rescales back to the original size.
-    # TODO(hta): Factor out the difference by itself.
-    commandline = "%s -i %s/%s.h261 -s %sx%s %s" % (
+    commandline = "%s -i %s -s %sx%s %s" % (
       encoder.Tool('ffmpeg'),
-      workdir, videofile.basename, videofile.width, videofile.height,
-      tempyuvfile)
-    print commandline
-    returncode = subprocess.call(commandline, shell=True)
-    if returncode:
-      raise encoder.Error('Decode failed')
-    bitrate = videofile.MeasuredBitrate(
-      os.path.getsize('%s/%s.h261' % (workdir, videofile.basename)))
-    commandline = "%s %s %s %d %d 9999" % (
-      encoder.Tool('psnr'),
-      videofile.filename, tempyuvfile, videofile.width,
-      videofile.height)
-    print commandline
-    psnr = subprocess.check_output(commandline, shell=True)
-    print "Bitrate", bitrate, "PSNR", psnr
-    result['bitrate'] = int(bitrate)
-    result['psnr'] = float(psnr)
-    os.unlink(tempyuvfile)
-    return result
+      encodedfile, videofile.width, videofile.height,
+      yuvfile)
+    return commandline
 
