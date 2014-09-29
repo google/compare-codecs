@@ -4,7 +4,7 @@ import unittest
 
 import score_tools
 
-class TestFunctions(unittest.TestCase):
+class TestScoreTools(unittest.TestCase):
 
   def test_DelayCalculation(self):
     # A list of frames of size 1000 bits.

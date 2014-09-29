@@ -543,7 +543,15 @@ def ScoreResult(target_bitrate, result):
 
   The score is a number that can be positive or negative, but it MUST NOT
   be zero, because the Score() is also used as a boolean to check if the
-  result is present or not."""
+  result is present or not.
+
+  Arguments:
+  - target_bitrate: Desired bitrate in kilobits per second
+  - result: a dictionary containing the analysis of the encoding.
+
+  In this particular score function, the PSNR and the achieved bitrate
+  of the encoding are of interest.
+  """
   if not result:
     return None
   score = result['psnr']
