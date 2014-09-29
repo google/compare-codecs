@@ -4,36 +4,8 @@
 import argparse
 import encoder
 import pick_codec
+import score_tools
 import sys
-
-def DelayCalculation(framelist, framerate, bitrate, buffer):
-  """Calculate the total delay in frame delivery for these frames.
-  Arguments:
-  - framelist: list of frames, with size in bits in the "size" field
-  - framerate: frames per second
-  - bitrate: integer, bits per second
-  - buffer: Initial buffer, in seconds
-  Returns:
-  Delay as a proportion of total clip time - that is, if the clip is 10s
-  long, and the function returns 0.2, the clip will take 12 seconds to play.
-  """
-  for frame in framelist:
-    frame['transmit_time'] = float(frame['size']) / bitrate
-  playback_clock = buffer
-  buffer_clock = 0
-  delay = 0
-  frame_count = 0
-  for frame in framelist:
-    buffer_clock += frame['transmit_time'] # time this frame arrives
-    playback_clock += 1.0/framerate # time this frame should be played back
-    if buffer_clock > playback_clock:
-      delay += (buffer_clock - playback_clock)
-      print 'Frame %d %f behind' % (frame_count, buffer_clock - playback_clock)
-      # In this model, we assume that playback pauses until frame is available.
-      # No further delay penalty is imposed on the next frame.
-      playback_clock = buffer_clock
-    frame_count += 1
-  return delay / (frame_count / framerate)
 
 def main():
   parser = argparse.ArgumentParser()
@@ -70,13 +42,16 @@ def main():
   framerate = videofile.framerate
   print 'Available bits per frame: %d' % (bitrate * 1000 / framerate)
   # Calculate accumulated delay with 0.1 and 1 second bit buffer
-
-  print 'Delay at 0.1 s buffer: %f' % DelayCalculation(encoding.result['frame'],
-                                                       framerate,
-                                                       bitrate * 1000, 0.1)
-  print 'Delay at 1 s buffer: %f' % DelayCalculation(encoding.result['frame'],
-                                                     framerate,
-                                                     bitrate * 1000, 1.0)
+  delay_score = score_tools.DelayCalculation(encoding.result['frame'],
+                                             framerate,
+                                             bitrate * 1000, 0.1,
+                                             print_trace=True)
+  print 'Delay at 0.1 s buffer: %f' % delay_score
+  delay_score = score_tools.DelayCalculation(encoding.result['frame'],
+                                             framerate,
+                                             bitrate * 1000, 1.0,
+                                             print_trace=True)
+  print 'Delay at 1 s buffer: %f' % delay_score
   return 0
 
 if __name__ == '__main__':

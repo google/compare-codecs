@@ -1,7 +1,10 @@
 #!/usr/bin/python
-"""Tests for the codec picker."""
+"""Tests for the codec picker.
+This file is also the place for tests that cover several codecs."""
 
+import os
 import unittest
+
 import pick_codec
 
 class TestPickCodec(unittest.TestCase):
@@ -9,9 +12,12 @@ class TestPickCodec(unittest.TestCase):
     seenDirs = set()
     for codec_name in pick_codec.codec_map:
       codec = pick_codec.PickCodec(codec_name)
-      self.assertNotIn(codec.cache.WorkDir(), seenDirs,
-                       'Duplicate workdir for codec %s' % codec_name)
-      seenDirs.add(codec.cache.WorkDir())
+      workdir = os.path.abspath(codec.cache.WorkDir())
+      self.assertNotIn(workdir, seenDirs,
+                       'Duplicate workdir %s for codec %s' %
+                       (workdir, codec_name))
+      seenDirs.add(workdir)
+
 
 if __name__ == '__main__':
   unittest.main()
