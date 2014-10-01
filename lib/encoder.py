@@ -332,6 +332,10 @@ class Codec(object):
     # pylint: disable=W0613, R0201
     raise Error("The base codec class can't execute anything")
 
+  def VerifyEncode(self, parameters, bitrate, videofile, workdir):
+    # pylint: disable=W0613, R0201
+    raise Error("The base codec class can't verify anything")
+
   def ConfigurationFixups(self, config):
     """Hook for applying inter-parameter tweaks."""
     # pylint: disable=R0201
@@ -388,6 +392,9 @@ class Encoder(object):
 
   def Execute(self, bitrate, videofile, workdir):
     return self.codec.Execute(self.parameters, bitrate, videofile, workdir)
+
+  def VerifyEncode(self, bitrate, videofile, workdir):
+    return self.codec.VerifyEncode(self.parameters, bitrate, videofile, workdir)
 
   def Store(self):
     self.codec.cache.StoreEncoder(self)
@@ -509,6 +516,10 @@ class Encoding(object):
     self.result = self.encoder.Execute(self.bitrate, self.videofile,
                                        self.Workdir())
     return self
+
+  def VerifyEncode(self):
+    return self.encoder.VerifyEncode(self.bitrate, self.videofile,
+                                     self.Workdir())
 
   def Score(self):
     return ScoreResult(self.bitrate, self.result)

@@ -25,7 +25,7 @@ class FfmpegCodec(file_codec.FileCodec):
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (
-      '%s %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s' % (
+      '%s -loglevel warning %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s' % (
         encoder.Tool('ffmpeg'),
         parameters.ToString(), videofile.width, videofile.height,
         videofile.filename, self.codecname,
@@ -33,7 +33,7 @@ class FfmpegCodec(file_codec.FileCodec):
     return commandline
 
   def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
-    commandline = "%s -codec:v %s -i %s %s" % (
+    commandline = "%s -loglevel warning -codec:v %s -i %s %s" % (
       encoder.Tool('ffmpeg'),
       self.codecname,
       encodedfile, yuvfile)
