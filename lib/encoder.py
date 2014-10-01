@@ -189,25 +189,31 @@ class OptionValueSet(object):
     self.formatter = formatter
     self.values = {}
     self.other_parts = []
-    for flag in string.split():
-      m = re.match(r'%s([^%s]*)(%s)?' % (formatter.prefix, formatter.infix[0:1],
-                                         formatter.infix),
-                   flag)
-      if m:
-        if self._HandleNameValueFlag(m):
-          continue
-        if self._HandleChoiceFlag(m):
-          continue
-      # It is not a known name=value or a known flag.
-      # Remember it, but don't make it available for manipulation.
-      self.other_parts.append(flag)
+    unparsed = string
+    matcher = r'\s*%s([^%s ]*)(%s(\S+))?' % (formatter.prefix,
+                                             formatter.infix[0:1],
+                                             formatter.infix)
+    m = re.match(matcher, unparsed)
+    while m:
+      self._HandleFlag(m)
+      unparsed = unparsed[m.end():]
+      m = re.match(matcher, unparsed)
+
+  def _HandleFlag(self, m):
+    if self._HandleNameValueFlag(m):
+      return
+    if self._HandleChoiceFlag(m):
+      return
+    # It is not a known name=value or a known flag.
+    # Remember it, but don't make it available for manipulation.
+    self.other_parts.append(m.group(0).strip())
 
   def _HandleNameValueFlag(self, m):
     name = m.group(1)
     if m.group(2) and self.option_set.HasOption(name):
       # Known name=value option.
       name = m.group(1)
-      value = m.string[m.end():]
+      value = m.group(3)
       self.values[name] = value
       return True
     return False
@@ -240,6 +246,9 @@ class OptionValueSet(object):
     except KeyError:
       raise Error('No value for option %s' % name)
 
+  def HasValue(self, name):
+    return (name in self.values)
+
   def ChangeValue(self, name, value):
     """Return an OptionValueSet with the specified parameter changed."""
     if not self.option_set.HasOption(name):
@@ -252,8 +261,12 @@ class OptionValueSet(object):
 
   def RandomlyPatchOption(self, option):
     """ Modify a configuration by changing the value of this option."""
-    newconfig = self.ChangeValue(option.name,
-                                 option.PickAnother(self.GetValue(option.name)))
+    if self.HasValue(option.name):
+      newconfig = self.ChangeValue(
+        option.name, option.PickAnother(self.GetValue(option.name)))
+    else:
+      newconfig = self.ChangeValue(
+        option.name, option.PickAnother(''))
     assert(self != newconfig)
     return newconfig
 
@@ -307,6 +320,7 @@ class Codec(object):
       self.cache = cache
     else:
       self.cache = EncodingDiskCache(self)
+    self.option_formatter = None
 
   def Option(self, name):
     return self.option_set.Option(name)
@@ -636,7 +650,9 @@ class EncodingDiskCache(object):
   def ReadEncoderParameters(self, hashname):
     dirname = os.path.join(self.workdir, hashname)
     with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
-      return OptionValueSet(self.codec.option_set, parameterfile.read())
+      return OptionValueSet(self.codec.option_set, parameterfile.read(),
+                            formatter=self.codec.option_formatter)
+
 
   def StoreEncoding(self, encoding):
     """Stores an encoding object on disk.
