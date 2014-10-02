@@ -52,6 +52,7 @@ class FileCodec(encoder.Codec):
         videofile.height)
       print commandline
       psnr = subprocess.check_output(commandline, shell=True, stdin=nullinput)
+    os.unlink(tempyuvfile)
     print "Bitrate", bitrate, "PSNR", psnr
     result['bitrate'] = int(bitrate)
     result['psnr'] = float(psnr)
