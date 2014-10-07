@@ -36,6 +36,7 @@ class StorageOnlyCodec(object):
     self.name = 'unittest'
     self.cache = None
     self.option_set = encoder.OptionSet()
+    self.option_formatter = encoder.OptionFormatter(prefix='--', infix=':')
 
   def SpeedGroup(self, bitrate):
     # pylint: disable=R0201
@@ -146,6 +147,26 @@ class TestOptionValueSet(unittest.TestCase):
     newconfig = config.RandomlyPatchConfig()
     # There is only one possible change. It should be chosen.
     self.assertEqual(newconfig.ToString(), '--foo=bar')
+    # Test case where original set did not have value.
+    config = encoder.OptionValueSet(
+      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+      '')
+    newconfig = config.RandomlyPatchConfig()
+    self.assertIn(newconfig.ToString(), ['--foo=foo', '--foo=bar'])
+
+  def test_OtherFormatter(self):
+    valueset = encoder.OptionValueSet(
+      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+      '-foo foo',
+      formatter=encoder.OptionFormatter(prefix='-', infix=' '))
+    self.assertEqual('-foo foo', valueset.ToString())
+    valueset = encoder.OptionValueSet(
+      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']),
+                        encoder.Option('xyz', ['abc', 'def'])),
+      '-foo foo -xyz abc',
+      formatter=encoder.OptionFormatter(prefix='-', infix=' '))
+    self.assertEqual('-foo foo -xyz abc', valueset.ToString())
+
 
 class TestCodec(unittest.TestCase):
   def setUp(self):
