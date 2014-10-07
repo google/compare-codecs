@@ -23,7 +23,7 @@ class TestVp8(test_tools.FileUsingCodecTest):
     self.assertEqual(1, len(encoding.result['frame']))
     # Check that expected results are present and "reasonable".
     print encoding.result
-    self.assertTrue(0.1 < encoding.result['encode_cputime'] < 0.2)
+    self.assertTrue(0.1 < encoding.result['encode_cputime'] < 0.5)
     self.assertTrue(400 < encoding.result['bitrate'] < 500)
     self.assertTrue(10000 < encoding.result['frame'][0]['size'] < 12000)
 
