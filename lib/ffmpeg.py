@@ -12,13 +12,14 @@ import encoder
 import file_codec
 
 class FfmpegCodec(file_codec.FileCodec):
-  def __init__(self, name='ffmpeg-mpeg4'):
-    # Subclasses need to override name, codecname and extension.
-    # At the moment, no parameters are defined.
+
+  def __init__(self,
+               name='ffmpeg-mpeg4',
+               formatter=encoder.OptionFormatter(prefix='-', infix=' ')):
     self.name = name
     self.codecname = 'mpeg4'
     self.extension = 'avi'
-    super(FfmpegCodec, self).__init__(name)
+    super(FfmpegCodec, self).__init__(name, formatter=formatter)
 
   def StartEncoder(self):
     return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))

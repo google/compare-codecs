@@ -14,13 +14,13 @@ class FileCodec(encoder.Codec):
   - DecodeCommandLine
   - ResultData
   """
-  def __init__(self, name, cache=None):
-    super(FileCodec, self).__init__(name, cache)
+  def __init__(self, name, cache=None, formatter=encoder.OptionFormatter()):
+    super(FileCodec, self).__init__(name, cache, formatter)
 
   def _EncodeFile(self, parameters, bitrate, videofile, encodedfile):
     commandline = self.EncodeCommandLine(
       parameters, bitrate, videofile, encodedfile)
-                                         
+
     print commandline
     with open('/dev/null', 'r') as nullinput:
       subprocess_cpu_start = os.times()[2]
@@ -115,5 +115,5 @@ def MatroskaFrameInfo(encodedfile):
     if m:
       # The mkvinfo tool gives frame size in bytes. We want bits.
       frameinfo.append({'size': int(m.group(1))*8})
-      
+
   return frameinfo
