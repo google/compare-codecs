@@ -203,6 +203,10 @@ class TestCodec(unittest.TestCase):
     self.assertNotEqual(otherconfig, '--score=5')
     self.assertIn(otherconfig, ['--score=0', '--score=10'])
 
+  def test_FormatterExists(self):
+    codec = DummyCodec()
+    self.assertTrue(codec.option_formatter)
+
 
 class TestEncoder(unittest.TestCase):
   def test_CreateStoreFetch(self):
