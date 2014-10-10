@@ -14,10 +14,8 @@ class MotionJpegCodec(ffmpeg.FfmpegCodec):
       encoder.IntegerOption('qmin', 0, 1),
       encoder.IntegerOption('qmax', 0, 1),
     )
-    self.option_formatter = encoder.OptionFormatter(prefix='-', infix=' ')
 
   def StartEncoder(self):
     return encoder.Encoder(
       self, encoder.OptionValueSet(self.option_set, '',
                                    formatter=self.option_formatter))
-
