@@ -313,15 +313,14 @@ class Codec(object):
 
   Subclasses must define the options and start_encoder variables
   """
-  def __init__(self, name, cache=None,
-               formatter=OptionFormatter()):
+  def __init__(self, name, cache=None, formatter=None):
     self.name = name
     self.option_set = OptionSet()
     if cache:
       self.cache = cache
     else:
       self.cache = EncodingDiskCache(self)
-    self.option_formatter = formatter
+    self.option_formatter = formatter or OptionFormatter()
 
   def Option(self, name):
     return self.option_set.Option(name)

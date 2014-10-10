@@ -14,8 +14,8 @@ class FileCodec(encoder.Codec):
   - DecodeCommandLine
   - ResultData
   """
-  def __init__(self, name, cache=None, formatter=encoder.OptionFormatter()):
-    super(FileCodec, self).__init__(name, cache, formatter)
+  def __init__(self, name, cache=None, formatter=None):
+    super(FileCodec, self).__init__(name, cache=cache, formatter=formatter)
 
   def _EncodeFile(self, parameters, bitrate, videofile, encodedfile):
     commandline = self.EncodeCommandLine(
