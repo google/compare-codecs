@@ -2,6 +2,7 @@
 #
 # Unit tests for the visual_metrics package.
 #
+import encoder
 import unittest
 
 import visual_metrics
@@ -9,6 +10,29 @@ import visual_metrics
 def LinearVector(slope=0.0, offset=0.0):
   """A point pair set that has points in a straight line."""
   return [[float(i), float(i*slope)+offset] for i in (10, 20, 30, 40)]
+
+
+class MockCodec(object):
+  def __init__(self):
+    self.name = 'mock'
+
+  def BestEncoding(self, rate, videofile):
+    # pylint: disable=W0613,R0201
+    return MockEncoding()
+
+
+class MockEncoding(object):
+  def __init__(self):
+    self.result = {'bitrate': 1000, 'psnr': 1.0}
+
+  def Execute(self):
+    pass
+  def Store(self):
+    pass
+  def Score(self):
+    # pylint: disable=R0201
+    return 1.0
+
 
 class TestVisualMetricsFunctions(unittest.TestCase):
 
@@ -81,6 +105,23 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     filestable = {'dsnr': 'result', 'avg': 'notused', 'drate': 'notused'}
     result = visual_metrics.HtmlPage(page_template, filestable, None, None)
     self.assertEquals(expected_result, result)
+
+  def test_ListOneTarget(self):
+    datatable = {}
+    filename = 'file_10x10_10'
+    videofile = encoder.Videofile(filename)
+    visual_metrics.ListOneTarget([MockCodec()], 1000, videofile,
+                                 False, datatable)
+    self.assertEquals(1, len(datatable['mock'][filename]))
+
+  def test_CrossPerformanceGviztable(self):
+    datatable = {'dummy1':{}}
+    metric = 'meaningless'
+    codecs = ['dummy1', 'dummy2']
+    # This should result in an empty table, with correct headers and col1.
+    data_table = visual_metrics.CrossPerformanceGvizTable(
+        datatable, metric, codecs)
+    self.assertEquals(2, data_table.NumberOfRows())
 
 if __name__ == '__main__':
   unittest.main()

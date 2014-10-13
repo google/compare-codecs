@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Generate pages that are expected by the website.
+#
+codecs="x264 vp8 h263"
+
+for codec1 in $codecs; do
+  for codec2 in $codecs; do
+    if [ $codec1 != $codec2 ]; then
+      compare_html $codec1 $codec2 > website/results/generated/$codec1-$codec2.html
+    fi
+  done
+done
+write_cross_performance_tables vp8 x264 h263 > website/results/generated/toplevel.json
