@@ -7,34 +7,42 @@ import encoder
 import file_codec
 
 class X264Codec(file_codec.FileCodec):
-  def __init__(self, name='x264'):
-    super(X264Codec, self).__init__(name)
+  def __init__(self, name='x264', formatter=None):
+    super(X264Codec, self).__init__(
+      name,
+      formatter=(formatter or encoder.OptionFormatter(prefix='--', infix=' ')))
     self.extension = 'mkv'
     self.option_set = encoder.OptionSet(
+      encoder.Option('rc-lookahead', ['0', '30', '60']),
+      encoder.Option('vbv-init', ['0.5', '0.8', '0.9']),
+      encoder.Option('ref', ['1', '2', '3', '16']),
     )
 
   def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
+    return encoder.Encoder(self, encoder.OptionValueSet(
+      self.option_set,
+      '--rc-lookahead 0 --ref 2 --vbv-init 0.8',
+      formatter=self.option_formatter))
 
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = ('%(x264)s '
-      '--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d --vbv-init 0.8 '
+      '--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d '
       '--bitrate %(bitrate)d --fps %(framerate)d '
       '--threads 1 '
-      '--rc-lookahead 0 '
-      '--ref 2 '
       '--profile baseline --no-scenecut --keyint infinite --preset veryslow '
       '--input-res %(width)dx%(height)d '
       '--tune psnr '
+      '%(parameters)s '
       '-o %(outputfile)s %(inputfile)s') % {
-      'x264': encoder.Tool('x264'),
-      'bitrate': bitrate,
-      'framerate': videofile.framerate,
-      'width': videofile.width,
-      'height': videofile.height,
-      'outputfile': encodedfile,
-      'inputfile': videofile.filename}
+        'x264': encoder.Tool('x264'),
+        'bitrate': bitrate,
+        'framerate': videofile.framerate,
+        'width': videofile.width,
+        'height': videofile.height,
+        'outputfile': encodedfile,
+        'inputfile': videofile.filename,
+        'parameters': parameters.ToString()}
     return commandline
 
 
@@ -47,4 +55,3 @@ class X264Codec(file_codec.FileCodec):
     more_results = {}
     more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
     return more_results
-
