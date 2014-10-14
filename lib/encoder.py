@@ -536,15 +536,20 @@ class Encoding(object):
     return self.encoder.VerifyEncode(self.bitrate, self.videofile,
                                      self.Workdir())
 
-  def Score(self):
-    return ScoreResult(self.bitrate, self.result)
+  def Score(self, scoredir=None):
+    if scoredir is None:
+      return ScoreResult(self.bitrate, self.result)
+    else:
+      result = self.encoder.codec.cache.ReadEncodingResult(self,
+                                                           scoredir=scoredir)
+      return ScoreResult(self.bitrate, result)
 
   def Store(self):
     self.encoder.Store()
     self.encoder.codec.cache.StoreEncoding(self)
 
   def Recover(self):
-    self.encoder.codec.cache.ReadEncodingResult(self)
+    self.result = self.encoder.codec.cache.ReadEncodingResult(self)
 
 
 class EncodingSet(object):
@@ -689,17 +694,23 @@ class EncodingDiskCache(object):
     with open('%s/%s.result' % (dirname, videoname), 'w') as resultfile:
       resultfile.write(str(encoding.result))
 
-  def ReadEncodingResult(self, encoding):
+  def ReadEncodingResult(self, encoding, scoredir=None):
     """Reads an encoding result back from storage, if present.
 
-    Encoder is unchanged if file does not exist."""
-    dirname = ('%s/%s/%s' % (self.workdir, encoding.encoder.Hashname(),
+    None is returned file does not exist."""
+
+    if scoredir:
+      workdir = os.path.join(scoredir, self.codec.name)
+    else:
+      workdir = self.workdir
+    dirname = ('%s/%s/%s' % (workdir, encoding.encoder.Hashname(),
                              self.codec.SpeedGroup(encoding.bitrate)))
     filename = '%s/%s.result' % (dirname, encoding.videofile.basename)
     if os.path.isfile(filename):
       with open(filename, 'r') as resultfile:
         stringbuffer = resultfile.read()
-        encoding.result = ast.literal_eval(stringbuffer)
+        return ast.literal_eval(stringbuffer)
+    return None
 
 
 class EncodingMemoryCache(object):
