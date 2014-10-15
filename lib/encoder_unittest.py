@@ -289,8 +289,9 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     self.assertEquals(my_encoding.result, testresult)
 
   def testStoreMultipleEncodings(self):
-    # TODO: Clear disk cache before test.
     # This test is sensitive to old data left around.
+    # The FileUsingCodecTest base class takes care of giving it an
+    # empty directory at test start.
     codec = StorageOnlyCodec()
     cache = encoder.EncodingDiskCache(codec)
     codec.cache = cache  # This particular test needs the link.
@@ -311,6 +312,32 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     result = cache.AllScoredEncodings(123, videofile)
     self.assertEquals(1, len(result.encodings))
 
+  def testAllEncoderFilenames(self):
+    codec = StorageOnlyCodec()
+    cache = encoder.EncodingDiskCache(codec)
+    codec.cache = cache  # This particular test needs the link.
+    files = cache.AllEncoderFilenames()
+    self.assertEquals(0, len(files))
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    files = cache.AllEncoderFilenames()
+    self.assertEquals(1, len(files))
+    self.assertEquals(my_encoder.Hashname(), files[0])
+
+  def testRemoveEncoder(self):
+    codec = StorageOnlyCodec()
+    cache = encoder.EncodingDiskCache(codec)
+    codec.cache = cache  # This particular test needs the link.
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    files = cache.AllEncoderFilenames()
+    self.assertEquals(1, len(files))
+    self.assertEquals(my_encoder.Hashname(), files[0])
+    cache.RemoveEncoder(my_encoder.Hashname())
+    files = cache.AllEncoderFilenames()
+    self.assertEquals(0, len(files))
 
 class TestEncodingFunctions(unittest.TestCase):
 

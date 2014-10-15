@@ -1,0 +1,49 @@
+#!/usr/bin/python
+#
+# This script verifies that hashes for all encoders are correct.
+#
+# The encoder is stored in a directory that is named by a hash over
+# its string representation. If the string representation changes,
+# the hash will change, and therefore the old directory becomes invalid.
+#
+import argparse
+import sys
+
+import encoder
+import pick_codec
+
+def VerifyHashnames(codecs, remove_offending_encoders):
+  change_count = 0
+  for codec_name in codecs:
+    codec = pick_codec.PickCodec(codec_name)
+    filenames = codec.cache.AllEncoderFilenames()
+    for filename in filenames:
+      try:
+        # If we can create an encoder for this filename, it's OK.
+        encoder.Encoder(codec, filename=filename)
+      except (encoder.Error, IOError) as error:
+        # encoder.Error is raised if there's a checksum change.
+        # IOError is raised if the encoder directory is corrupted,
+        # for instance if the parameter file is missing.
+        print 'Error in codec %s encoder %s: %s' % (
+            codec.name, filename, error)
+        if remove_offending_encoders:
+          print 'Deleting encoder %s' % filename
+          codec.cache.RemoveEncoder(filename)
+        change_count += 1
+  return change_count
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--remove', action='store_true', default=False)
+  parser.add_argument('codecs', nargs='*',
+                      default=pick_codec.codec_map.keys())
+  args = parser.parse_args()
+  change_count = VerifyHashnames(args.codecs, args.remove)
+  print 'Number of changes: %d' % change_count
+  if change_count > 0:
+    return 1
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())
