@@ -1,0 +1,68 @@
+#!/usr/bin/python
+#
+# Pick a random codec, find a random video file and bitrate, and randomly
+# try another encoding for it.
+# This is intended to be run as a CPU waster in the background.
+#
+
+import argparse
+import collections
+import encoder
+import pick_codec
+import random
+import mpeg_settings
+import sys
+
+def FindNextEncoding(bestsofar):
+  if not bestsofar.Score():
+    return bestsofar
+
+  try:
+    return bestsofar.SomeUntriedVariants().BestGuess()
+  except AssertionError:
+    # TODO: Change the error on "can't vary anything" to be something else
+    print 'No untried variants for this codec'
+  return None
+
+def TryToImprove(codec, filename, bitrate):
+  """Try to improve an encoding. Return true if improved."""
+  videofile = encoder.Videofile('video/mpeg_video/' + filename)
+  bestsofar = codec.BestEncoding(bitrate, videofile)
+  if bestsofar.Score():
+    previous_score = bestsofar.Score()
+  else:
+    previous_score = -10000
+  next_encoding = FindNextEncoding(bestsofar)
+  if next_encoding:
+    print "Trying encoder", next_encoding.encoder.Hashname()
+    next_encoding.Execute()
+    print "Score is", next_encoding.Score(), ' from', previous_score
+    next_encoding.Store()
+    if next_encoding.Score() > previous_score:
+      return 'Improved'
+    else:
+      return 'Not improved'
+  return 'No try'
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--iterations', type=int, default=sys.maxint)
+  args = parser.parse_args()
+  tries = 0
+  results = collections.Counter()
+  while tries < args.iterations:
+    tries += 1
+    codec = pick_codec.PickCodec(random.choice(pick_codec.codec_map.keys()))
+    classname = random.choice(mpeg_settings.files.keys())
+    filename = random.choice(mpeg_settings.files[classname])
+    bitrate = random.choice(mpeg_settings.rates[classname])
+
+    print "Trying codec %s on file %s rate %s" % (codec.name, filename,
+                                                  bitrate)
+    result = TryToImprove(codec, filename, bitrate)
+    results[result] += 1
+    print 'So far:', dict(results)
+
+
+if __name__ == '__main__':
+  sys.exit(main())
