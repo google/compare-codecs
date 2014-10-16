@@ -12,5 +12,5 @@ function FillInAllTables() {
   var data = new google.visualization.DataTable(tablesAsJson);
   var table = new google.visualization.Table(
     document.getElementById('basic-results'));
-  table.draw(data);
+  table.draw(data, {allowHtml: true});
 }

@@ -344,21 +344,24 @@ def CrossPerformanceGvizTable(datatable, metric, codecs):
   description['codec'] = ("string", "Codec")
   data = []
   for codec in codecs:
-    description[codec] = ("number", codec)
+    description[codec] = ('string', codec)
   for codec1 in codecs:
     lineitem = {'codec': codec1}
     for codec2 in codecs:
-      count = 0
-      overall = 0.0
-      for filename in videofile_name_list:
-        if (filename in datatable[codec1]
-            and filename in datatable[codec2]):
-          overall += DataSetBetter(
-            datatable[codec1][filename],
-            datatable[codec2][filename], metric)
-          count += 1
-      if count > 0:
-        lineitem[codec2] = overall / count
+      if codec1 != codec2:
+        count = 0
+        overall = 0.0
+        for filename in videofile_name_list:
+          if (filename in datatable[codec1]
+              and filename in datatable[codec2]):
+            overall += DataSetBetter(
+              datatable[codec1][filename],
+              datatable[codec2][filename], metric)
+            count += 1
+        if count > 0:
+          display = '<a href=/results/generated/%s-%s.html>%5.2f</a>' % (
+            codec1, codec2, overall / count)
+          lineitem[codec2] = (overall / count, display)
     data.append(lineitem)
 
   data_table = gviz_api.DataTable(description)

@@ -9,9 +9,10 @@ title: Results
 <script src="/assets/js/codecfuncs.js"></script>
 <h2>{{ page.title }}</h2>
 
-This page shows the results of encodes available on this particular site.
+This page shows the video encoding results available on this particular site.
 
-NOTE: All results are fake. They will be generated using Javascript from
+NOTE: All results (excepte the first table) are fake. They will be
+generated using Javascript from
 JSON-formatted data files in the eventual site.
 
 ### No-limit results
@@ -20,14 +21,15 @@ This is the result of comparing encodings based on PSNR and file size being
 below a certain bitrate, with no restrictions on tools applied, and no
 penalty applied for moving bits around within the bitstream.
 
-<!--Note: This table will be overwritten on page load. -->
+<!--Note: This table will be overwritten on page load.
+    It is present to show what the tables will look like. -->
 <div id="basic-results">
 
 |             |        VP8 |        x264 |  H263 |
 | ----------- | ---------- | ----------- | ----- |
-| VP8         |            |        <a href="/results/generated/vp8-x264.html">-22%</a> | <a href="/results/generated/vp8-h263.html">-71</a> |
-| x264        |        <a href="/results/generated/x264-vp8.html">+30%</a> | | <a href="/results/generated/x264-h263.html">-64</a> |
-| H263        | <a href="/results/generated/h263-vp8.html">+262</a> | <a href="/results/generated/h263-x264.html">+203</a> | |
+| VP8         |            |        -22% |  -71% |
+| x264        |       +30% |             |  -64% |
+| H263        |      +262% |       +203% |       |
 {:.td-right}
 
 </div>
