@@ -7,6 +7,10 @@ if [ -z $WORKDIR -o ! -d $WORKDIR ]; then
   echo "Workdir not set correctly: $WORKDIR"
   exit 1
 fi
+if [ -z $CODEC_WORKDIR -o ! -d $CODEC_WORKDIR ]; then
+  echo "Codec Workdir not set correctly: $CODEC_WORKDIR"
+  exit 1
+fi
 
 DESTINATION=$WORKDIR/snapshot
 for RESULT in $(find $CODEC_WORKDIR -name '*.result'); do
