@@ -1,0 +1,74 @@
+#!/usr/bin/python
+#
+# Verifies whether any scores have changed compared to what's in the
+# database, and reports whether there are positive changes, negative
+# changes, or "no change".
+#
+# Only final scores are checked, not intermediate results.
+# Intended for use after upgrading software.
+#
+# Note that this tool will overwrite the encoded files, so after running
+# this tool, running verify_encodings is useless.
+#
+import argparse
+import collections
+import sys
+
+import mpeg_settings
+import encoder
+import pick_codec
+
+
+def ClassifyScoreRelation(old_score, new_score):
+  if not old_score:
+    return 'no old score'
+  if not new_score:
+    return 'no new score'
+  if old_score == new_score:
+    return 'no change'
+  if old_score < new_score:
+    return 'improved'
+  return 'worsened'
+
+def VerifyOneTarget(codec_names, rate, videofile, score):
+  change_counts = collections.Counter()
+  for codec_name in codec_names:
+    codec = pick_codec.PickCodec(codec_name)
+    bestsofar = codec.BestEncoding(rate, videofile)
+    if score:
+      bestsofar.Execute().Store()
+    old_score = bestsofar.Score(scoredir='snapshot')
+    new_score = bestsofar.Score()
+    result = ClassifyScoreRelation(old_score, new_score)
+    change_counts[result] += 1
+    if result != 'no change':
+      print '%s rate %s file %s id %s: %s score from %5.3f to %5.3f' % (
+        codec_name, rate, videofile.basename, bestsofar.encoder.Hashname(),
+        result,
+        old_score if old_score else float('-inf'),
+        new_score if new_score else float('-inf'))
+
+  return change_counts
+
+def VerifyResults(codec_names, score):
+  change_counts = collections.Counter()
+  for clip_class in mpeg_settings.files.keys():
+    for filename in mpeg_settings.files[clip_class]:
+      videofile = encoder.Videofile('video/mpeg_video/' + filename)
+      for rate in mpeg_settings.rates[clip_class]:
+        change_counts.update(VerifyOneTarget(codec_names, rate, videofile, score))
+        print 'Result so far:', dict(change_counts)
+  return change_counts
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('codec_names', nargs='*',
+                      default=pick_codec.codec_map.keys())
+  parser.add_argument('--score', action='store_true', default=False)
+  args = parser.parse_args()
+  change_count = VerifyResults(args.codec_names, score=args.score)
+  print 'Change evaluations: ', dict(change_count)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

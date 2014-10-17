@@ -1,8 +1,10 @@
 #!/usr/bin/python
 """Unit tests for encoder module."""
 
-import test_tools
+import os
 import re
+import shutil
+import test_tools
 import unittest
 
 import encoder
@@ -285,8 +287,8 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     my_encoding.result = testresult
     cache.StoreEncoding(my_encoding)
     my_encoding.result = None
-    cache.ReadEncodingResult(my_encoding)
-    self.assertEquals(my_encoding.result, testresult)
+    result = cache.ReadEncodingResult(my_encoding)
+    self.assertEquals(result, testresult)
 
   def testStoreMultipleEncodings(self):
     # This test is sensitive to old data left around.
@@ -338,6 +340,28 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     cache.RemoveEncoder(my_encoder.Hashname())
     files = cache.AllEncoderFilenames()
     self.assertEquals(0, len(files))
+
+  def testReadResultFromAlternateDir(self):
+    codec = StorageOnlyCodec()
+    otherdir = os.path.join(os.environ['CODEC_WORKDIR'], 'otherdir')
+    cache = encoder.EncodingDiskCache(codec)
+    codec.cache = cache  # This particular test needs the link.
+    my_encoder = encoder.Encoder(
+        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    videofile = encoder.Videofile('x/foo_640_480_20.yuv')
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    my_encoding.result = None
+    result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
+    self.assertIsNone(result)
+    shutil.copytree(os.environ['CODEC_WORKDIR'], otherdir)
+    result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
+    self.assertEquals(result, testresult)
+
 
 class TestEncodingFunctions(unittest.TestCase):
 

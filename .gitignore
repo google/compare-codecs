@@ -4,5 +4,9 @@
 vpx_codec_comparison/
 website/out/
 website/tmp/
+website/results/generated/
 _site
 _config-local.yml
+workdir/
+snapshot/
+video/mpeg_video/
