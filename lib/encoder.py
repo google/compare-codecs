@@ -25,6 +25,7 @@ import md5
 import os
 import random
 import re
+import shutil
 
 
 class Error(Exception):
@@ -664,6 +665,12 @@ class EncodingDiskCache(object):
       return OptionValueSet(self.codec.option_set, parameterfile.read(),
                             formatter=self.codec.option_formatter)
 
+  def AllEncoderFilenames(self):
+    pattern = os.path.join(self.workdir, '*')
+    return [os.path.basename(this_file) for this_file in glob.glob(pattern)]
+
+  def RemoveEncoder(self, hashname):
+    shutil.rmtree(os.path.join(self.workdir, hashname))
 
   def StoreEncoding(self, encoding):
     """Stores an encoding object on disk.
