@@ -32,11 +32,11 @@ def FormatAsHtml(codecs, datatable):
   baseline_codec = codecs[0]
 
   for metric in ['avg', 'dsnr', 'drate']:
-    data_table = visual_metrics.BuildGvizDataTable(
+    gviz_data_table = visual_metrics.BuildGvizDataTable(
       datatable, metric, baseline_codec, other_codecs)
 
     filestable[metric] = ( filestable[metric] + "filestable_" + metric +
-                           "[1]=" + data_table.ToJSon()
+                           "[1]=" + gviz_data_table.ToJSon()
                            + "\n" )
 
   # Now we collect all the data for all the graphs.  First the column

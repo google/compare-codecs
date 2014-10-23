@@ -12,16 +12,16 @@ def LinearVector(slope=0.0, offset=0.0):
   return [[float(i), float(i*slope)+offset] for i in (10, 20, 30, 40)]
 
 
-class MockCodec(object):
+class FakeCodec(object):
   def __init__(self):
     self.name = 'mock'
 
   def BestEncoding(self, rate, videofile):
     # pylint: disable=W0613,R0201
-    return MockEncoding()
+    return FakeEncoding()
 
 
-class MockEncoding(object):
+class FakeEncoding(object):
   def __init__(self):
     self.result = {'bitrate': 1000, 'psnr': 1.0}
 
@@ -110,11 +110,11 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     datatable = {}
     filename = 'file_10x10_10'
     videofile = encoder.Videofile(filename)
-    visual_metrics.ListOneTarget([MockCodec()], 1000, videofile,
+    visual_metrics.ListOneTarget([FakeCodec()], 1000, videofile,
                                  False, datatable)
     self.assertEquals(1, len(datatable['mock'][filename]))
 
-  def test_CrossPerformanceGviztable(self):
+  def test_CrossPerformanceGvizTable(self):
     datatable = {'dummy1':{}}
     metric = 'meaningless'
     codecs = ['dummy1', 'dummy2']

@@ -270,8 +270,9 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable):
       datatable[codec_name] = {}
     if not videofile.basename in datatable[codec_name]:
       datatable[codec_name][videofile.basename] = []
-    datatable[codec_name][videofile.basename].append(
-      (bestsofar.result['bitrate'], bestsofar.result['psnr']))
+    (datatable.setdefault(codec_name, {})
+             .setdefault(videofile.basename, [])
+             .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
 
 
 def ListMpegResults(codecs, do_score, datatable):
@@ -332,16 +333,16 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   data.append(row)
 
   # Generate the gViz table
-  data_table = gviz_api.DataTable(description)
-  data_table.LoadData(data)
-  return data_table
+  gviz_data_table = gviz_api.DataTable(description)
+  gviz_data_table.LoadData(data)
+  return gviz_data_table
 
 def CrossPerformanceGvizTable(datatable, metric, codecs):
   """Build a square table of codecs and relative performance."""
   videofile_name_list = datatable[codecs[0]].keys()
 
   description = {}
-  description['codec'] = ("string", "Codec")
+  description['codec'] = ('string', 'Codec')
   data = []
   for codec in codecs:
     description[codec] = ('string', codec)
@@ -364,6 +365,6 @@ def CrossPerformanceGvizTable(datatable, metric, codecs):
           lineitem[codec2] = (overall / count, display)
     data.append(lineitem)
 
-  data_table = gviz_api.DataTable(description)
-  data_table.LoadData(data)
-  return data_table
+  gviz_data_table = gviz_api.DataTable(description)
+  gviz_data_table.LoadData(data)
+  return gviz_data_table
