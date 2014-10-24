@@ -2,14 +2,40 @@
 layout: default
 title: Results
 ---
-
+<!-- Scripting stuff -->
+<script src="https://www.google.com/jsapi"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!-- Special Javascript for this site -->
+<script src="/assets/js/codecfuncs.js"></script>
 <h2>{{ page.title }}</h2>
 
-This page shows the results of encodes available on this particular site.
+This page shows the video encoding results available on this particular site.
 
-NOTE: All results are fake. They will be generated using Javascript from
+NOTE: All results (excepte the first table) are fake. They will be
+generated using Javascript from
 JSON-formatted data files in the eventual site.
 
+### No-limit results
+
+This is the result of comparing encodings based on PSNR and file size being
+below a certain bitrate, with no restrictions on tools applied, and no
+penalty applied for moving bits around within the bitstream.
+
+<!--Note: This table will be overwritten on page load.
+    It is present to show what the tables will look like. -->
+<div id="basic-results">
+
+| PLACEHOLDER |        VP8 |        x264 |  H263 |
+| ----------- | ---------- | ----------- | ----- |
+| VP8         |            |        -22% |  -71% |
+| x264        |       +30% |             |  -64% |
+| H263        |      +262% |       +203% |       |
+{:.td-right}
+
+</div>
+<script>
+FillInResults('basic-results')
+</script>
 
 ### Fixed QP results
 
@@ -18,7 +44,7 @@ to the BD-PSNR method. Click on a percentage to go to the page that shows the
 detailed results, and results based on other metrics.
 
 
-|             | VP8 2-Pass | x264 2-Pass | HEVC-HM |
+| PLACEHOLDER | VP8 2-Pass | x264 2-Pass | HEVC-HM |
 | ----------- | ---------- | ----------- | ------- |
 | VP8 2-pass  |            |        +10% |    -12% |
 | x264 2-Pass |        -8% |             |    +17% |
@@ -37,7 +63,7 @@ overrun. The score for any clip is reduced by 0.1 for each second of
 accumulated delay, divided by the length of the clip.
 
 
-|             | VP8 2-Pass | x264 2-Pass | HEVC-HM |
+| PLACEHOLDER | VP8 2-Pass | x264 2-Pass | HEVC-HM |
 | ----------- | ---------- | ----------- | ------- |
 | VP8 2-pass  |            |        +10% |    -12% |
 | x264 2-Pass |        -8% |             |    +17% |
@@ -57,9 +83,9 @@ forward looking elements - that is, a decoded frame N must be exactly the same
 no matter what the content of the original frame N+1 and later were.
 
 
-|      | VP8-RT | X264-RT | HEVC-HM |
-| ---- | ------ | ------- | ------- |
-| VP8  |        |    +10% |     DNQ |
-| X264 |    -8% |         |     DNQ |
-| HEVC |    DNQ |     DNQ |         |
+| PLACEHOLDER     | VP8-RT | X264-RT | HEVC-HM |
+| --------------- | ------ | ------- | ------- |
+| VP8             |        |    +10% |     DNQ |
+| X264            |    -8% |         |     DNQ |
+| HEVC            |    DNQ |     DNQ |         |
 {:.td-right}
