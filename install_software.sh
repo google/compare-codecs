@@ -7,19 +7,8 @@
 #
 set -e
 
-if [ ! -d vpx_codec_comparison ]; then
-  git clone http://git.chromium.org/webm/vpx_codec_comparison.git
-fi
-cd vpx_codec_comparison
-# Note: We clobber all local changes to this repository by doing this.
-git checkout -f master
-git pull
-./install_software.sh
-# Compile one more tool
-cd ffmpeg
-make ffprobe
-cp ffprobe ../bin
-cd ..
+cd third_party
+./compile_tools.sh
 # Exit vpx_codec_comparison
 cd ..
 # More tools called by the scripts
@@ -34,8 +23,6 @@ sudo apt-get install nodejs
 # celluloid-0.16.0 has the same problem.
 # So we limit to a jekyll version that builds under 1.9.1.
 sudo gem install jekyll -v 1.5.1
-
-# More stuff will go here.
 
 echo "All software installed"
 
