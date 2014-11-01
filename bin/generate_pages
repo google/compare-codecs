@@ -20,3 +20,5 @@ for codec1 in $codecs; do
 done
 echo "Generating cross performance tables"
 write_cross_performance_tables vp8 x264 h263 > website/results/generated/toplevel.json
+
+chmod -R a+rX website/results/generated

@@ -34,7 +34,7 @@ penalty applied for moving bits around within the bitstream.
 
 </div>
 <script>
-FillInResults('basic-results')
+FillInAllTables()
 </script>
 
 ### Fixed QP results
