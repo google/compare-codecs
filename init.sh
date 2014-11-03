@@ -15,7 +15,7 @@ if [ ! -f init.sh ]; then
   exit 1
 fi
 
-export WORKDIR="$(cd "$(dirname "$0")" && pwd)"
+export WORKDIR=$PWD
 PATH=$(dedup "$PATH:$WORKDIR/bin")
 export PYTHONPATH=$(dedup "$PYTHONPATH:$WORKDIR/lib")
 export CODEC_WORKDIR=$WORKDIR/workdir

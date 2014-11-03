@@ -13,25 +13,6 @@ import encoder
 import pick_codec
 import gviz_api
 
-def ListOneTarget(codecs, rate, videofile, do_score, datatable):
-  for codec_name in codecs:
-    codec = pick_codec.PickCodec(codec_name)
-    bestsofar = codec.BestEncoding(rate, videofile)
-    if do_score and not bestsofar.Score():
-      bestsofar.Execute()
-      bestsofar.Store()
-    assert(bestsofar.Score())
-    datatable[codec_name][videofile.basename].append(
-      (bestsofar.result['bitrate'], bestsofar.result['psnr']))
-
-
-def ListResults(codecs, do_score, datatable):
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(codecs, rate, videofile, do_score, datatable)
-
 def FormatAsHtml(codecs, datatable):
   """
   Print out the data recorded in "data" in an HTML file.
@@ -50,59 +31,12 @@ def FormatAsHtml(codecs, datatable):
   other_codecs = codecs[1:]
   baseline_codec = codecs[0]
 
-  # Find the metric files in the baseline codec.
-  videofile_name_list = datatable[baseline_codec].keys()
-
   for metric in ['avg', 'dsnr', 'drate']:
-    # TODO(hta): Break this loop up into appropriate functions.
-    description = {"file": ("string", "File")}
-
-      # Go through each codec and add a column header to our description.
-    countoverall = {}
-    sumoverall = {}
-
-    for this_codec in other_codecs:
-      description[this_codec] = ("number", this_codec)
-      countoverall[this_codec] = 0
-      sumoverall[this_codec] = 0
-
-    # Data holds the data for the visualization, name given comes from
-    # gviz_api sample code.
-    data = []
-    for filename in videofile_name_list:
-      row = {'file': filename }
-
-      # Read the metric file from each of the directories in our list.
-      for this_codec in other_codecs:
-
-        # If there is a metric file in the current this_codec, open it
-        # and calculate its overall difference between it and the baseline
-        # this_codec's metric file.
-        if (filename in datatable[this_codec]
-            and filename in datatable[baseline_codec]):
-          overall = visual_metrics.DataSetBetter(
-            datatable[baseline_codec][filename],
-            datatable[this_codec][filename], metric)
-          row[this_codec] = overall
-
-          sumoverall[this_codec] += overall
-          countoverall[this_codec] += 1
-
-      data.append(row)
-
-    # Add the overall numbers.
-    row = {"file": "OVERALL " + metric}
-    for this_codec in other_codecs:
-      if countoverall[this_codec]:
-        row[this_codec] = sumoverall[this_codec] / countoverall[this_codec]
-    data.append(row)
-
-      # write the tables out
-    data_table = gviz_api.DataTable(description)
-    data_table.LoadData(data)
+    gviz_data_table = visual_metrics.BuildGvizDataTable(
+      datatable, metric, baseline_codec, other_codecs)
 
     filestable[metric] = ( filestable[metric] + "filestable_" + metric +
-                           "[1]=" + data_table.ToJSon()
+                           "[1]=" + gviz_data_table.ToJSon()
                            + "\n" )
 
   # Now we collect all the data for all the graphs.  First the column
@@ -118,6 +52,9 @@ def FormatAsHtml(codecs, datatable):
 
   # Now collect the data for the graphs, file by file.
   snr_data = []
+  # Find the metric files in the baseline codec.
+  videofile_name_list = datatable[baseline_codec].keys()
+
   for filename in videofile_name_list:
 
     data = []
@@ -163,13 +100,7 @@ def main():
   args = parser.parse_args()
 
   datatable = {}
-  for codec in args.codecs:
-    datatable[codec] = {}
-    for classname in mpeg_settings.files.keys():
-      for filename in mpeg_settings.files[classname]:
-        datatable[codec][os.path.splitext(filename)[0]] = []
-  # This fills in results in the global "data" entry
-  ListResults(args.codecs, args.score, datatable)
+  visual_metrics.ListMpegResults(args.codecs, args.score, datatable)
   FormatAsHtml(args.codecs, datatable)
   return 0
 
