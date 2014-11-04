@@ -7,6 +7,9 @@ the performance of codecs -- consistently, openly, and usefully.
 For a complete description of what it does, how it does it, and why, check out
 the website, the source for which is in `website/_site`.
 
+A compatible system (at the moment: Ubuntu Linux, Trusty Tahr) is required
+to install this project.
+
 To fire up the Web server to read the web site, run the following steps:
 
 * source init.sh

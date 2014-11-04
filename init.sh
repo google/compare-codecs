@@ -15,13 +15,16 @@ if [ ! -f init.sh ]; then
   exit 1
 fi
 
-export WORKDIR="$(cd "$(dirname "$0")" && pwd)"
+export WORKDIR=$PWD
 PATH=$(dedup "$PATH:$WORKDIR/bin")
 export PYTHONPATH=$(dedup "$PYTHONPATH:$WORKDIR/lib")
 export CODEC_WORKDIR=$WORKDIR/workdir
-export CODEC_TOOLPATH=$WORKDIR/vpx_codec_comparison/bin
+export CODEC_TOOLPATH=$WORKDIR/tools
 
 if [ ! -d $CODEC_WORKDIR ]; then
   mkdir $CODEC_WORKDIR
+fi
+if [ ! -d $CODEC_TOOLPATH ]; then
+  mkdir $CODEC_TOOLPATH
 fi
 

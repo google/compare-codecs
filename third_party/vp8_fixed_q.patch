@@ -1,0 +1,225 @@
+diff --git a/vp8/encoder/onyx_if.c b/vp8/encoder/onyx_if.c
+index 881ada1..0714bd8 100644
+--- a/vp8/encoder/onyx_if.c
++++ b/vp8/encoder/onyx_if.c
+@@ -1542,7 +1542,8 @@ void vp8_change_config(VP8_COMP *cpi, VP8_CONFIG *oxcf)
+         if (oxcf->worst_allowed_q < 0)
+             cpi->oxcf.fixed_q = q_trans[0];
+         else
+-            cpi->oxcf.fixed_q = q_trans[oxcf->worst_allowed_q];
++//          cpi->oxcf.fixed_q = q_trans[oxcf->worst_allowed_q];
++            cpi->oxcf.fixed_q = q_trans[oxcf->fixed_q];
+
+         if (oxcf->alt_q < 0)
+             cpi->oxcf.alt_q = q_trans[0];
+@@ -4621,53 +4622,61 @@ static void encode_frame_to_data_rate
+         vp8_clear_system_state();
+
+         if (cpi->twopass.total_left_stats.coded_error != 0.0)
+-            fprintf(f, "%10d %10d %10d %10d %10d %10d %10d %10d %10d %6d %6d"
+-                       "%6d %6d %6d %5d %5d %5d %8d %8.2f %10d %10.3f"
+-                       "%10.3f %8d\n",
++            fprintf(f, "%10d %10d %10d %10d %10d "
++                       "%10" PRId64
++                       "%10" PRId64
++                       "%10" PRId64
++                       " %10d %6d %6d"
++                       "%6d %6d %5d %5d %5d %8d %8.2lf "
++                       "%" PRId64
++                       "%10.3f"
++                       "%10.3lf %8d\n",
+                        cpi->common.current_video_frame, cpi->this_frame_target,
+                        cpi->projected_frame_size,
+                        (cpi->projected_frame_size - cpi->this_frame_target),
+-                       (int)cpi->total_target_vs_actual,
++                       cpi->total_target_vs_actual,
+                        cpi->buffer_level,
+                        (cpi->oxcf.starting_buffer_level-cpi->bits_off_target),
+-                       (int)cpi->total_actual_bits, cm->base_qindex,
++                       cpi->total_actual_bits, cm->base_qindex,
+                        cpi->active_best_quality, cpi->active_worst_quality,
+                        cpi->ni_av_qi, cpi->cq_target_quality,
+-                       cpi->zbin_over_quant,
+                        cm->refresh_golden_frame, cm->refresh_alt_ref_frame,
+                        cm->frame_type, cpi->gfu_boost,
+                        cpi->twopass.est_max_qcorrection_factor,
+-                       (int)cpi->twopass.bits_left,
++                       cpi->twopass.bits_left,
+                        cpi->twopass.total_left_stats.coded_error,
+                        (double)cpi->twopass.bits_left /
+                            cpi->twopass.total_left_stats.coded_error,
+                        cpi->tot_recode_hits);
+         else
+-            fprintf(f, "%10d %10d %10d %10d %10d %10d %10d %10d %10d %6d %6d"
+-                       "%6d %6d %6d %5d %5d %5d %8d %8.2f %10d %10.3f"
+-                       "%8d\n",
+-                       cpi->common.current_video_frame,
+-                       cpi->this_frame_target, cpi->projected_frame_size,
+-                       (cpi->projected_frame_size - cpi->this_frame_target),
+-                       (int)cpi->total_target_vs_actual,
+-                       cpi->buffer_level,
+-                       (cpi->oxcf.starting_buffer_level-cpi->bits_off_target),
+-                       (int)cpi->total_actual_bits, cm->base_qindex,
+-                       cpi->active_best_quality, cpi->active_worst_quality,
+-                       cpi->ni_av_qi, cpi->cq_target_quality,
+-                       cpi->zbin_over_quant,
+-                       cm->refresh_golden_frame, cm->refresh_alt_ref_frame,
+-                       cm->frame_type, cpi->gfu_boost,
+-                       cpi->twopass.est_max_qcorrection_factor,
+-                       (int)cpi->twopass.bits_left,
+-                       cpi->twopass.total_left_stats.coded_error,
+-                       cpi->tot_recode_hits);
++          fprintf(f, "%10d %10d %10d %10d %10d "
++                     "%10" PRId64
++                     "%10" PRId64
++                     "%10" PRId64
++                     " %10d %6d %6d"
++                     "%6d %6d %5d %5d %5d %8d %8.2lf "
++                     "%" PRId64
++                     "%10.3f %8d\n",
++                     cpi->common.current_video_frame, cpi->this_frame_target,
++                     cpi->projected_frame_size,
++                     (cpi->projected_frame_size - cpi->this_frame_target),
++                     cpi->total_target_vs_actual,
++                     cpi->buffer_level,
++                     (cpi->oxcf.starting_buffer_level-cpi->bits_off_target),
++                     cpi->total_actual_bits, cm->base_qindex,
++                     cpi->active_best_quality, cpi->active_worst_quality,
++                     cpi->ni_av_qi, cpi->cq_target_quality,
++                     cm->refresh_golden_frame, cm->refresh_alt_ref_frame,
++                     cm->frame_type, cpi->gfu_boost,
++                     cpi->twopass.est_max_qcorrection_factor,
++                     cpi->twopass.bits_left,
++                     cpi->twopass.total_left_stats.coded_error,
++                     cpi->tot_recode_hits);
+
+         fclose(f);
+
+         {
+             FILE *fmodes = fopen("Modes.stt", "a");
+-            int i;
+
+             fprintf(fmodes, "%6d:%1d:%1d:%1d ",
+                         cpi->common.current_video_frame,
+diff --git a/vp8/encoder/ratectrl.c b/vp8/encoder/ratectrl.c
+index fe4db13..f6fc73e 100644
+--- a/vp8/encoder/ratectrl.c
++++ b/vp8/encoder/ratectrl.c
+@@ -1238,7 +1238,6 @@ int vp8_regulate_q(VP8_COMP *cpi, int target_bits_per_frame)
+         {
+             Q = cpi->oxcf.gold_q;
+         }
+-
+     }
+     else
+     {
+diff --git a/vp8/vp8_cx_iface.c b/vp8/vp8_cx_iface.c
+index 19e9d27..04617a7 100644
+--- a/vp8/vp8_cx_iface.c
++++ b/vp8/vp8_cx_iface.c
+@@ -142,8 +142,19 @@ static vpx_codec_err_t validate_config(vpx_codec_alg_priv_t      *ctx,
+     RANGE_CHECK(cfg, g_timebase.den,        1, 1000000000);
+     RANGE_CHECK(cfg, g_timebase.num,        1, cfg->g_timebase.den);
+     RANGE_CHECK_HI(cfg, g_profile,          3);
+-    RANGE_CHECK_HI(cfg, rc_max_quantizer,   63);
+-    RANGE_CHECK_HI(cfg, rc_min_quantizer,   cfg->rc_max_quantizer);
++
++    RANGE_CHECK(cfg, rc_fixed_quantizer,    -1, 63);
++    if (cfg->rc_fixed_quantizer >= 0) {
++      // Check fixed-Q setup, ignore rc_min_quantizer & rc_max_quantizer.
++      RANGE_CHECK(cfg, rc_fixed_quantizer,  0, 63);
++      RANGE_CHECK(cfg, rc_key_quantizer,    0, 63);
++      RANGE_CHECK(cfg, rc_gold_quantizer,   0, 63);
++      RANGE_CHECK(cfg, rc_alt_quantizer,    0, 63);
++    } else {
++      RANGE_CHECK_HI(cfg, rc_max_quantizer,   63);
++      RANGE_CHECK_HI(cfg, rc_min_quantizer,   cfg->rc_max_quantizer);
++    }
++
+     RANGE_CHECK_HI(cfg, g_threads,          64);
+ #if CONFIG_REALTIME_ONLY
+     RANGE_CHECK_HI(cfg, g_lag_in_frames,    0);
+@@ -343,7 +354,11 @@ static vpx_codec_err_t set_vp8e_config(VP8_CONFIG *oxcf,
+     oxcf->best_allowed_q           = cfg.rc_min_quantizer;
+     oxcf->worst_allowed_q          = cfg.rc_max_quantizer;
+     oxcf->cq_level                 = vp8_cfg.cq_level;
+-    oxcf->fixed_q = -1;
++
++    oxcf->fixed_q                  = cfg.rc_fixed_quantizer;
++    oxcf->key_q                    = cfg.rc_key_quantizer;
++    oxcf->gold_q                   = cfg.rc_gold_quantizer;
++    oxcf->alt_q                    = cfg.rc_alt_quantizer;
+
+     oxcf->under_shoot_pct          = cfg.rc_undershoot_pct;
+     oxcf->over_shoot_pct           = cfg.rc_overshoot_pct;
+@@ -1249,6 +1264,10 @@ static vpx_codec_enc_cfg_map_t vp8e_usage_cfg_map[] =
+         256,                /* rc_target_bandwidth */
+         4,                  /* rc_min_quantizer */
+         63,                 /* rc_max_quantizer */
++        -1,                 /* rc_fixed_quantizer */
++        -1,                 /* rc_key_quantizer */
++        -1,                 /* rc_gold_quantizer */
++        -1,                 /* rc_alt_quantizer */
+         100,                /* rc_undershoot_pct */
+         100,                /* rc_overshoot_pct */
+
+diff --git a/vpx/vpx_encoder.h b/vpx/vpx_encoder.h
+index 56752cf..378d9be 100644
+--- a/vpx/vpx_encoder.h
++++ b/vpx/vpx_encoder.h
+@@ -467,6 +467,11 @@ extern "C" {
+      */
+     unsigned int           rc_max_quantizer;
+
++    int                    rc_fixed_quantizer;
++    int                    rc_key_quantizer;
++    int                    rc_gold_quantizer;
++    int                    rc_alt_quantizer;
++
+
+     /*
+      * bitrate tolerance
+diff --git a/vpxenc.c b/vpxenc.c
+index d0ed9b5..62c3d1f 100644
+--- a/vpxenc.c
++++ b/vpxenc.c
+@@ -309,6 +309,16 @@ static const arg_def_t min_quantizer      = ARG_DEF(NULL, "min-q", 1,
+                                                     "Minimum (best) quantizer");
+ static const arg_def_t max_quantizer      = ARG_DEF(NULL, "max-q", 1,
+                                                     "Maximum (worst) quantizer");
++
++static const arg_def_t fixed_quantizer    = ARG_DEF(NULL, "fixed-q", 1,
++                                                    "Fixed quantizer");
++static const arg_def_t key_quantizer      = ARG_DEF(NULL, "key-q", 1,
++                                                    "Key frame quantizer");
++static const arg_def_t gold_quantizer     = ARG_DEF(NULL, "gold-q", 1,
++                                                    "Golden frame quantizer");
++static const arg_def_t alt_quantizer      = ARG_DEF(NULL, "alt-q", 1,
++                                                    "ARF quantizer");
++
+ static const arg_def_t undershoot_pct     = ARG_DEF(NULL, "undershoot-pct", 1,
+                                                     "Datarate undershoot (min) target (%)");
+ static const arg_def_t overshoot_pct      = ARG_DEF(NULL, "overshoot-pct", 1,
+@@ -322,6 +332,7 @@ static const arg_def_t buf_optimal_sz     = ARG_DEF(NULL, "buf-optimal-sz", 1,
+ static const arg_def_t *rc_args[] = {
+   &dropframe_thresh, &resize_allowed, &resize_up_thresh, &resize_down_thresh,
+   &end_usage, &target_bitrate, &min_quantizer, &max_quantizer,
++  &fixed_quantizer, &key_quantizer, &gold_quantizer, &alt_quantizer,
+   &undershoot_pct, &overshoot_pct, &buf_sz, &buf_initial_sz, &buf_optimal_sz,
+   NULL
+ };
+@@ -1196,6 +1207,14 @@ static int parse_stream_params(struct VpxEncoderConfig *global,
+       config->cfg.rc_min_quantizer = arg_parse_uint(&arg);
+     else if (arg_match(&arg, &max_quantizer, argi))
+       config->cfg.rc_max_quantizer = arg_parse_uint(&arg);
++    else if (arg_match(&arg, &fixed_quantizer, argi))
++      config->cfg.rc_fixed_quantizer = arg_parse_int(&arg);
++    else if (arg_match(&arg, &key_quantizer, argi))
++      config->cfg.rc_key_quantizer = arg_parse_int(&arg);
++    else if (arg_match(&arg, &gold_quantizer, argi))
++      config->cfg.rc_gold_quantizer = arg_parse_int(&arg);
++    else if (arg_match(&arg, &alt_quantizer, argi))
++      config->cfg.rc_alt_quantizer = arg_parse_int(&arg);
+     else if (arg_match(&arg, &undershoot_pct, argi))
+       config->cfg.rc_undershoot_pct = arg_parse_uint(&arg);
+     else if (arg_match(&arg, &overshoot_pct, argi))
