@@ -15,7 +15,6 @@ cd ..
 sudo apt-get install mkvtoolnix
 # Install prerequisites for running Jekyll as a web server
 sudo apt-get install ruby1.9.1-dev
-sudo update-alternatives --set ruby /usr/bin/ruby1.9.1
 sudo apt-get install nodejs
 # Jekyll 2.4.0 depends on redcarpet.
 # Redcarpet 3.1.2 depends on ruby 1.9.2 or later.
