@@ -24,8 +24,12 @@ fi
 cd libvpx
 # Ensure we check out exactly a consistent version.
 git checkout -f master
-git checkout c129203f7e5e20f5d67f92c27c65f7d5e362aa7a
+#git checkout v1.3.0
+# Check out the Oct 20 2014 version of libvpx.
+git checkout 9c98fb2bab6125a0614576bf7635981163b1cc79
 ./configure
+# Leftovers from previous compilations may be troublesome.
+make clean
 # There's something wrong in the make for libvpx at this version.
 # Ignore the result code from make. We'll bail if vpxenc and vpxdec
 # were not built.

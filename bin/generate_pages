@@ -8,7 +8,7 @@ if [ ! -d $WORKDIR/website/results/generated ]; then
   mkdir $WORKDIR/website/results/generated
 fi
 
-codecs="x264 vp8 h263"
+codecs="x264 vp8 vp9 h263"
 
 for codec1 in $codecs; do
   for codec2 in $codecs; do
@@ -19,6 +19,6 @@ for codec1 in $codecs; do
   done
 done
 echo "Generating cross performance tables"
-write_cross_performance_tables vp8 x264 h263 > website/results/generated/toplevel.json
+write_cross_performance_tables vp8 vp9 x264 h263 > website/results/generated/toplevel.json
 
 chmod -R a+rX website/results/generated
