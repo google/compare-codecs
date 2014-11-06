@@ -47,3 +47,74 @@ div.well p:last-child {
    ------------------------------- */
   margin-bottom: 0;
 }
+
+/* Custom styles for generated 'results' tables
+   ============================================ */
+
+/* Big Hammer
+ * Targets all GCharts-generated tables within div#basic-results
+   ------------------------------------------------------------- */
+
+div#basic-results table.google-visualization-table-table * {
+  font-size: 14px;
+  padding: 3px 7px;
+  width: auto;
+}
+
+/* Styles mapping to GCharts cssClassNames
+   --------------------------------------- */
+
+.rslts-headerRow {
+/* table header row (<tr> element) */
+}
+
+.rslts-tableRow {
+/* non-header rows (<tr> elements) */
+}
+
+.rslts-oddTableRow {
+/* odd table rows (<tr> elements);
+   moot if alternatingRowStyle = false */
+}
+
+.rslts-selectedTableRow {
+/* selected table row (<tr> element) */
+}
+
+.rslts-hoverTableRow {
+/* hovered table row (<tr> element) */
+}
+
+.rslts-headerCell {
+/* cells in the header row (<td> element) */
+  color: #000;
+  background-color: #ddd;
+  font-weight: bold;
+  text-align: center;
+}
+
+.rslts-tableCell {
+/* non-header table cells (<td> element) */
+}
+
+.rslts-rowNumberCell {
+/* cells in the row number column (<td> element);
+   moot if showRowNumber = false */
+}
+
+/* Yet more granular; slightly brittle
+   ----------------------------------- */
+
+td.rslts-tableCell:first-child {
+/* Style only 1st column cells */
+/* These are used for codec names in diagonal-codec tables */
+  color: #000;
+  font-weight: bold;
+  background-color: #ddd;
+  /*text-align: center;*/
+}
+
+td.rslts-tableCell + td {
+/* Right-align cells not in the 1st column */
+  text-align: right;
+}
