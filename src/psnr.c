@@ -3,6 +3,7 @@
  Name        : psnr.c
  Copyright   : Copyright Google Inc, 2012.
  Description : Computes the overall/global PSNR of two input yuv clips.
+ Author      : Adrian Grange <agrange@google.com>
  ============================================================================
  */
 
