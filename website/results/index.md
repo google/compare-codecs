@@ -21,6 +21,10 @@ This is the result of comparing encodings based on PSNR and file size being
 below a certain bitrate, with no restrictions on tools applied, and no
 penalty applied for moving bits around within the bitstream.
 
+The top row gives the baseline codec; the first column gives the codec it
+is compared to, and the number gives the change in bitrate between the two
+for the same quality metric.
+
 <!--Note: This table will be overwritten on page load.
     It is present to show what the tables will look like. -->
 <div id="basic-results">
