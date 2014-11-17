@@ -8,7 +8,6 @@ WORKDIR=$(dirname $0)
 
 $WORKDIR/encoder_unittest.py
 $WORKDIR/vp8_unittest.py
-$WORKDIR/vp8_cq_unittest.py
 $WORKDIR/vp8_mpeg_unittest.py
 $WORKDIR/vp8_mpeg_1d_unittest.py
 $WORKDIR/x264_unittest.py
@@ -17,5 +16,6 @@ $WORKDIR/mjpeg_unittest.py
 $WORKDIR/visual_metrics_unittest.py
 $WORKDIR/pick_codec_unittest.py
 $WORKDIR/file_codec_unittest.py
+$WORKDIR/vp9_unittest.py
 
 pylint $(ls lib/*.py | grep -v 'gviz_api.py')

@@ -24,7 +24,8 @@ def ClassifyScoreRelation(old_score, new_score):
     return 'no old score'
   if not new_score:
     return 'no new score'
-  if old_score == new_score:
+  # Changes of less than 1/100 of a dB are considered "no change".
+  if abs(old_score - new_score) < 0.01:
     return 'no change'
   if old_score < new_score:
     return 'improved'
