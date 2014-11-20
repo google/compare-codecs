@@ -15,6 +15,7 @@ import sys
 
 import encoder
 import pick_codec
+import score_tools
 
 def main():
   parser = argparse.ArgumentParser()
@@ -23,6 +24,7 @@ def main():
   parser.add_argument("--loop", action="store_true", dest="loop")
   parser.add_argument("--until_score", type=float)
   parser.add_argument("--codec")
+  parser.add_argument('--criterion', default='psnr')
   args = parser.parse_args()
 
   print "Loop is", args.loop
@@ -39,13 +41,14 @@ def main():
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
+  codec.SetScoreFunction(score_tools.PickScorer(args.criterion))
 
   while True:
     bestsofar = codec.BestEncoding(bitrate, videofile)
     bestsofar.Recover()
     print "Starting from", bestsofar.encoder.Hashname(), \
-           "score", bestsofar.Score()
-    if bestsofar.Score():
+           "score", bestsofar.Score() if bestsofar.Result() else 'none'
+    if bestsofar.Result():
       if args.until_score and bestsofar.Score() > args.until_score:
         print "Happy with the score achieved"
         return 0

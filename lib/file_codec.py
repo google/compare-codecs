@@ -64,6 +64,7 @@ class FileCodec(encoder.Codec):
     print "Bitrate", bitrate, "PSNR", psnr
     result['bitrate'] = int(bitrate)
     result['psnr'] = float(psnr)
+    result['cliptime'] = videofile.ClipTime()
     result.update(self.ResultData(encodedfile))
 
     return result

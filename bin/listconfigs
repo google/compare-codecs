@@ -8,6 +8,7 @@ import sys
 
 import encoder
 import pick_codec
+import score_tools
 
 
 def main():
@@ -15,26 +16,28 @@ def main():
   parser.add_argument('rate')
   parser.add_argument('videofile')
   parser.add_argument("--codec")
+  parser.add_argument('--component')
+  parser.add_argument('--criterion', default='psnr')
 
   args = parser.parse_args()
 
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
+  codec.SetScoreFunction(score_tools.PickScorer(args.criterion))
 
   bitrate = int(args.rate)
 
   encodings = codec.AllScoredEncodings(bitrate, videofile)
   encodings.encodings.sort(key=lambda foo: foo.Score())
   for encoding in encodings.encodings:
-    if args.cq_mode:
-      minq = encoding.encoder.OptionValue('fixed-q')
+    if args.component:
+      component = encoding.result[args.component]
     else:
-      minq = encoding.encoder.OptionValue('min-q')
-    best = encoding.encoder.ChoiceValue(['good', 'best', 'rt'])
-    print encoding.encoder.Hashname(), best, minq, encoding.Score(), \
-        encoding.result
-    print encoding.encoder.OptionValues()
+      component = ''
+    print '%s %f %s %s' % (encoding.encoder.Hashname(), encoding.Score(),
+                        component,
+                        encoding.encoder.OptionValues())
 
 if __name__ == '__main__':
   sys.exit(main())
