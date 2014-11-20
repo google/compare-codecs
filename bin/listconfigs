@@ -24,7 +24,7 @@ def main():
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
-  codec.SetScoreFunction(score_tools.PickScorer(args.criterion))
+  codec.score_function = score_tools.PickScorer(args.criterion)
 
   bitrate = int(args.rate)
 
@@ -36,8 +36,8 @@ def main():
     else:
       component = ''
     print '%s %f %s %s' % (encoding.encoder.Hashname(), encoding.Score(),
-                        component,
-                        encoding.encoder.OptionValues())
+                           component,
+                           encoding.encoder.OptionValues())
 
 if __name__ == '__main__':
   sys.exit(main())

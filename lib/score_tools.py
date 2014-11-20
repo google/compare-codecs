@@ -4,7 +4,7 @@
 #
 
 def PickScorer(name):
-  # For now, just return KeyError if the scorer doesn't exist.
+  # For now, just raise KeyError if the scorer doesn't exist.
   scorer_map = {
     'psnr': ScorePsnrBitrate,
     'rt': ScoreCpuPsnr,

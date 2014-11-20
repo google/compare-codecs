@@ -41,13 +41,14 @@ def main():
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
-  codec.SetScoreFunction(score_tools.PickScorer(args.criterion))
+  codec.score_function = score_tools.PickScorer(args.criterion)
 
   while True:
     bestsofar = codec.BestEncoding(bitrate, videofile)
     bestsofar.Recover()
-    print "Starting from", bestsofar.encoder.Hashname(), \
-           "score", bestsofar.Score() if bestsofar.Result() else 'none'
+    scoretext = str(bestsofar.Score()) if bestsofar.Result() else 'none'
+    print "Starting from %s score %s" % (bestsofar.encoder.Hashname(),
+                                         scoretext)
     if bestsofar.Result():
       if args.until_score and bestsofar.Score() > args.until_score:
         print "Happy with the score achieved"

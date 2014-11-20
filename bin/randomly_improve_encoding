@@ -55,7 +55,7 @@ def main():
   while tries < args.iterations:
     tries += 1
     codec = pick_codec.PickCodec(random.choice(pick_codec.codec_map.keys()))
-    codec.SetScoreFunction(score_tools.PickScorer(args.criterion))
+    codec.score_function = score_tools.PickScorer(args.criterion)
     classname = random.choice(mpeg_settings.files.keys())
     filename = random.choice(mpeg_settings.files[classname])
     bitrate = random.choice(mpeg_settings.rates[classname])

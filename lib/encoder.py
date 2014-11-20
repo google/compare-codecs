@@ -336,9 +336,6 @@ class Codec(object):
     self.option_formatter = formatter or OptionFormatter()
     self.score_function = score_function or score_tools.ScorePsnrBitrate
 
-  def SetScoreFunction(self, new_function):
-    self.score_function = new_function
-
   def Option(self, name):
     return self.option_set.Option(name)
 

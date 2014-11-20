@@ -188,7 +188,7 @@ class TestOptionValueSet(unittest.TestCase):
 
 class TestCodec(unittest.TestCase):
   def setUp(self):
-    self.videofile = DummyVideofile('foofile_640_480_30.yuv', 1)
+    self.videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
 
   def test_FirstBestEncodingNoScore(self):
     codec = DummyCodec()
@@ -258,7 +258,7 @@ class TestEncoding(unittest.TestCase):
     my_encoder = encoder.Encoder(codec,
       encoder.OptionValueSet(encoder.OptionSet(), ''))
     # Must use a tricked-out videofile to avoid disk access.
-    videofile = DummyVideofile('test_640x480_20.yuv', 1)
+    videofile = DummyVideofile('test_640x480_20.yuv', clip_time=1)
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)
     my_encoding.result = {'psnr':42, 'bitrate':123}
     my_encoding.Score()
