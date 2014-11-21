@@ -12,22 +12,25 @@ import sys
 import mpeg_settings
 import encoder
 import pick_codec
+import score_tools
 
-def ListOneTarget(codecs, rate, videofile, do_score):
+def ListOneTarget(codecs, scorer_function, rate, videofile, do_score):
   print '%-28.28s %5d' % (videofile.basename, rate),
   for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
+    codec.score_function = scorer_function
     bestsofar = codec.BestEncoding(rate, videofile)
-    if do_score and not bestsofar.Score():
+    if do_score and not bestsofar.Result():
       bestsofar.Execute()
       bestsofar.Store()
-    assert(bestsofar.Score())
+    assert(bestsofar.Result())
     print ' %6d %4.1f %4.1f' % (bestsofar.result['bitrate'],
                                 bestsofar.result['psnr'],
                                 bestsofar.Score()),
   print ''
 
-def ListResults(codecs, do_score):
+def ListResults(codecs, scorer, do_score):
+  scorer_function = score_tools.PickScorer(scorer)
   print '%-28s %5s' % ('File', 'Rate'),
   for c in codecs:
     print '%17s' % pick_codec.ShortName(c),
@@ -36,15 +39,16 @@ def ListResults(codecs, do_score):
     for filename in mpeg_settings.files[classname]:
       videofile = encoder.Videofile('video/mpeg_video/' + filename)
       for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(codecs, rate, videofile, do_score)
+        ListOneTarget(codecs, scorer_function, rate, videofile, do_score)
 
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
   parser.add_argument('codecs', nargs='*',
                       default=pick_codec.codec_map.keys())
   args = parser.parse_args()
-  ListResults(args.codecs, args.score)
+  ListResults(args.codecs, args.criterion, args.score)
   return 0
 
 if __name__ == '__main__':

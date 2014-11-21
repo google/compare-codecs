@@ -95,7 +95,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
       temp_encoding = encoder.Encoding(temp_encoder, encoding.bitrate,
                                        encoding.videofile)
       temp_encoding.Recover()
-      if temp_encoding.Score():
+      if temp_encoding.Result():
         print name, 'found scored value', search_value
         new_value = int((value + search_value) / 2)
         if new_value in (value, search_value):

@@ -11,8 +11,10 @@ import encoder
 
 
 class DummyCodec(encoder.Codec):
-  def __init__(self):
-    super(DummyCodec, self).__init__('dummy', encoder.EncodingMemoryCache(self))
+  def __init__(self, score_function=None):
+    super(DummyCodec, self).__init__('dummy',
+                                     cache=encoder.EncodingMemoryCache(self),
+                                     score_function=score_function)
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
       encoder.Option('score',  ['0', '5', '10']),
@@ -31,6 +33,11 @@ class DummyCodec(encoder.Codec):
     else:
       return {'psnr': -100, 'bitrate': 100}
 
+def Returns1(target_bitrate, result):
+  """Score function that returns a constant value."""
+  # pylint: disable=W0613
+  return 1.0
+
 
 class StorageOnlyCodec(object):
   """A codec that is only useful for testing storage."""
@@ -47,6 +54,15 @@ class StorageOnlyCodec(object):
   def ConfigurationFixups(self, parameters):
     # pylint: disable=R0201
     return parameters
+
+
+class DummyVideofile(encoder.Videofile):
+  def __init__(self, filename, clip_time):
+    super(DummyVideofile, self).__init__(filename)
+    self.clip_time = clip_time
+
+  def ClipTime(self):
+    return self.clip_time
 
 
 class TestConfig(unittest.TestCase):
@@ -172,7 +188,7 @@ class TestOptionValueSet(unittest.TestCase):
 
 class TestCodec(unittest.TestCase):
   def setUp(self):
-    self.videofile = encoder.Videofile('foofile_640_480_30.yuv')
+    self.videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
 
   def test_FirstBestEncodingNoScore(self):
     codec = DummyCodec()
@@ -184,6 +200,7 @@ class TestCodec(unittest.TestCase):
     codec.BestEncoding(100, self.videofile).Store()
     encoding = codec.BestEncoding(100, self.videofile)
     self.assertEqual(encoding.videofile, self.videofile)
+
   def test_BestEncodingExecuteGivesScore(self):
     codec = DummyCodec()
     codec.BestEncoding(100, self.videofile).Execute().Store()
@@ -192,7 +209,7 @@ class TestCodec(unittest.TestCase):
   def test_BestEncodingOtherSpeedNoScore(self):
     codec = DummyCodec()
     codec.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertIsNone(codec.BestEncoding(200, self.videofile).Score())
+    self.assertIsNone(codec.BestEncoding(200, self.videofile).Result())
 
   def test_DisplayHeading(self):
     codec = DummyCodec()
@@ -208,6 +225,11 @@ class TestCodec(unittest.TestCase):
   def test_FormatterExists(self):
     codec = DummyCodec()
     self.assertTrue(codec.option_formatter)
+
+  def test_AlternateScorer(self):
+    codec = DummyCodec(score_function=Returns1)
+    codec.BestEncoding(100, self.videofile).Execute().Store()
+    self.assertEqual(1, codec.BestEncoding(100, self.videofile).Score())
 
 
 class TestEncoder(unittest.TestCase):
@@ -230,7 +252,17 @@ class TestEncoder(unittest.TestCase):
 
 
 class TestEncoding(unittest.TestCase):
-  pass
+
+  def test_AutoGenerateClipTime(self):
+    codec = DummyCodec()
+    my_encoder = encoder.Encoder(codec,
+      encoder.OptionValueSet(encoder.OptionSet(), ''))
+    # Must use a tricked-out videofile to avoid disk access.
+    videofile = DummyVideofile('test_640x480_20.yuv', clip_time=1)
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+    my_encoding.result = {'psnr':42, 'bitrate':123}
+    my_encoding.Score()
+    self.assertTrue('cliptime' in my_encoding.result)
 
 
 class TestEncodingSet(unittest.TestCase):
@@ -361,19 +393,6 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     shutil.copytree(os.environ['CODEC_WORKDIR'], otherdir)
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertEquals(result, testresult)
-
-
-class TestEncodingFunctions(unittest.TestCase):
-
-  def test_ScoreResult(self):
-    result = {'bitrate': 100, 'psnr': 10.0}
-    self.assertEqual(10.0, encoder.ScoreResult(100, result))
-    self.assertEqual(10.0, encoder.ScoreResult(1000, result))
-    # Score is reduced by 0.1 per kbps overrun.
-    self.assertAlmostEqual(10.0 - 0.1, encoder.ScoreResult(99, result))
-    # Score floors at 0.1 for very large overruns.
-    self.assertAlmostEqual(0.1, encoder.ScoreResult(1, result))
-    self.assertFalse(encoder.ScoreResult(100, None))
 
 
 if __name__ == '__main__':

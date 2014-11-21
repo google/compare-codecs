@@ -3,6 +3,54 @@
 # Tools for evaluating metrics.
 #
 
+def PickScorer(name):
+  # For now, just raise KeyError if the scorer doesn't exist.
+  scorer_map = {
+    'psnr': ScorePsnrBitrate,
+    'rt': ScoreCpuPsnr,
+  }
+
+  return scorer_map[name]
+
+def ScorePsnrBitrate(target_bitrate, result):
+  """Returns the score of a particular encoding result.
+
+  Arguments:
+  - target_bitrate: Desired bitrate in kilobits per second
+  - result: a dictionary containing the analysis of the encoding.
+
+  In this particular score function, the PSNR and the achieved bitrate
+  of the encoding are of interest.
+  """
+  if not result:
+    return None
+  score = result['psnr']
+  # We penalize bitrates that exceed the target bitrate.
+  if result['bitrate'] > int(target_bitrate):
+    score -= (result['bitrate'] - int(target_bitrate)) * 0.1
+  return score
+
+def ScoreCpuPsnr(target_bitrate, result):
+  """Returns the score relevant to interactive usage.
+
+  The constraints are:
+  - Stay within the requested bitrate
+  - Encode time needs to stay below clip length
+  - Decode time needs to stay below clip length
+  Otherwise, PSNR rules."""
+  score = result['psnr']
+  # We penalize bitrates that exceed the target bitrate.
+  if result['bitrate'] > int(target_bitrate):
+    score -= (result['bitrate'] - int(target_bitrate)) * 0.1
+  # We penalize CPU usage that exceeds clip time.
+  used_time = result['encode_cputime']
+  available_time = result['cliptime']
+  
+  if used_time > available_time:
+    badness = (used_time - available_time) / available_time
+    score -= badness * 100
+  return score
+
 def DelayCalculation(frame_info_list, framerate, bitrate, buffer_size,
                      print_trace=False):
   """Calculate the total delay in frame delivery for these frames.

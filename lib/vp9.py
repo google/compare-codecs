@@ -14,7 +14,8 @@ class Vp9Codec(file_codec.FileCodec):
     super(Vp9Codec, self).__init__(name)
     self.extension = 'webm'
     self.option_set = encoder.OptionSet(
-      encoder.IntegerOption('cpu-used', 0, 16)
+      encoder.IntegerOption('cpu-used', 0, 16),
+      encoder.ChoiceOption(['good', 'best', 'rt']),
     )
 
   def StartEncoder(self):

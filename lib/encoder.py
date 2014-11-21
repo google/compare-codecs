@@ -25,6 +25,7 @@ import md5
 import os
 import random
 import re
+import score_tools
 import shutil
 
 
@@ -309,12 +310,23 @@ class Videofile(object):
     encodedframesize = encodedsize / framecount
     return encodedframesize * self.framerate * 8 / 1000
 
+  def ClipTime(self):
+    framesize = self.width * self.height * 3 / 2
+    framecount = os.path.getsize(self.filename) / framesize
+    return float(framecount) / self.framerate
+
+
 class Codec(object):
   """Abstract class representing a codec.
 
   Subclasses must define the options and start_encoder variables
+  The class also contains a cache of evaluation results, and a score
+  function.
+  This is used by the functions that return the "best" of something,
+  as well as for making evaluations and comparision reports.
   """
-  def __init__(self, name, cache=None, formatter=None):
+  def __init__(self, name, cache=None, formatter=None,
+               score_function=None):
     self.name = name
     self.option_set = OptionSet()
     if cache:
@@ -322,6 +334,7 @@ class Codec(object):
     else:
       self.cache = EncodingDiskCache(self)
     self.option_formatter = formatter or OptionFormatter()
+    self.score_function = score_function or score_tools.ScorePsnrBitrate
 
   def Option(self, name):
     return self.option_set.Option(name)
@@ -480,6 +493,9 @@ class Encoding(object):
     self.videofile = videofile
     self.result = None
 
+  def Result(self):
+    return self.result
+
   def SomeUntriedVariants(self):
     """Returns some variant encodings that have not been tried.
 
@@ -490,7 +506,7 @@ class Encoding(object):
     suggested_tweak = self.encoder.codec.SuggestTweak(self)
     if suggested_tweak:
       suggested_tweak.Recover()
-      if not suggested_tweak.Score():
+      if not suggested_tweak.Result():
         result.append(suggested_tweak)
     # Generate up to 10 single-hop variants.
     # Just using a variable as a counter doesn't satisfy pylint.
@@ -501,7 +517,7 @@ class Encoding(object):
         self.encoder.codec.RandomlyChangeConfig(self.encoder.parameters))
       variant_encoding = Encoding(variant_encoder, self.bitrate, self.videofile)
       variant_encoding.Recover()
-      if not variant_encoding.Score():
+      if not variant_encoding.Result():
         result.append(variant_encoding)
     # If none resulted, try to make 2 changes.
     if not result:
@@ -514,7 +530,7 @@ class Encoding(object):
                                     self.bitrate,
                                     self.videofile)
         variant_encoding.Recover()
-        if not variant_encoding.Score():
+        if not variant_encoding.Result():
           result.append(variant_encoding)
 
     return EncodingSet(result)
@@ -537,12 +553,16 @@ class Encoding(object):
                                      self.Workdir())
 
   def Score(self, scoredir=None):
+    # Temporary hack because there are so many stored clips without cliptime
+    # information:
+    if self.result and not 'cliptime' in self.result:
+      self.result['cliptime'] = self.videofile.ClipTime()
     if scoredir is None:
-      return ScoreResult(self.bitrate, self.result)
+      return self.encoder.codec.score_function(self.bitrate, self.result)
     else:
       result = self.encoder.codec.cache.ReadEncodingResult(self,
                                                            scoredir=scoredir)
-      return ScoreResult(self.bitrate, result)
+      return self.encoder.codec.score_function(self.bitrate, result)
 
   def Store(self):
     self.encoder.Store()
@@ -565,33 +585,11 @@ class EncodingSet(object):
     return None
 
   def BestGuess(self):
+    """Returns an untried encoding that may improve the score."""
     for encoding in self.encodings:
-      if not encoding.Score():
+      if not encoding.Result():
         return encoding
 
-def ScoreResult(target_bitrate, result):
-  """Returns the score of a particular encoding result.
-
-  The score is a number that can be positive or negative, but it MUST NOT
-  be zero, because the Score() is also used as a boolean to check if the
-  result is present or not.
-
-  Arguments:
-  - target_bitrate: Desired bitrate in kilobits per second
-  - result: a dictionary containing the analysis of the encoding.
-
-  In this particular score function, the PSNR and the achieved bitrate
-  of the encoding are of interest.
-  """
-  if not result:
-    return None
-  score = result['psnr']
-  # We penalize bitrates that exceed the target bitrate.
-  if result['bitrate'] > int(target_bitrate):
-    score -= (result['bitrate'] - int(target_bitrate)) * 0.1
-    if abs(score) < 0.01:
-      score = 0.01
-  return score
 
 
 class EncodingDiskCache(object):
@@ -729,7 +727,7 @@ class EncodingMemoryCache(object):
     for encoding in self.encodings:
       if (bitrate == encoding.bitrate and
           videofile == encoding.videofile and
-          encoding.Score()):
+          encoding.Result()):
         result.append(encoding)
     return EncodingSet(result)
 
@@ -738,7 +736,7 @@ class EncodingMemoryCache(object):
     for encoding in self.encodings:
       if (videofile == encoding.videofile and
           encoder == encoding.encoder and
-          encoding.Score()):
+          encoding.Result()):
         result.append(encoding)
     return EncodingSet(result)
 
