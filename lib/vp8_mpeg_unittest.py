@@ -2,6 +2,7 @@
 """Unit tests for VP8 MPEG mode encoder module."""
 
 import encoder
+import optimizer
 import unittest
 import test_tools
 
@@ -11,12 +12,13 @@ class TestVp8Mpeg(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = vp8_mpeg.Vp8CodecMpegMode()
+    context = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = codec.BestEncoding(1000, videofile)
+    encoding = context.BestEncoding(1000, videofile)
     encoding.Execute()
     # Most codecs should be good at this.
-    self.assertLess(50.0, encoding.Score())
+    self.assertLess(50.0, context.Score(encoding))
 
   def test_ConfigurationFixups(self):
     codec = vp8_mpeg.Vp8CodecMpegMode()

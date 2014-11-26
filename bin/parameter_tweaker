@@ -14,6 +14,7 @@ import argparse
 import sys
 
 import encoder
+import optimizer
 import pick_codec
 import score_tools
 
@@ -41,16 +42,17 @@ def main():
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
-  codec.score_function = score_tools.PickScorer(args.criterion)
+  context = optimizer.Optimizer(codec,
+      score_function = score_tools.PickScorer(args.criterion))
 
   while True:
-    bestsofar = codec.BestEncoding(bitrate, videofile)
+    bestsofar = context.BestEncoding(bitrate, videofile)
     bestsofar.Recover()
-    scoretext = str(bestsofar.Score()) if bestsofar.Result() else 'none'
+    scoretext = str(context.Score(bestsofar)) if bestsofar.Result() else 'none'
     print "Starting from %s score %s" % (bestsofar.encoder.Hashname(),
                                          scoretext)
     if bestsofar.Result():
-      if args.until_score and bestsofar.Score() > args.until_score:
+      if args.until_score and context.Score(bestsofar) > args.until_score:
         print "Happy with the score achieved"
         return 0
       variants = bestsofar.SomeUntriedVariants()
@@ -63,7 +65,7 @@ def main():
       next_encoding = bestsofar
     print "Trying encoder", next_encoding.encoder.Hashname()
     next_encoding.Execute()
-    print "Score is", next_encoding.Score()
+    print "Score is", context.Score(next_encoding)
     next_encoding.Store()
     if not args.loop:
       return 0

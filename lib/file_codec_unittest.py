@@ -2,6 +2,7 @@
 """Unit tests for the FileCodec framework"""
 
 import encoder
+import optimizer
 import test_tools
 import unittest
 
@@ -13,8 +14,8 @@ class CopyingCodec(file_codec.FileCodec):
     super(CopyingCodec, self).__init__(name)
     self.extension = 'yuv'
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(None, ''))
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(None, ''))
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, outputfile):
     return 'cp %s %s' % (videofile.filename, outputfile)
@@ -28,8 +29,8 @@ class CorruptingCodec(file_codec.FileCodec):
     super(CorruptingCodec, self).__init__(name)
     self.extension = 'yuv'
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(None, ''))
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(None, ''))
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, outputfile):
     # Fill the outputfile with the date in nanoseconds.
@@ -46,25 +47,28 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = CopyingCodec()
+    context = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = codec.BestEncoding(1000, videofile)
+    encoding = context.BestEncoding(1000, videofile)
     encoding.Execute()
-    self.assertTrue(encoding.Score())
+    self.assertTrue(encoding.Result())
 
   def test_VerifyOneBlackFrame(self):
     codec = CopyingCodec()
+    context = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = codec.BestEncoding(1000, videofile)
+    encoding = context.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.VerifyEncode())
 
   def test_VerifyCorruptedFile(self):
     codec = CorruptingCodec()
+    context = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = codec.BestEncoding(1000, videofile)
+    encoding = context.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertFalse(encoding.VerifyEncode())
 

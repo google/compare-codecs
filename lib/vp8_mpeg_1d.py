@@ -43,7 +43,8 @@ class Vp8CodecMpeg1dMode(vp8_mpeg.Vp8CodecMpegMode):
 
     parameters = self._SuggestTweakToName(encoding, 'key-q')
     if parameters:
-      return encoder.Encoding(encoder.Encoder(self, parameters),
+      return encoder.Encoding(encoder.Encoder(encoding.encoder.context,
+                                              parameters),
                               encoding.bitrate, encoding.videofile)
     return None
 

@@ -16,6 +16,7 @@ import gviz_api
 import math
 import mpeg_settings
 import numpy
+import optimizer
 import re
 import string
 import pick_codec
@@ -255,17 +256,18 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable):
   """Extend a datatable with the info about one video file's scores."""
   for codec_name in codecs:
     # For testing:
-    # Allow for direct codec injection rather than picking by name.
+    # Allow for direct context injection rather than picking by name.
     if isinstance(codec_name, basestring):
       codec = pick_codec.PickCodec(codec_name)
+      context = optimizer.Optimizer(codec)
     else:
-      codec = codec_name
-      codec_name = codec.name
-    bestsofar = codec.BestEncoding(rate, videofile)
-    if do_score and not bestsofar.Score():
+      context = codec_name
+      codec_name = context.codec.name
+    bestsofar = context.BestEncoding(rate, videofile)
+    if do_score and not bestsofar.Result():
       bestsofar.Execute()
       bestsofar.Store()
-    assert(bestsofar.Score())
+    assert(bestsofar.Result())
     if not codec_name in datatable:
       datatable[codec_name] = {}
     if not videofile.basename in datatable[codec_name]:

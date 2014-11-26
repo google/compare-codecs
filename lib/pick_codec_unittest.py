@@ -5,6 +5,7 @@ This file is also the place for tests that cover several codecs."""
 import os
 import unittest
 
+import encoder
 import pick_codec
 
 class TestPickCodec(unittest.TestCase):
@@ -12,7 +13,8 @@ class TestPickCodec(unittest.TestCase):
     seenDirs = set()
     for codec_name in pick_codec.codec_map:
       codec = pick_codec.PickCodec(codec_name)
-      workdir = os.path.abspath(codec.cache.WorkDir())
+      context = encoder.Context(codec)
+      workdir = os.path.abspath(context.cache.WorkDir())
       self.assertNotIn(workdir, seenDirs,
                        'Duplicate workdir %s for codec %s' %
                        (workdir, codec_name))

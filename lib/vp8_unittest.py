@@ -1,8 +1,9 @@
 #!/usr/bin/python
 """Unit tests for encoder module."""
 
-import unittest
+import optimizer
 import test_tools
+import unittest
 
 import vp8
 
@@ -14,12 +15,13 @@ class TestVp8(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = vp8.Vp8Codec()
+    context = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = codec.BestEncoding(1000, videofile)
+    encoding = context.BestEncoding(1000, videofile)
     encoding.Execute()
     # Most codecs should be good at this.
-    self.assertLess(50.0, encoding.Score())
+    self.assertLess(50.0, context.Score(encoding))
     self.assertEqual(1, len(encoding.result['frame']))
     # Check that expected results are present and "reasonable".
     print encoding.result

@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Test tool for tools - run them all
+# This is not a test suite, just a sanity check.
+#
+set -e
+# Show commands as they are executed
+set -x
+
+RATE=850
+VIDEOFILE=video/mpeg_video/Johnny_1280x720_60.yuv
+
+compare_codecs vp8 vp9 > /dev/null
+compare_html vp8 vp9 > /dev/null
+frame_size_tool $RATE $VIDEOFILE > /dev/null
+# generate_pages
+list_codecs > /dev/null
+listconfigs $RATE $VIDEOFILE > /dev/null
+parameter_tweaker $RATE $VIDEOFILE
+randomly_improve_encoding --iterations 1
+# take_snapshot
+verify_encodings h261
+verify_hashnames h261
+verify_scores h261
+write_cross_performance_tables h261 vp8 > /dev/null

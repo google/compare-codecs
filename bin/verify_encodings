@@ -9,14 +9,16 @@ import sys
 
 import mpeg_settings
 import encoder
+import optimizer
 import pick_codec
 
 def VerifyOneTarget(codecs, rate, videofile):
   change_count = 0
   for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
-    bestsofar = codec.BestEncoding(rate, videofile)
-    if not bestsofar.Score():
+    context = optimizer.Optimizer(codec)
+    bestsofar = context.BestEncoding(rate, videofile)
+    if not bestsofar.Result():
       print '%s rate %s file %s has no score' % (
         codec_name, rate, videofile.basename)
     else:

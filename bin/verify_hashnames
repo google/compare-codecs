@@ -16,11 +16,12 @@ def VerifyHashnames(codecs, remove_offending_encoders):
   change_count = 0
   for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
-    filenames = codec.cache.AllEncoderFilenames()
+    context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
+    filenames = context.cache.AllEncoderFilenames()
     for filename in filenames:
       try:
         # If we can create an encoder for this filename, it's OK.
-        encoder.Encoder(codec, filename=filename)
+        encoder.Encoder(context, filename=filename)
       except (encoder.Error, IOError) as error:
         # encoder.Error is raised if there's a checksum change.
         # IOError is raised if the encoder directory is corrupted,

@@ -23,8 +23,8 @@ class FfmpegCodec(file_codec.FileCodec):
       name,
       formatter=(formatter or encoder.OptionFormatter(prefix='-', infix=' ')))
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(self.option_set, ''))
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (

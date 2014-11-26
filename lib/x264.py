@@ -18,8 +18,8 @@ class X264Codec(file_codec.FileCodec):
       encoder.Option('ref', ['1', '2', '3', '16']),
     )
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
       '--rc-lookahead 0 --ref 2 --vbv-init 0.8',
       formatter=self.option_formatter))
