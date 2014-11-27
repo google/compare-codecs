@@ -223,7 +223,7 @@ class TestEncoder(unittest.TestCase):
     self.assertEqual(repr(my_encoder.OptionValues()), "{'score': '77'}")
     self.assertEqual(my_encoder.DisplayValues(), '77')
 
-  def test_CreateStoreFetch(self):
+  def test_ParametersCanBeStoredAndRetrieved(self):
     context = encoder.Context(DummyCodec())
     my_encoder = encoder.Encoder(context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
@@ -234,15 +234,18 @@ class TestEncoder(unittest.TestCase):
 
 
 class TestEncoding(unittest.TestCase):
-  def testSomeUntriedVariants(self):
+
+  def testGenerateSomeUntriedVariants(self):
     context = encoder.Context(DummyCodec())
     my_encoder = context.codec.StartEncoder(context)
     videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
     encoding = my_encoder.Encoding(1000, videofile)
+    # The dummy codec has a parameter with multiple possible values,
+    # so at least some variants should be returned.
     variants = encoding.SomeUntriedVariants()
     self.assertFalse(variants.Empty())
 
-  def testSomeUntriedVariantsTwoChanges(self):
+  def testGenerateUntriedVariantsUntilNoneFound(self):
     context = encoder.Context(DummyCodec())
     my_encoder = context.codec.StartEncoder(context)
     videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)

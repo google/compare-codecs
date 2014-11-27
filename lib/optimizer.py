@@ -1,12 +1,6 @@
 """
 Optimizer module.
 
-An optimizer consists of:
-- A codec
-- A video file set, with associated target bitrates
-- A set of scored encodings (the cache)
-- A score function
-
 It contains functions that allow to find and score encodings that will
 perform highly on the score function.
 """
@@ -15,9 +9,16 @@ import encoder
 import score_tools
 
 class Optimizer(object):
-  """Optimizer context for a codec.
+  """Optimizer class.
 
-  It is possible to ask an optimizer to find the best of something."""
+  An optimizer object contains:
+  - A codec.
+  - A video file set, with associated target bitrates.
+  - A set of pre-executed encodings (the cache).
+  - A score function.
+
+  One should be able ask an optimizer to find the parameters that give the
+  best result on the score function for that codec."""
   def __init__(self, codec, file_set=None,
                cache_class=None, score_function=None):
     self.context = encoder.Context(codec,
@@ -29,7 +30,7 @@ class Optimizer(object):
     if scoredir is None:
       result = encoding.result
     else:
-      result = encoding.encoder.context.cache.ReadEncodingResult(encoding,
+      result = self.context.cache.ReadEncodingResult(encoding,
           scoredir=scoredir)
     # Temporary hack because there are so many stored clips without cliptime
     # information:

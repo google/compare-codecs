@@ -48,21 +48,20 @@ def main():
   while True:
     bestsofar = my_optimizer.BestEncoding(bitrate, videofile)
     bestsofar.Recover()
-    scoretext = str(my_optimizer.Score(bestsofar)
-                   ) if bestsofar.Result() else 'none'
-    print "Starting from %s score %s" % (bestsofar.encoder.Hashname(),
-                                         scoretext)
     if bestsofar.Result():
-      if args.until_score and my_optimizer.Score(bestsofar) > args.until_score:
+      current_score = my_optimizer.Score(bestsofar)
+      if args.until_score and current_score > args.until_score:
         print "Happy with the score achieved"
         return 0
+      print "Starting from %s score %s" % (bestsofar.encoder.Hashname(),
+                                           current_score)
       variants = bestsofar.SomeUntriedVariants()
       next_encoding = variants.BestGuess()
       if not next_encoding:
         print "Ran out of variants to try"
         return 1
     else:
-      print "Best so far is unscored, trying it"
+      print "Starting from unscored encoding %s" % bestsofar.encoder.Hashname()
       next_encoding = bestsofar
     print "Trying encoder", next_encoding.encoder.Hashname()
     next_encoding.Execute()

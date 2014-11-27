@@ -380,8 +380,8 @@ class Context(object):
 
   This class encapsulates the "workdir" and the "storage" concepts.
   This base implementation defaults to a memory cache.
-  Since a storage module needs the context to create itself, the name
-  of the storage module class, not the storage module class object,
+  Since a storage module needs the context to create itself, the class
+  object of the storage module class, not a storage module object,
   is passed to the context constructor.
   """
 
@@ -399,9 +399,9 @@ class Encoder(object):
   """
   def __init__(self, context, parameters=None, filename=None):
     """Parameters:
-    context - a Context object, used for accessing codec, cache and workdir
-    parameters - an OptionValueSet object
-    filename - a string, passed to the cache for fetching the parameters
+    context - a Context object, used for accessing codec, cache and workdir.
+    parameters - an OptionValueSet object.
+    filename - a string, passed to the cache for fetching the parameters.
     It makes sense to give either the parameters or the filename.
     """
     self.context = context
@@ -491,6 +491,7 @@ class Encoding(object):
     videofile - a Videofile
     """
     self.encoder = encoder
+    self.context = encoder.context
     assert(type(bitrate) == type(0))
     self.bitrate = bitrate
     self.videofile = videofile
@@ -506,7 +507,7 @@ class Encoding(object):
     """
     result = []
     # Check for suggested variants.
-    suggested_tweak = self.encoder.context.codec.SuggestTweak(self)
+    suggested_tweak = self.context.codec.SuggestTweak(self)
     if suggested_tweak:
       suggested_tweak.Recover()
       if not suggested_tweak.Result():
@@ -514,12 +515,11 @@ class Encoding(object):
     # Generate up to 10 single-hop variants.
     # Just using a variable as a counter doesn't satisfy pylint.
     # pylint: disable=W0612
-    context = self.encoder.context
     seen = set()
     for i in range(10):
       variant_encoder = Encoder(
-        context,
-        context.codec.RandomlyChangeConfig(self.encoder.parameters))
+        self.context,
+        self.context.codec.RandomlyChangeConfig(self.encoder.parameters))
       params_as_string = variant_encoder.parameters.ToString()
       if not params_as_string in seen:
         variant_encoding = Encoding(variant_encoder, self.bitrate,
@@ -529,13 +529,14 @@ class Encoding(object):
           result.append(variant_encoding)
           seen.add(params_as_string)
     
-    # If none resulted, try to make 2 changes.
+    # If none resulted, make 10 attempts to find an untried candidate
+    # by making 2 random changes to the configuration.
     if not result:
       for i in range(10):
         variant_encoder = Encoder(
-          context,
-          context.codec.RandomlyChangeConfig(
-            context.codec.RandomlyChangeConfig(self.encoder.parameters)))
+          self.context,
+          self.context.codec.RandomlyChangeConfig(
+            self.context.codec.RandomlyChangeConfig(self.encoder.parameters)))
         params_as_string = variant_encoder.parameters.ToString()
         if not params_as_string in seen:
           variant_encoding = Encoding(variant_encoder,
@@ -549,10 +550,10 @@ class Encoding(object):
     return EncodingSet(result)
 
   def Workdir(self):
-    workdir = os.path.join(self.encoder.context.cache.WorkDir(),
+    workdir = os.path.join(self.context.cache.WorkDir(),
                            self.encoder.Hashname(),
-                           self.encoder.context.codec.SpeedGroup(self.bitrate))
-    if (os.path.isdir(self.encoder.context.cache.WorkDir())
+                           self.context.codec.SpeedGroup(self.bitrate))
+    if (os.path.isdir(self.context.cache.WorkDir())
         and not os.path.isdir(workdir)):
       # The existence of the cache's WorkDir is something the cache needs to
       # worry about. This function only makes dirs inside the cache.
@@ -570,10 +571,10 @@ class Encoding(object):
 
   def Store(self):
     self.encoder.Store()
-    self.encoder.context.cache.StoreEncoding(self)
+    self.context.cache.StoreEncoding(self)
 
   def Recover(self):
-    self.result = self.encoder.context.cache.ReadEncodingResult(self)
+    self.result = self.context.cache.ReadEncodingResult(self)
 
 
 class EncodingSet(object):
@@ -753,10 +754,14 @@ class EncodingMemoryCache(object):
 
   def ReadEncodingResult(self, encoding_in, scoredir=None):
     # pylint: disable=W0613
+    # Since the memory cache stores the results as a list of encodings,
+    # we must find an encoding with the same properties as the one we're
+    # reading parameters for, and return the result from that.
     for encoding in self.encodings:
       if (encoding_in.videofile == encoding.videofile and
           encoding_in.encoder.parameters.ToString() ==
               encoding.encoder.parameters.ToString() and
+          encoding_in.bitrate == encoding.bitrate and
           encoding.Result()):
         return encoding.Result()
     return None

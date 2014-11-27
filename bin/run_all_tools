@@ -1,6 +1,9 @@
 #!/bin/sh
 #
-# Test tool for tools - run them all
+# Test tool for tools.
+#
+# This script will run all the tools except those commented out because they
+# have too interesting side effects.
 # This is not a test suite, just a sanity check.
 #
 set -e
