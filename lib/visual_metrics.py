@@ -259,11 +259,11 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable):
     # Allow for direct context injection rather than picking by name.
     if isinstance(codec_name, basestring):
       codec = pick_codec.PickCodec(codec_name)
-      context = optimizer.Optimizer(codec)
+      my_optimizer = optimizer.Optimizer(codec)
     else:
-      context = codec_name
-      codec_name = context.codec.name
-    bestsofar = context.BestEncoding(rate, videofile)
+      my_optimizer = codec_name
+      codec_name = my_optimizer.context.codec.name
+    bestsofar = my_optimizer.BestEncoding(rate, videofile)
     if do_score and not bestsofar.Result():
       bestsofar.Execute()
       bestsofar.Store()

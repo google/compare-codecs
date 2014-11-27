@@ -47,28 +47,28 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = CopyingCodec()
-    context = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = context.BestEncoding(1000, videofile)
+    encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.Result())
 
   def test_VerifyOneBlackFrame(self):
     codec = CopyingCodec()
-    context = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = context.BestEncoding(1000, videofile)
+    encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.VerifyEncode())
 
   def test_VerifyCorruptedFile(self):
     codec = CorruptingCodec()
-    context = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = context.BestEncoding(1000, videofile)
+    encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertFalse(encoding.VerifyEncode())
 

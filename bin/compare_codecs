@@ -19,15 +19,15 @@ def ListOneTarget(codecs, scorer_function, rate, videofile, do_score):
   print '%-28.28s %5d' % (videofile.basename, rate),
   for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
-    context = optimizer.Optimizer(codec, score_function=scorer_function)
-    bestsofar = context.BestEncoding(rate, videofile)
+    my_optimizer = optimizer.Optimizer(codec, score_function=scorer_function)
+    bestsofar = my_optimizer.BestEncoding(rate, videofile)
     if do_score and not bestsofar.Result():
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Result())
     print ' %6d %4.1f %4.1f' % (bestsofar.result['bitrate'],
                                 bestsofar.result['psnr'],
-                                context.Score(bestsofar)),
+                                my_optimizer.Score(bestsofar)),
   print ''
 
 def ListResults(codecs, scorer, do_score):

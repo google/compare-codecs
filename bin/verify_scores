@@ -36,12 +36,12 @@ def VerifyOneTarget(codec_names, rate, videofile, score):
   change_counts = collections.Counter()
   for codec_name in codec_names:
     codec = pick_codec.PickCodec(codec_name)
-    context = optimizer.Optimizer(codec)
-    bestsofar = context.BestEncoding(rate, videofile)
+    my_optimizer = optimizer.Optimizer(codec)
+    bestsofar = my_optimizer.BestEncoding(rate, videofile)
     if score:
       bestsofar.Execute().Store()
-    old_score = context.Score(bestsofar, scoredir='snapshot')
-    new_score = context.Score(bestsofar)
+    old_score = my_optimizer.Score(bestsofar, scoredir='snapshot')
+    new_score = my_optimizer.Score(bestsofar)
     result = ClassifyScoreRelation(old_score, new_score)
     change_counts[result] += 1
     if result != 'no change':

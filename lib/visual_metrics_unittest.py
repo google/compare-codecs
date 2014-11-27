@@ -22,6 +22,11 @@ class FakeContext(object):
   def __init__(self):
     self.codec = FakeCodec()
 
+
+class FakeOptimizer(object):
+  def __init__(self):
+    self.context = FakeContext()
+
   def BestEncoding(self, rate, videofile):
     # pylint: disable=W0613,R0201
     return FakeEncoding()
@@ -121,7 +126,7 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     datatable = {}
     filename = 'file_10x10_10'
     videofile = encoder.Videofile(filename)
-    visual_metrics.ListOneTarget([FakeContext()], 1000, videofile,
+    visual_metrics.ListOneTarget([FakeOptimizer()], 1000, videofile,
                                  False, datatable)
     self.assertEquals(1, len(datatable['mock'][filename]))
 

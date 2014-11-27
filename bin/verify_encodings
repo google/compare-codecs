@@ -16,8 +16,8 @@ def VerifyOneTarget(codecs, rate, videofile):
   change_count = 0
   for codec_name in codecs:
     codec = pick_codec.PickCodec(codec_name)
-    context = optimizer.Optimizer(codec)
-    bestsofar = context.BestEncoding(rate, videofile)
+    my_optimizer = optimizer.Optimizer(codec)
+    bestsofar = my_optimizer.BestEncoding(rate, videofile)
     if not bestsofar.Result():
       print '%s rate %s file %s has no score' % (
         codec_name, rate, videofile.basename)

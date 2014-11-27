@@ -14,14 +14,14 @@ perform highly on the score function.
 import encoder
 import score_tools
 
-class Optimizer(encoder.Context):
+class Optimizer(object):
   """Optimizer context for a codec.
 
   It is possible to ask an optimizer to find the best of something."""
   def __init__(self, codec, file_set=None,
                cache_class=None, score_function=None):
-    super(Optimizer, self).__init__(
-      codec, cache_class or encoder.EncodingDiskCache)
+    self.context = encoder.Context(codec,
+                                   cache_class or encoder.EncodingDiskCache)
     self.file_set = file_set
     self.score_function = score_function or score_tools.ScorePsnrBitrate
 
@@ -42,10 +42,11 @@ class Optimizer(encoder.Context):
     if not encodings.Empty():
       return max(encodings.encodings, key=self.Score)
     else:
-      return self.codec.StartEncoder(self).Encoding(bitrate, videofile)
+      return self.context.codec.StartEncoder(self.context).Encoding(bitrate,
+                                                                    videofile)
 
   def AllScoredEncodings(self, bitrate, videofile):
-    return self.cache.AllScoredEncodings(bitrate, videofile)
+    return self.context.cache.AllScoredEncodings(bitrate, videofile)
 
 
 

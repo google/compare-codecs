@@ -96,17 +96,17 @@ class TestOptimizer(unittest.TestCase):
     self.assertIsNone(my_optimizer.BestEncoding(200, self.videofile).Result())
 
   def test_AutoGenerateClipTime(self):
-    context = optimizer.Optimizer(self.codec, self.file_set,
-                                  cache_class=self.cache_class,
-                                  score_function=ReturnsClipTime)
-    my_encoder = encoder.Encoder(context,
+    my_optimizer = optimizer.Optimizer(self.codec, self.file_set,
+                                       cache_class=self.cache_class,
+                                       score_function=ReturnsClipTime)
+    my_encoder = encoder.Encoder(my_optimizer.context,
         encoder.OptionValueSet(encoder.OptionSet(), ''))
     # Must use a tricked-out videofile to avoid disk access.
     videofile = DummyVideofile('test_640x480_20.yuv', clip_time=1)
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)
     my_encoding.result = {'psnr':42, 'bitrate':123}
     # If cliptime is not present, this will raise an exception.
-    context.Score(my_encoding)
+    my_optimizer.Score(my_encoding)
 
 
 if __name__ == '__main__':

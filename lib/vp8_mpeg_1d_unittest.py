@@ -16,8 +16,8 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
 
   def test_StartParams(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
-    context = optimizer.Optimizer(codec)
-    params = codec.StartEncoder(context).parameters
+    my_optimizer = optimizer.Optimizer(codec)
+    params = codec.StartEncoder(my_optimizer.context).parameters
     self.assertEqual(int(params.GetValue('key-q'))*2,
                      int(params.GetValue('fixed-q')))
 
@@ -31,8 +31,8 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
   def test_SuggestTweakIncreasesCq(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
     videofile = encoder.Videofile('foofile_640_480_30.yuv')
-    context = optimizer.Optimizer(codec)
-    my_encoder = codec.StartEncoder(context)
+    my_optimizer = optimizer.Optimizer(codec)
+    my_encoder = codec.StartEncoder(my_optimizer.context)
     encoding = encoder.Encoding(my_encoder, 500, videofile)
     encoding.result = { 'bitrate' : 1000 }
     # Since the bitrate is too high, the suggstion should be to increase it.
@@ -42,8 +42,8 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
   def test_SuggestTweakDecreasesCq(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
     videofile = encoder.Videofile('foofile_640_480_30.yuv')
-    context = optimizer.Optimizer(codec)
-    my_encoder = codec.StartEncoder(context)
+    my_optimizer = optimizer.Optimizer(codec)
+    my_encoder = codec.StartEncoder(my_optimizer.context)
     encoding = encoder.Encoding(my_encoder, 500, videofile)
     encoding.result = { 'bitrate' : 200 }
     # Since the bitrate is too high, the suggstion should be to increase it.
@@ -52,13 +52,13 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = vp8_mpeg_1d.Vp8CodecMpeg1dMode()
-    context = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = context.BestEncoding(1000, videofile)
+    encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     # Most codecs should be good at this.
-    self.assertLess(50.0, context.Score(encoding))
+    self.assertLess(50.0, my_optimizer.Score(encoding))
 
 
 if __name__ == '__main__':

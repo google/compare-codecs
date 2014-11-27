@@ -12,13 +12,13 @@ class TestVp8Mpeg(test_tools.FileUsingCodecTest):
 
   def test_OneBlackFrame(self):
     codec = vp8_mpeg.Vp8CodecMpegMode()
-    context = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
       'one_black_frame_1024_768_30.yuv')
-    encoding = context.BestEncoding(1000, videofile)
+    encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     # Most codecs should be good at this.
-    self.assertLess(50.0, context.Score(encoding))
+    self.assertLess(50.0, my_optimizer.Score(encoding))
 
   def test_ConfigurationFixups(self):
     codec = vp8_mpeg.Vp8CodecMpegMode()
