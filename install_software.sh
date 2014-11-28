@@ -1,4 +1,17 @@
 #!/bin/bash
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Install all required software for the codec comparision tool.
 #
@@ -7,10 +20,9 @@
 #
 set -e
 
-cd third_party
-./compile_tools.sh
-# Exit vpx_codec_comparison
-cd ..
+# Requirements for compiling libvpx.
+sudo apt-get install yasm
+
 # More tools called by the scripts
 sudo apt-get install mkvtoolnix
 # Install prerequisites for running Jekyll as a web server
@@ -22,6 +34,9 @@ sudo apt-get install nodejs
 # celluloid-0.16.0 has the same problem.
 # So we limit to a jekyll version that builds under 1.9.1.
 sudo gem install jekyll -v 1.5.1
+
+# Compile from source everything that needs compiling.
+./compile_tools.sh
 
 echo "All software installed"
 

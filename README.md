@@ -18,3 +18,5 @@ To fire up the Web server to read the web site, run the following steps:
 
 The website will now be visible as "localhost:4000".
 
+See the file LICENSE for licensing details, CONTRIBUTING for how to make
+contributions.
