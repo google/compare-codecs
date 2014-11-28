@@ -11,11 +11,12 @@ import encoder
 import pick_codec
 import random
 import mpeg_settings
+import optimizer
 import score_tools
 import sys
 
 def FindNextEncoding(bestsofar):
-  if not bestsofar.Score():
+  if not bestsofar.Result():
     return bestsofar
 
   try:
@@ -25,21 +26,21 @@ def FindNextEncoding(bestsofar):
     print 'No untried variants for this codec'
   return None
 
-def TryToImprove(codec, filename, bitrate):
+def TryToImprove(my_optimizer, filename, bitrate):
   """Try to improve an encoding. Return true if improved."""
   videofile = encoder.Videofile('video/mpeg_video/' + filename)
-  bestsofar = codec.BestEncoding(bitrate, videofile)
-  if bestsofar.Score():
-    previous_score = bestsofar.Score()
+  bestsofar = my_optimizer.BestEncoding(bitrate, videofile)
+  if bestsofar.Result():
+    previous_score = my_optimizer.Score(bestsofar)
   else:
     previous_score = -10000
   next_encoding = FindNextEncoding(bestsofar)
   if next_encoding:
     print "Trying encoder", next_encoding.encoder.Hashname()
     next_encoding.Execute()
-    print "Score is", next_encoding.Score(), ' from', previous_score
+    print "Score is", my_optimizer.Score(next_encoding), ' from', previous_score
     next_encoding.Store()
-    if next_encoding.Score() > previous_score:
+    if my_optimizer.Score(next_encoding) > previous_score:
       return 'Improved'
     else:
       return 'Not improved'
@@ -55,14 +56,15 @@ def main():
   while tries < args.iterations:
     tries += 1
     codec = pick_codec.PickCodec(random.choice(pick_codec.codec_map.keys()))
-    codec.score_function = score_tools.PickScorer(args.criterion)
+    my_optimizer = optimizer.Optimizer(codec,
+        score_function=score_tools.PickScorer(args.criterion))
     classname = random.choice(mpeg_settings.files.keys())
     filename = random.choice(mpeg_settings.files[classname])
     bitrate = random.choice(mpeg_settings.rates[classname])
 
     print "Trying codec %s on file %s rate %s" % (codec.name, filename,
                                                   bitrate)
-    result = TryToImprove(codec, filename, bitrate)
+    result = TryToImprove(my_optimizer, filename, bitrate)
     results[result] += 1
     print 'So far:', dict(results)
 

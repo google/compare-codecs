@@ -11,8 +11,8 @@ class H261Codec(ffmpeg.FfmpegCodec):
     self.codecname = 'h261'
     self.extension = 'h261'
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set, ''))
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(self.option_set, ''))
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     # TODO(hta): Merge the common parts of this with vp8.Execute.

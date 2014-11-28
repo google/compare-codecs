@@ -3,6 +3,7 @@
 """
 import argparse
 import encoder
+import optimizer
 import pick_codec
 import score_tools
 import sys
@@ -19,8 +20,9 @@ def main():
 
   bitrate = int(args.rate)
   codec = pick_codec.PickCodec(args.codec)
+  my_optimizer = optimizer.Optimizer(codec)
 
-  encoding = codec.BestEncoding(bitrate, videofile)
+  encoding = my_optimizer.BestEncoding(bitrate, videofile)
   if args.score:
     encoding.Execute().Store()
   else:

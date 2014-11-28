@@ -18,8 +18,8 @@ class Vp9Codec(file_codec.FileCodec):
       encoder.ChoiceOption(['good', 'best', 'rt']),
     )
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set,
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(self.option_set,
         '--passes=1 --good --noise-sensitivity=0 --cpu-used=5'))
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):

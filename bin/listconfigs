@@ -7,6 +7,7 @@ import argparse
 import sys
 
 import encoder
+import optimizer
 import pick_codec
 import score_tools
 
@@ -24,18 +25,20 @@ def main():
   videofile = encoder.Videofile(args.videofile)
 
   codec = pick_codec.PickCodec(args.codec)
-  codec.score_function = score_tools.PickScorer(args.criterion)
+  my_optimizer = optimizer.Optimizer(codec,
+      score_function=score_tools.PickScorer(args.criterion))
 
   bitrate = int(args.rate)
 
-  encodings = codec.AllScoredEncodings(bitrate, videofile)
-  encodings.encodings.sort(key=lambda foo: foo.Score())
+  encodings = my_optimizer.AllScoredEncodings(bitrate, videofile)
+  encodings.encodings.sort(key=my_optimizer.Score)
   for encoding in encodings.encodings:
     if args.component:
       component = encoding.result[args.component]
     else:
       component = ''
-    print '%s %f %s %s' % (encoding.encoder.Hashname(), encoding.Score(),
+    print '%s %f %s %s' % (encoding.encoder.Hashname(),
+                           my_optimizer.Score(encoding),
                            component,
                            encoding.encoder.OptionValues())
 

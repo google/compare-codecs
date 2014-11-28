@@ -31,8 +31,8 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
       --buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 \
       --resize-allowed=0 --passes=1 --best --noise-sensitivity=0 """
 
-  def StartEncoder(self):
-    return encoder.Encoder(self,
+  def StartEncoder(self, context):
+    return encoder.Encoder(context,
                            encoder.OptionValueSet(self.option_set,
                              self.start_encoder_parameters))
 
@@ -91,7 +91,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     for search_value in candidates:
       temp_params = parameters.ChangeValue(name, str(search_value))
       temp_params = self.ConfigurationFixups(temp_params)
-      temp_encoder = encoder.Encoder(self, temp_params)
+      temp_encoder = encoder.Encoder(encoding.encoder.context, temp_params)
       temp_encoding = encoder.Encoding(temp_encoder, encoding.bitrate,
                                        encoding.videofile)
       temp_encoding.Recover()

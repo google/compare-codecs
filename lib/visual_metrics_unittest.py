@@ -15,10 +15,25 @@ def LinearVector(slope=0.0, offset=0.0):
 class FakeCodec(object):
   def __init__(self):
     self.name = 'mock'
+    self.option_set = encoder.OptionSet()
+
+
+class FakeContext(object):
+  def __init__(self):
+    self.codec = FakeCodec()
+
+
+class FakeOptimizer(object):
+  def __init__(self):
+    self.context = FakeContext()
 
   def BestEncoding(self, rate, videofile):
     # pylint: disable=W0613,R0201
     return FakeEncoding()
+
+  def Score(self, encoding):
+    # pylint: disable=R0201, W0613
+    return 1.0
 
 
 class FakeEncoding(object):
@@ -27,11 +42,12 @@ class FakeEncoding(object):
 
   def Execute(self):
     pass
+
   def Store(self):
     pass
-  def Score(self):
-    # pylint: disable=R0201
-    return 1.0
+
+  def Result(self):
+    return self.result
 
 
 class TestVisualMetricsFunctions(unittest.TestCase):
@@ -110,7 +126,7 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     datatable = {}
     filename = 'file_10x10_10'
     videofile = encoder.Videofile(filename)
-    visual_metrics.ListOneTarget([FakeCodec()], 1000, videofile,
+    visual_metrics.ListOneTarget([FakeOptimizer()], 1000, videofile,
                                  False, datatable)
     self.assertEquals(1, len(datatable['mock'][filename]))
 

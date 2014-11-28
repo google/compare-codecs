@@ -33,8 +33,8 @@ class Vp8Codec(file_codec.FileCodec):
       encoder.ChoiceOption(['good', 'best', 'rt']),
     )
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set,
+  def StartEncoder(self, context):
+    return encoder.Encoder(context, encoder.OptionValueSet(self.option_set,
       '--lag-in-frames=0 '
       '--kf-min-dist=3000 '
       '--kf-max-dist=3000 --cpu-used=0 --static-thresh=0 '

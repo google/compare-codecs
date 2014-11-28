@@ -25,7 +25,6 @@ import md5
 import os
 import random
 import re
-import score_tools
 import shutil
 
 
@@ -256,7 +255,7 @@ class OptionValueSet(object):
     if not self.option_set.HasOption(name):
       raise Error('Unknown option name %s' % name)
     new_set = OptionValueSet(self.option_set, "", self.formatter)
-    new_set.values = self.values
+    new_set.values = self.values.copy()
     new_set.values[name] = value
     new_set.other_parts = self.other_parts
     return new_set
@@ -325,16 +324,10 @@ class Codec(object):
   This is used by the functions that return the "best" of something,
   as well as for making evaluations and comparision reports.
   """
-  def __init__(self, name, cache=None, formatter=None,
-               score_function=None):
+  def __init__(self, name, formatter=None):
     self.name = name
     self.option_set = OptionSet()
-    if cache:
-      self.cache = cache
-    else:
-      self.cache = EncodingDiskCache(self)
     self.option_formatter = formatter or OptionFormatter()
-    self.score_function = score_function or score_tools.ScorePsnrBitrate
 
   def Option(self, name):
     return self.option_set.Option(name)
@@ -342,19 +335,9 @@ class Codec(object):
   def AllOptions(self):
     return self.option_set.AllOptions()
 
-  def StartEncoder(self):
-    # pylint: disable=R0201
+  def StartEncoder(self, context):
+    # pylint: disable=R0201, W0613
     raise Error("The base codec class has no start encoder")
-
-  def AllScoredEncodings(self, bitrate, videofile):
-    return self.cache.AllScoredEncodings(bitrate, videofile)
-
-  def BestEncoding(self, bitrate, videofile):
-    encodings = self.AllScoredEncodings(bitrate, videofile)
-    if not encodings.Empty():
-      return encodings.BestEncoding()
-    else:
-      return self.StartEncoder().Encoding(bitrate, videofile)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     # pylint: disable=W0613, R0201
@@ -392,40 +375,60 @@ class Codec(object):
     return ' '.join([option.name for option in self.AllOptions()])
 
 
+class Context(object):
+  """Context for an Encoder object.
+
+  This class encapsulates the "workdir" and the "storage" concepts.
+  This base implementation defaults to a memory cache.
+  Since a storage module needs the context to create itself, the class
+  object of the storage module class, not a storage module object,
+  is passed to the context constructor.
+  """
+
+  def __init__(self, codec, cache_class=None):
+    self.codec = codec
+    if cache_class:
+      self.cache = cache_class(self)
+    else:
+      self.cache = EncodingMemoryCache(self)
+
+
 class Encoder(object):
   """This class represents a codec with a specific set of parameters.
   It makes sense to talk about "this encoder produces quality X".
   """
-  def __init__(self, codec, parameters=None, filename=None):
+  def __init__(self, context, parameters=None, filename=None):
     """Parameters:
-    codec - a Codec object
-    parameters - an OptionValueSet object
-    filename - a string, passed to the cache for fetching the parameters
+    context - a Context object, used for accessing codec, cache and workdir.
+    parameters - an OptionValueSet object.
+    filename - a string, passed to the cache for fetching the parameters.
     It makes sense to give either the parameters or the filename.
     """
-    self.codec = codec
+    self.context = context
     self.stored = False
     if parameters is None:
       if filename is None:
         raise Error("Encoder with neither parameters nor filename")
       else:
-        self.parameters = self.codec.cache.ReadEncoderParameters(filename)
+        self.parameters = self.context.cache.ReadEncoderParameters(filename)
         if self.Hashname() != filename:
           raise Error("Filename %s contains wrong arguments" % filename)
     else:
-      self.parameters = codec.ConfigurationFixups(parameters)
+      self.parameters = context.codec.ConfigurationFixups(parameters)
 
   def Encoding(self, bitrate, videofile):
     return Encoding(self, bitrate, videofile)
 
   def Execute(self, bitrate, videofile, workdir):
-    return self.codec.Execute(self.parameters, bitrate, videofile, workdir)
+    return self.context.codec.Execute(
+      self.parameters, bitrate, videofile, workdir)
 
   def VerifyEncode(self, bitrate, videofile, workdir):
-    return self.codec.VerifyEncode(self.parameters, bitrate, videofile, workdir)
+    return self.context.codec.VerifyEncode(
+      self.parameters, bitrate, videofile, workdir)
 
   def Store(self):
-    self.codec.cache.StoreEncoder(self)
+    self.context.cache.StoreEncoder(self)
 
   def Hashname(self):
     m = md5.new()
@@ -450,7 +453,7 @@ class Encoder(object):
   def OptionValues(self):
     """Returns a dictionary of all current option values."""
     values = {}
-    for option in self.codec.AllOptions():
+    for option in self.context.codec.AllOptions():
       values[option.name] = self.parameters.GetValue(option.name)
     return values
 
@@ -461,19 +464,19 @@ class Encoder(object):
     so it is important that sequence here is the same as for DisplayHeading.
     """
     return ' '.join([self.parameters.GetValue(option.name)
-                     for option in self.codec.AllOptions()])
+                     for option in self.context.codec.AllOptions()])
 
   def AllScoredRates(self, videofile):
-    return self.codec.cache.AllScoredRates(self, videofile)
+    return self.context.cache.AllScoredRates(self, videofile)
 
   def AllScoredVariants(self, videofile, vary):
-    option = self.codec.Option(vary)
+    option = self.context.codec.Option(vary)
     encodings = []
     for value in option.values:
-      variant_encoder = Encoder(self.codec,
+      variant_encoder = Encoder(self.context,
                                 option.SetValue(self.parameters, value))
-      encodings.extend(self.codec.cache.AllScoredRates(variant_encoder,
-                                                       videofile).encodings)
+      encodings.extend(self.context.cache.AllScoredRates(variant_encoder,
+                                                         videofile).encodings)
     return EncodingSet(encodings)
 
 
@@ -488,6 +491,7 @@ class Encoding(object):
     videofile - a Videofile
     """
     self.encoder = encoder
+    self.context = encoder.context
     assert(type(bitrate) == type(0))
     self.bitrate = bitrate
     self.videofile = videofile
@@ -503,7 +507,7 @@ class Encoding(object):
     """
     result = []
     # Check for suggested variants.
-    suggested_tweak = self.encoder.codec.SuggestTweak(self)
+    suggested_tweak = self.context.codec.SuggestTweak(self)
     if suggested_tweak:
       suggested_tweak.Recover()
       if not suggested_tweak.Result():
@@ -511,35 +515,48 @@ class Encoding(object):
     # Generate up to 10 single-hop variants.
     # Just using a variable as a counter doesn't satisfy pylint.
     # pylint: disable=W0612
+    seen = set()
     for i in range(10):
       variant_encoder = Encoder(
-        self.encoder.codec,
-        self.encoder.codec.RandomlyChangeConfig(self.encoder.parameters))
-      variant_encoding = Encoding(variant_encoder, self.bitrate, self.videofile)
-      variant_encoding.Recover()
-      if not variant_encoding.Result():
-        result.append(variant_encoding)
-    # If none resulted, try to make 2 changes.
-    if not result:
-      for i in range(10):
-        variant_encoder = Encoder(
-          self.encoder.codec,
-          self.encoder.codec.RandomlyChangeConfig(
-            self.encoder.codec.RandomlyChangeConfig(self.encoder.parameters)))
-        variant_encoding = Encoding(variant_encoder,
-                                    self.bitrate,
+        self.context,
+        self.context.codec.RandomlyChangeConfig(self.encoder.parameters))
+      params_as_string = variant_encoder.parameters.ToString()
+      if not params_as_string in seen:
+        variant_encoding = Encoding(variant_encoder, self.bitrate,
                                     self.videofile)
         variant_encoding.Recover()
         if not variant_encoding.Result():
           result.append(variant_encoding)
+          seen.add(params_as_string)
+    
+    # If none resulted, make 10 attempts to find an untried candidate
+    # by making 2 random changes to the configuration.
+    if not result:
+      for i in range(10):
+        variant_encoder = Encoder(
+          self.context,
+          self.context.codec.RandomlyChangeConfig(
+            self.context.codec.RandomlyChangeConfig(self.encoder.parameters)))
+        params_as_string = variant_encoder.parameters.ToString()
+        if not params_as_string in seen:
+          variant_encoding = Encoding(variant_encoder,
+                                      self.bitrate,
+                                      self.videofile)
+          variant_encoding.Recover()
+          if not variant_encoding.Result():
+            result.append(variant_encoding)
+            seen.add(params_as_string)
 
     return EncodingSet(result)
 
   def Workdir(self):
-    workdir = os.path.join(self.encoder.codec.cache.WorkDir(),
+    workdir = os.path.join(self.context.cache.WorkDir(),
                            self.encoder.Hashname(),
-                           self.encoder.codec.SpeedGroup(self.bitrate))
-    if not os.path.isdir(workdir):
+                           self.context.codec.SpeedGroup(self.bitrate))
+    if (os.path.isdir(self.context.cache.WorkDir())
+        and not os.path.isdir(workdir)):
+      # The existence of the cache's WorkDir is something the cache needs to
+      # worry about. This function only makes dirs inside the cache.
       os.makedirs(workdir)
     return workdir
 
@@ -552,24 +569,12 @@ class Encoding(object):
     return self.encoder.VerifyEncode(self.bitrate, self.videofile,
                                      self.Workdir())
 
-  def Score(self, scoredir=None):
-    # Temporary hack because there are so many stored clips without cliptime
-    # information:
-    if self.result and not 'cliptime' in self.result:
-      self.result['cliptime'] = self.videofile.ClipTime()
-    if scoredir is None:
-      return self.encoder.codec.score_function(self.bitrate, self.result)
-    else:
-      result = self.encoder.codec.cache.ReadEncodingResult(self,
-                                                           scoredir=scoredir)
-      return self.encoder.codec.score_function(self.bitrate, result)
-
   def Store(self):
     self.encoder.Store()
-    self.encoder.codec.cache.StoreEncoding(self)
+    self.context.cache.StoreEncoding(self)
 
   def Recover(self):
-    self.result = self.encoder.codec.cache.ReadEncodingResult(self)
+    self.result = self.context.cache.ReadEncodingResult(self)
 
 
 class EncodingSet(object):
@@ -578,11 +583,6 @@ class EncodingSet(object):
 
   def Empty(self):
     return len(self.encodings) == 0
-
-  def BestEncoding(self):
-    if self.encodings:
-      return max(self.encodings, key=lambda e: e.Score())
-    return None
 
   def BestGuess(self):
     """Returns an untried encoding that may improve the score."""
@@ -594,11 +594,11 @@ class EncodingSet(object):
 
 class EncodingDiskCache(object):
   """Encoder and encoding information, saved to disk."""
-  def __init__(self, codec):
-    self.codec = codec
+  def __init__(self, context):
+    self.context = context
     # Default work directory is current directory.
     self.workdir = '%s/%s' % (os.getenv('CODEC_WORKDIR'),
-                              codec.name)
+                              context.codec.name)
     if not os.path.isdir(self.workdir):
       os.mkdir(self.workdir)
 
@@ -613,7 +613,7 @@ class EncodingDiskCache(object):
         filename = os.path.dirname(full_filename)  # Cut off resultfile
         filename = os.path.dirname(filename)  # Cut off bitrate dir
         filename = os.path.basename(filename)  # Cut off leading codec name
-        encoder = Encoder(self.codec, filename=filename)
+        encoder = Encoder(self.context, filename=filename)
       if bitrate == 0:
         filename = os.path.dirname(full_filename)
         target_bitrate = os.path.basename(filename)
@@ -634,7 +634,8 @@ class EncodingDiskCache(object):
   def AllScoredEncodings(self, bitrate, videofile):
     videofilename = videofile.filename
     basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = os.path.join(self.workdir, '*', self.codec.SpeedGroup(bitrate),
+    pattern = os.path.join(self.workdir, '*',
+                           self.context.codec.SpeedGroup(bitrate),
                            basename + '.result')
     files = glob.glob(pattern)
     return self._FilesToEncodings(files, videofile, bitrate=bitrate)
@@ -665,8 +666,8 @@ class EncodingDiskCache(object):
   def ReadEncoderParameters(self, hashname):
     dirname = os.path.join(self.workdir, hashname)
     with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
-      return OptionValueSet(self.codec.option_set, parameterfile.read(),
-                            formatter=self.codec.option_formatter)
+      return OptionValueSet(self.context.codec.option_set, parameterfile.read(),
+                            formatter=self.context.codec.option_formatter)
 
   def AllEncoderFilenames(self):
     pattern = os.path.join(self.workdir, '*')
@@ -683,7 +684,7 @@ class EncodingDiskCache(object):
     is encoded as part of the output filename.
     """
     dirname = '%s/%s/%s' % (self.workdir, encoding.encoder.Hashname(),
-                            self.codec.SpeedGroup(encoding.bitrate))
+                            self.context.codec.SpeedGroup(encoding.bitrate))
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
     if not encoding.result:
@@ -698,11 +699,11 @@ class EncodingDiskCache(object):
     None is returned file does not exist."""
 
     if scoredir:
-      workdir = os.path.join(scoredir, self.codec.name)
+      workdir = os.path.join(scoredir, self.context.codec.name)
     else:
       workdir = self.workdir
     dirname = ('%s/%s/%s' % (workdir, encoding.encoder.Hashname(),
-                             self.codec.SpeedGroup(encoding.bitrate)))
+                             self.context.codec.SpeedGroup(encoding.bitrate)))
     filename = '%s/%s.result' % (dirname, encoding.videofile.basename)
     if os.path.isfile(filename):
       with open(filename, 'r') as resultfile:
@@ -713,14 +714,13 @@ class EncodingDiskCache(object):
 
 class EncodingMemoryCache(object):
   """Encoder and encoding information, in-memory only. For testing."""
-  def __init__(self, codec):
-    self.codec = codec
+  def __init__(self, context):
+    self.context = context
     self.encoders = {}
     self.encodings = []
 
   def WorkDir(self):
-    # pylint: disable=R0201
-    return '/tmp'
+    return '/not-valid-file/' + self.context.codec.name
 
   def AllScoredEncodings(self, bitrate, videofile):
     result = []
@@ -735,7 +735,8 @@ class EncodingMemoryCache(object):
     result = []
     for encoding in self.encodings:
       if (videofile == encoding.videofile and
-          encoder == encoding.encoder and
+          encoder.parameters.ToString() ==
+              encoding.encoder.parameters.ToString() and
           encoding.Result()):
         result.append(encoding)
     return EncodingSet(result)
@@ -750,3 +751,17 @@ class EncodingMemoryCache(object):
 
   def StoreEncoding(self, encoding):
     self.encodings.append(encoding)
+
+  def ReadEncodingResult(self, encoding_in, scoredir=None):
+    # pylint: disable=W0613
+    # Since the memory cache stores the results as a list of encodings,
+    # we must find an encoding with the same properties as the one we're
+    # reading parameters for, and return the result from that.
+    for encoding in self.encodings:
+      if (encoding_in.videofile == encoding.videofile and
+          encoding_in.encoder.parameters.ToString() ==
+              encoding.encoder.parameters.ToString() and
+          encoding_in.bitrate == encoding.bitrate and
+          encoding.Result()):
+        return encoding.Result()
+    return None

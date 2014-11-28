@@ -11,18 +11,17 @@ import encoder
 
 
 class DummyCodec(encoder.Codec):
-  def __init__(self, score_function=None):
-    super(DummyCodec, self).__init__('dummy',
-                                     cache=encoder.EncodingMemoryCache(self),
-                                     score_function=score_function)
+  def __init__(self):
+    super(DummyCodec, self).__init__('dummy')
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
       encoder.Option('score',  ['0', '5', '10']),
     )
 
-  def StartEncoder(self):
-    return encoder.Encoder(self, encoder.OptionValueSet(self.option_set,
-                                                        "--score=5"))
+  def StartEncoder(self, context):
+    return encoder.Encoder(context,
+                           encoder.OptionValueSet(self.option_set,
+                                                  "--score=5"))
 
   def Execute(self, parameters, rate, videofile, workdir):
     # rate is unused. This is known.
@@ -43,7 +42,6 @@ class StorageOnlyCodec(object):
   """A codec that is only useful for testing storage."""
   def __init__(self):
     self.name = 'unittest'
-    self.cache = None
     self.option_set = encoder.OptionSet()
     self.option_formatter = encoder.OptionFormatter(prefix='--', infix=':')
 
@@ -54,6 +52,13 @@ class StorageOnlyCodec(object):
   def ConfigurationFixups(self, parameters):
     # pylint: disable=R0201
     return parameters
+
+
+class StorageOnlyContext(object):
+  """A context that is only useful for testing storage."""
+  def __init__(self):
+    self.codec = StorageOnlyCodec()
+    self.cache = None
 
 
 class DummyVideofile(encoder.Videofile):
@@ -150,6 +155,8 @@ class TestOptionValueSet(unittest.TestCase):
     valueset = encoder.OptionValueSet(opts, '--foo')
     newset = valueset.ChangeValue('foo/bar', 'bar')
     self.assertEqual('--bar', newset.ToString())
+    # Check that old set is not modified.
+    self.assertEqual('--foo', valueset.ToString())
 
   def test_ChangeValueOfUnknownOption(self):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
@@ -190,27 +197,6 @@ class TestCodec(unittest.TestCase):
   def setUp(self):
     self.videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
 
-  def test_FirstBestEncodingNoScore(self):
-    codec = DummyCodec()
-    encoding = codec.BestEncoding(100, self.videofile)
-    self.assertIsNone(encoding.Score())
-
-  def test_BestEncodingOneAlternative(self):
-    codec = DummyCodec()
-    codec.BestEncoding(100, self.videofile).Store()
-    encoding = codec.BestEncoding(100, self.videofile)
-    self.assertEqual(encoding.videofile, self.videofile)
-
-  def test_BestEncodingExecuteGivesScore(self):
-    codec = DummyCodec()
-    codec.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertEqual(5, codec.BestEncoding(100, self.videofile).Score())
-
-  def test_BestEncodingOtherSpeedNoScore(self):
-    codec = DummyCodec()
-    codec.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertIsNone(codec.BestEncoding(200, self.videofile).Result())
-
   def test_DisplayHeading(self):
     codec = DummyCodec()
     self.assertEqual('score', codec.DisplayHeading())
@@ -226,44 +212,57 @@ class TestCodec(unittest.TestCase):
     codec = DummyCodec()
     self.assertTrue(codec.option_formatter)
 
-  def test_AlternateScorer(self):
-    codec = DummyCodec(score_function=Returns1)
-    codec.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertEqual(1, codec.BestEncoding(100, self.videofile).Score())
 
 
 class TestEncoder(unittest.TestCase):
-  def test_CreateStoreFetch(self):
-    codec = DummyCodec()
-    my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
-    my_encoder.Store()
-    filename = my_encoder.Hashname()
-    next_encoder = encoder.Encoder(codec, filename=filename)
-    self.assertEqual(my_encoder.parameters, next_encoder.parameters)
-
   def test_OptionValues(self):
     codec = DummyCodec()
-    my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(
+    my_encoder = encoder.Encoder(encoder.Context(codec),
+      encoder.OptionValueSet(encoder.OptionSet(
             encoder.IntegerOption('score', 0, 100)), '--score=77'))
     self.assertEqual(repr(my_encoder.OptionValues()), "{'score': '77'}")
     self.assertEqual(my_encoder.DisplayValues(), '77')
 
+  def test_ParametersCanBeStoredAndRetrieved(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder.Store()
+    filename = my_encoder.Hashname()
+    next_encoder = encoder.Encoder(context, filename=filename)
+    self.assertEqual(my_encoder.parameters, next_encoder.parameters)
+
 
 class TestEncoding(unittest.TestCase):
 
-  def test_AutoGenerateClipTime(self):
-    codec = DummyCodec()
-    my_encoder = encoder.Encoder(codec,
-      encoder.OptionValueSet(encoder.OptionSet(), ''))
-    # Must use a tricked-out videofile to avoid disk access.
-    videofile = DummyVideofile('test_640x480_20.yuv', clip_time=1)
-    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
-    my_encoding.result = {'psnr':42, 'bitrate':123}
-    my_encoding.Score()
-    self.assertTrue('cliptime' in my_encoding.result)
+  def testGenerateSomeUntriedVariants(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = context.codec.StartEncoder(context)
+    videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
+    encoding = my_encoder.Encoding(1000, videofile)
+    # The dummy codec has a parameter with multiple possible values,
+    # so at least some variants should be returned.
+    variants = encoding.SomeUntriedVariants()
+    self.assertFalse(variants.Empty())
 
+  def testGenerateUntriedVariantsUntilNoneFound(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = context.codec.StartEncoder(context)
+    videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
+    encoding = my_encoder.Encoding(1000, videofile)
+    variants = encoding.SomeUntriedVariants()
+    # Keep generating variants until we run out. This should happen
+    # after 3 variants for the Dummy codec.
+    variant_count = 0
+    while not variants.Empty():
+      print variants.encodings
+      for variant in variants.encodings:
+        variant.Execute().Store()
+        variant_count += 1
+      variants = encoding.SomeUntriedVariants()
+    # We cannot guarantee that all 3 are found, since the process
+    # is random, but no more than 3 should be found.
+    self.assertGreaterEqual(3, variant_count)
 
 class TestEncodingSet(unittest.TestCase):
   pass
@@ -295,23 +294,25 @@ class TestVideofile(unittest.TestCase):
 
 class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
   def testInit(self):
-    cache = encoder.EncodingDiskCache(StorageOnlyCodec())
+    cache = encoder.EncodingDiskCache(StorageOnlyContext())
     self.assertTrue(cache)
 
   def testStoreFetchEncoder(self):
-    codec = StorageOnlyCodec()
-    cache = encoder.EncodingDiskCache(codec)
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     new_encoder_data = cache.ReadEncoderParameters(my_encoder.Hashname())
     self.assertEquals(new_encoder_data, my_encoder.parameters)
 
   def testStoreFetchEncoding(self):
-    codec = StorageOnlyCodec()
-    cache = encoder.EncodingDiskCache(codec)
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     my_encoding = encoder.Encoding(my_encoder, 123,
                                    encoder.Videofile('x/foo_640_480_20.yuv'))
@@ -326,11 +327,12 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     # This test is sensitive to old data left around.
     # The FileUsingCodecTest base class takes care of giving it an
     # empty directory at test start.
-    codec = StorageOnlyCodec()
-    cache = encoder.EncodingDiskCache(codec)
-    codec.cache = cache  # This particular test needs the link.
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
+    context.cache = cache  # This particular test needs the link.
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     videofile = encoder.Videofile('x/foo_640_480_20.yuv')
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)
@@ -347,24 +349,24 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     self.assertEquals(1, len(result.encodings))
 
   def testAllEncoderFilenames(self):
-    codec = StorageOnlyCodec()
-    cache = encoder.EncodingDiskCache(codec)
-    codec.cache = cache  # This particular test needs the link.
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
     files = cache.AllEncoderFilenames()
     self.assertEquals(0, len(files))
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+      context,
+      encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     files = cache.AllEncoderFilenames()
     self.assertEquals(1, len(files))
     self.assertEquals(my_encoder.Hashname(), files[0])
 
   def testRemoveEncoder(self):
-    codec = StorageOnlyCodec()
-    cache = encoder.EncodingDiskCache(codec)
-    codec.cache = cache  # This particular test needs the link.
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+      context,
+      encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     files = cache.AllEncoderFilenames()
     self.assertEquals(1, len(files))
@@ -374,12 +376,12 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     self.assertEquals(0, len(files))
 
   def testReadResultFromAlternateDir(self):
-    codec = StorageOnlyCodec()
+    context = StorageOnlyContext()
     otherdir = os.path.join(os.environ['CODEC_WORKDIR'], 'otherdir')
-    cache = encoder.EncodingDiskCache(codec)
-    codec.cache = cache  # This particular test needs the link.
+    cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
-        codec, encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     videofile = encoder.Videofile('x/foo_640_480_20.yuv')
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)
