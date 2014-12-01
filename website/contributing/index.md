@@ -16,7 +16,7 @@ The requirements for contributions are:
     [license](/license/).
 
 
-### How to Run a Comparision
+### How to Install and Run Basic Comparisions
 
 The steps for running a comparision yourself are:
 
@@ -30,16 +30,25 @@ The steps for running a comparision yourself are:
   * Source the `init.sh` file. This sets your path and environment variables
     correctly.
 
-  * Select your codecs from the list of codecs
-    given by `list_codecs`, and run `compare_codecs --score <codec1> <codec2>`.
+  * In order to get a baseline run for all codecs, all files and all rates,
+    run `compare_codecs --score`.
     This can take quite a while, and produce quite a bit of output. Run it
     again to view the results in text format.
 
-  * Run `compare_html <codec1> <codec2> > <somefile.html>` to
-    generate a HTML
-    formatted comparision. View the result
-    in the browser of your choice.
+  * Run `generate_pages` to generate the standard comparision pages.
 
+### Running specific comparisions
+
+In order to run a specific comparision:
+
+  * compare_codecs --score <codec1> <codec2>
+
+  * compare_html <codec1> <codec2> > <html file of your choice>
+
+This may be appropriate after you have done specific tweaks, added a codec,
+done additional runs with new parameters, or just want to re-run.
+
+Use `list_codecs` to get a list of the codecs available.
 
 ### Using Others' Encoding Data
 
