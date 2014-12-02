@@ -40,8 +40,17 @@ class TestVp8Mpeg(test_tools.FileUsingCodecTest):
                              '--fixed-q=6 --gold-q=27 --key-q=8'))
     self.assertEqual('--fixed-q=6 --gold-q=6 --key-q=6', fixups.ToString())
 
+  def test_SuggestedTweakRefersToSameContext(self):
+    codec = vp8_mpeg.Vp8CodecMpegMode()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    # Fake result.
+    encoding.result = {'psnr': 42.0, 'bitrate':1000}
+    next_encoding = codec.SuggestTweak(encoding)
+    self.assertEqual(encoding.context, next_encoding.context)
+
 
 if __name__ == '__main__':
   unittest.main()
-
-

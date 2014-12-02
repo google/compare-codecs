@@ -35,6 +35,7 @@ $WORKDIR/vp9_unittest.py
 
 echo "Running pylint"
 pylint $(ls lib/*.py | grep -v 'gviz_api.py')
+pylint $(grep -l '#!/usr/bin/python' bin/*[a-z])
 
 echo "Checking license statements"
 # List files that do not have an Apache-license blurb in them.

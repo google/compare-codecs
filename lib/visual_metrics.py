@@ -262,14 +262,15 @@ def HtmlPage(page_template, filestable, snrs, formatters):
   return FillForm(page_template, my_dict)
 
 
-def ListOneTarget(codecs, rate, videofile, do_score, datatable):
+def ListOneTarget(codecs, rate, videofile, do_score, datatable,
+                  score_function=None):
   """Extend a datatable with the info about one video file's scores."""
   for codec_name in codecs:
     # For testing:
     # Allow for direct context injection rather than picking by name.
     if isinstance(codec_name, basestring):
       codec = pick_codec.PickCodec(codec_name)
-      my_optimizer = optimizer.Optimizer(codec)
+      my_optimizer = optimizer.Optimizer(codec, score_function=score_function)
     else:
       my_optimizer = codec_name
       codec_name = my_optimizer.context.codec.name
@@ -278,22 +279,22 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable):
       bestsofar.Execute()
       bestsofar.Store()
     assert(bestsofar.Result())
-    if not codec_name in datatable:
-      datatable[codec_name] = {}
-    if not videofile.basename in datatable[codec_name]:
-      datatable[codec_name][videofile.basename] = []
+    # Ignore results that score less than zero.
+    if my_optimizer.Score(bestsofar) < 0.0:
+      return
     (datatable.setdefault(codec_name, {})
              .setdefault(videofile.basename, [])
              .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
 
 
-def ListMpegResults(codecs, do_score, datatable):
+def ListMpegResults(codecs, do_score, datatable, score_function=None):
   """List all scores for all tests in the MPEG test set for a set of codecs."""
   for classname in mpeg_settings.files.keys():
     for filename in mpeg_settings.files[classname]:
       videofile = encoder.Videofile('video/mpeg_video/' + filename)
       for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(codecs, rate, videofile, do_score, datatable)
+        ListOneTarget(codecs, rate, videofile, do_score, datatable,
+                      score_function)
 
 
 def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
@@ -325,7 +326,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
       # If there is a metric in this_codec,
       # calculate the overall difference between it and the baseline
       # codec's metric
-      if (filename in datatable[this_codec]
+      if (this_codec in datatable and filename in datatable[this_codec]
           and filename in datatable[baseline_codec]):
         overall = DataSetBetter(
           datatable[baseline_codec][filename],
@@ -349,7 +350,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   gviz_data_table.LoadData(data)
   return gviz_data_table
 
-def CrossPerformanceGvizTable(datatable, metric, codecs):
+def CrossPerformanceGvizTable(datatable, metric, codecs, criterion):
   """Build a square table of codecs and relative performance."""
   videofile_name_list = datatable[codecs[0]].keys()
 
@@ -365,15 +366,15 @@ def CrossPerformanceGvizTable(datatable, metric, codecs):
         count = 0
         overall = 0.0
         for filename in videofile_name_list:
-          if (filename in datatable[codec1]
-              and filename in datatable[codec2]):
+          if (codec1 in datatable and filename in datatable[codec1]
+              and codec2 in datatable and filename in datatable[codec2]):
             overall += DataSetBetter(
               datatable[codec1][filename],
               datatable[codec2][filename], metric)
             count += 1
         if count > 0:
-          display = '<a href=/results/generated/%s-%s.html>%5.2f</a>' % (
-            codec1, codec2, overall / count)
+          display = '<a href=/results/generated/%s-%s-%s.html>%5.2f</a>' % (
+            codec1, codec2, criterion, overall / count)
           lineitem[codec2] = (overall / count, display)
     data.append(lineitem)
 

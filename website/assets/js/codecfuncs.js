@@ -3,9 +3,9 @@ google.load('visualization', '1.0', {'packages':['table']})
 
 google.setOnLoadCallback(FillInAllTables);
 
-function FillInAllTables() {
+function FillInOneTable(url, id) {
   var tablesAsJson = $.ajax({
-    url: '/results/generated/toplevel.json',
+    url: url,
     dataType: 'json',
     async: false
   }).responseText;
@@ -29,6 +29,11 @@ function FillInAllTables() {
                     };
   var data = new google.visualization.DataTable(tablesAsJson);
   var table = new google.visualization.Table(
-    document.getElementById('basic-results'));
+    document.getElementById(id));
   table.draw(data, tableStyles);
+}
+
+function FillInAllTables() {
+  FillInOneTable('/results/generated/toplevel-psnr.json', 'basic-results')
+  FillInOneTable('/results/generated/toplevel-rt.json', 'rt-results')
 }

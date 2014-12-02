@@ -72,7 +72,8 @@ def VerifyResults(codec_names, score):
     for filename in mpeg_settings.files[clip_class]:
       videofile = encoder.Videofile('video/mpeg_video/' + filename)
       for rate in mpeg_settings.rates[clip_class]:
-        change_counts.update(VerifyOneTarget(codec_names, rate, videofile, score))
+        change_counts.update(VerifyOneTarget(codec_names, rate,
+                                             videofile, score))
         print 'Result so far:', dict(change_counts)
   return change_counts
 
