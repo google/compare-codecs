@@ -37,9 +37,6 @@ for the same quality metric.
 {:.td-right}
 
 </div>
-<script>
-FillInAllTables()
-</script>
 
 ### Fixed QP results
 
@@ -86,10 +83,15 @@ less CPU time (single CPU) than the length of the clip, and it must have no
 forward looking elements - that is, a decoded frame N must be exactly the same
 no matter what the content of the original frame N+1 and later were.
 
-
+<div id='rt-results'>
 | PLACEHOLDER     | VP8-RT | X264-RT | HEVC-HM |
 | --------------- | ------ | ------- | ------- |
 | VP8             |        |    +10% |     DNQ |
 | X264            |    -8% |         |     DNQ |
 | HEVC            |    DNQ |     DNQ |         |
 {:.td-right}
+</div>
+
+<script>
+FillInAllTables()
+</script>

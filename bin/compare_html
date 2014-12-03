@@ -19,12 +19,9 @@ import visual_metrics
 
 import argparse
 import sys
-import os
 
-import mpeg_settings
-import encoder
-import pick_codec
 import gviz_api
+import score_tools
 
 def FormatAsHtml(codecs, datatable):
   """
@@ -76,11 +73,11 @@ def FormatAsHtml(codecs, datatable):
     # in the associated gviz metrics table.
     for this_codec in codecs:
 
-      if not filename in datatable[this_codec]:
+      if not this_codec in datatable or not filename in datatable[this_codec]:
         continue
 
-        # Read and parse the metrics file storing it to the data we'll
-        # use for the gviz_api.Datatable.
+      # Read and parse the metrics file storing it to the data we'll
+      # use for the gviz_api.Datatable.
       metrics = datatable[this_codec][filename]
       for bitrate, metric in metrics:
         data.append({"datarate": bitrate, this_codec: metric})
@@ -109,11 +106,14 @@ def FormatAsHtml(codecs, datatable):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
   parser.add_argument('codecs', nargs='*')
   args = parser.parse_args()
 
   datatable = {}
-  visual_metrics.ListMpegResults(args.codecs, args.score, datatable)
+  score_function = score_tools.PickScorer(args.criterion)
+  visual_metrics.ListMpegResults(args.codecs, args.score, datatable,
+                                 score_function=score_function)
   FormatAsHtml(args.codecs, datatable)
   return 0
 

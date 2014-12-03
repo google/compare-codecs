@@ -1,0 +1,65 @@
+#!/usr/bin/python
+#
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This tool runs all the MPEG test files and rates with a specific
+# codec and configuration.
+#
+import argparse
+import sys
+
+import mpeg_settings
+import encoder
+import pick_codec
+
+def ExecuteConfig(codec_name, config):
+  codec = pick_codec.PickCodec(codec_name)
+  context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
+  my_encoder = encoder.Encoder(
+      context,
+      encoder.OptionValueSet(codec.option_set,
+                             config,
+                             formatter=codec.option_formatter))
+
+  executed_count = 0
+  not_executed_count = 0
+  for classname in mpeg_settings.files.keys():
+    for filename in mpeg_settings.files[classname]:
+      videofile = encoder.Videofile('video/mpeg_video/' + filename)
+      for rate in mpeg_settings.rates[classname]:
+        encoding = my_encoder.Encoding(rate, videofile)
+        encoding.Recover()
+        if not encoding.Result():
+          executed_count += 1
+          encoding.Execute().Store()
+        else:
+          not_executed_count += 1
+  print 'Executed %d did not execute %d' % (executed_count, not_executed_count)
+
+def main():
+  parser = argparse.ArgumentParser('Runs a specific configuration')
+  parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--codec')
+  parser.add_argument('configuration', help='Parameters to use. '
+                      'Remember to quote the string and put'
+                      '"--" in the command line before it if needed.')
+
+  args = parser.parse_args()
+  ExecuteConfig(args.codec, args.configuration)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

@@ -1,0 +1,61 @@
+#!/usr/bin/python
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""List the best results for a video.
+
+This is intended to be a complement to the graphical presentation:
+It shows the best encodings for a video clip under a number of bitrates.
+"""
+
+import argparse
+import sys
+
+import encoder
+import mpeg_settings
+import optimizer
+import pick_codec
+import score_tools
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('videofile')
+  parser.add_argument('--codec')
+  parser.add_argument('--component')
+  parser.add_argument('--criterion', default='psnr')
+
+  args = parser.parse_args()
+
+  videofile = encoder.Videofile(args.videofile)
+  codec = pick_codec.PickCodec(args.codec)
+  my_optimizer = optimizer.Optimizer(codec,
+      score_function=score_tools.PickScorer(args.criterion))
+
+  for classname in mpeg_settings.files.keys():
+    for bitrate in mpeg_settings.rates[classname]:
+      encoding = my_optimizer.BestEncoding(bitrate, videofile)
+      if not encoding.Result():
+        continue
+      if args.component:
+        component = encoding.result[args.component]
+      else:
+        component = ''
+      print '%s %d %f %s %s' % (encoding.encoder.Hashname(),
+                                bitrate,
+                                my_optimizer.Score(encoding),
+                                component,
+                                encoding.encoder.parameters.ToString())
+
+if __name__ == '__main__':
+  sys.exit(main())

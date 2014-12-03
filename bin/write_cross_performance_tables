@@ -17,6 +17,7 @@
 #
 import argparse
 import pick_codec
+import score_tools
 import sys
 import visual_metrics
 
@@ -25,11 +26,14 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('codecs', nargs='*',
                       default=pick_codec.codec_map.keys())
+  parser.add_argument('--criterion', default='psnr')
   args = parser.parse_args()
   datatable = {}
-  visual_metrics.ListMpegResults(args.codecs, False, datatable)
+  score_function = score_tools.PickScorer(args.criterion)
+  visual_metrics.ListMpegResults(args.codecs, False, datatable,
+                                 score_function=score_function)
   matrix = visual_metrics.CrossPerformanceGvizTable(datatable,
-                                                    'avg', args.codecs)
+      'avg', args.codecs, args.criterion)
   print matrix.ToJSon(columns_order=['codec'] + args.codecs)
 
 if __name__ == '__main__':

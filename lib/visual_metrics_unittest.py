@@ -149,7 +149,7 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     codecs = ['dummy1', 'dummy2']
     # This should result in an empty table, with correct headers and col1.
     data_table = visual_metrics.CrossPerformanceGvizTable(
-        datatable, metric, codecs)
+        datatable, metric, codecs, 'psnr')
     self.assertEquals(2, data_table.NumberOfRows())
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ def main():
     print '%s %f %s %s' % (encoding.encoder.Hashname(),
                            my_optimizer.Score(encoding),
                            component,
-                           encoding.encoder.OptionValues())
+                           encoding.encoder.parameters.ToString())
 
 if __name__ == '__main__':
   sys.exit(main())

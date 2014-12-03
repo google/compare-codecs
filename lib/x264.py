@@ -26,6 +26,9 @@ class X264Codec(file_codec.FileCodec):
       formatter=(formatter or encoder.OptionFormatter(prefix='--', infix=' ')))
     self.extension = 'mkv'
     self.option_set = encoder.OptionSet(
+      encoder.Option('preset', ['ultrafast', 'superfast', 'veryfast',
+                                'faster', 'fast', 'medium', 'slow', 'slower',
+                                'veryslow', 'placebo']),
       encoder.Option('rc-lookahead', ['0', '30', '60']),
       encoder.Option('vbv-init', ['0.5', '0.8', '0.9']),
       encoder.Option('ref', ['1', '2', '3', '16']),
@@ -34,7 +37,7 @@ class X264Codec(file_codec.FileCodec):
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--rc-lookahead 0 --ref 2 --vbv-init 0.8',
+      '--rc-lookahead 0 --ref 2 --vbv-init 0.8 --preset veryslow',
       formatter=self.option_formatter))
 
 
@@ -43,7 +46,7 @@ class X264Codec(file_codec.FileCodec):
       '--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d '
       '--bitrate %(bitrate)d --fps %(framerate)d '
       '--threads 1 '
-      '--profile baseline --no-scenecut --keyint infinite --preset veryslow '
+      '--profile baseline --no-scenecut --keyint infinite '
       '--input-res %(width)dx%(height)d '
       '--tune psnr '
       '%(parameters)s '

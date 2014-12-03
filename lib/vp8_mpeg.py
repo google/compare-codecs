@@ -104,7 +104,7 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     for search_value in candidates:
       temp_params = parameters.ChangeValue(name, str(search_value))
       temp_params = self.ConfigurationFixups(temp_params)
-      temp_encoder = encoder.Encoder(encoding.encoder.context, temp_params)
+      temp_encoder = encoder.Encoder(encoding.context, temp_params)
       temp_encoding = encoder.Encoding(temp_encoder, encoding.bitrate,
                                        encoding.videofile)
       temp_encoding.Recover()
@@ -137,6 +137,5 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     if not parameters:
       return None
     parameters = self.ConfigurationFixups(parameters)
-    return encoder.Encoding(encoder.Encoder(self, parameters),
+    return encoder.Encoding(encoder.Encoder(encoding.context, parameters),
                     encoding.bitrate, encoding.videofile)
-
