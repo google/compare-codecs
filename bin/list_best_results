@@ -42,20 +42,19 @@ def main():
   my_optimizer = optimizer.Optimizer(codec,
       score_function=score_tools.PickScorer(args.criterion))
 
-  for classname in mpeg_settings.files.keys():
-    for bitrate in mpeg_settings.rates[classname]:
-      encoding = my_optimizer.BestEncoding(bitrate, videofile)
-      if not encoding.Result():
-        continue
-      if args.component:
-        component = encoding.result[args.component]
-      else:
-        component = ''
-      print '%s %d %f %s %s' % (encoding.encoder.Hashname(),
-                                bitrate,
-                                my_optimizer.Score(encoding),
-                                component,
-                                encoding.encoder.parameters.ToString())
+  for bitrate in mpeg_settings.MpegFiles().AllRatesForFile(args.videofile):
+    encoding = my_optimizer.BestEncoding(bitrate, videofile)
+    if not encoding.Result():
+      continue
+    if args.component:
+      component = encoding.result[args.component]
+    else:
+      component = ''
+    print '%s %d %f %s %s' % (encoding.encoder.Hashname(),
+                              bitrate,
+                              my_optimizer.Score(encoding),
+                              component,
+                              encoding.encoder.parameters.ToString())
 
 if __name__ == '__main__':
   sys.exit(main())

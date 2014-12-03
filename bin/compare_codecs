@@ -50,11 +50,9 @@ def ListResults(codecs, scorer, do_score):
   for c in codecs:
     print '%17s' % pick_codec.ShortName(c),
   print
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(codecs, scorer_function, rate, videofile, do_score)
+  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+    videofile = encoder.Videofile(filename)
+    ListOneTarget(codecs, scorer_function, rate, videofile, do_score)
 
 def main():
   parser = argparse.ArgumentParser()

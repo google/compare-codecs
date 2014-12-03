@@ -123,5 +123,42 @@ class TestOptimizer(unittest.TestCase):
     my_optimizer.Score(my_encoding)
 
 
+class TestFileAndRateSet(unittest.TestCase):
+
+  def test_OneFileAddedAndReturned(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['filename'], [100], 'dirname')
+    self.assertEqual([(100, 'dirname/filename')], the_set.AllFilesAndRates())
+
+  def test_NoDirName(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['filename'], [100])
+    self.assertEqual([(100, 'filename')], the_set.AllFilesAndRates())
+
+  def test_OneFileMultipleRates(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['filename'], [100, 200], 'dirname')
+    self.assertEqual(set([(100, 'dirname/filename'),
+                          (200, 'dirname/filename')]),
+                     set(the_set.AllFilesAndRates()))
+
+  def test_TwoAddCalls(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['filename'], [100, 200], 'dirname')
+    the_set.AddFilesAndRates(['otherfilename'], [200, 300], 'dirname')
+    self.assertEqual(set([(100, 'dirname/filename'),
+                          (200, 'dirname/filename'),
+                          (200, 'dirname/otherfilename'),
+                          (300, 'dirname/otherfilename')]),
+                     set(the_set.AllFilesAndRates()))
+
+  def test_RatesForFile(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['filename'], [100, 200])
+    the_set.AddFilesAndRates(['otherfilename'], [200, 300])
+    self.assertEqual(set([100, 200]),
+                    the_set.AllRatesForFile('filename'))
+
+
 if __name__ == '__main__':
   unittest.main()

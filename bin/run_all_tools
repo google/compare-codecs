@@ -28,10 +28,12 @@ VIDEOFILE=video/mpeg_video/Johnny_1280x720_60.yuv
 
 compare_codecs vp8 vp9 > /dev/null
 compare_html vp8 vp9 > /dev/null
+force_run_config --codec h261 -- ''
 frame_size_tool $RATE $VIDEOFILE > /dev/null
 # generate_pages
 list_codecs > /dev/null
-listconfigs $RATE $VIDEOFILE > /dev/null
+list_best_results $VIDEOFILE > /dev/null
+list_config_results $RATE $VIDEOFILE > /dev/null
 parameter_tweaker $RATE $VIDEOFILE
 randomly_improve_encoding --iterations 1
 # take_snapshot
