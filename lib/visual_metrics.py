@@ -289,12 +289,12 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
 
 def ListMpegResults(codecs, do_score, datatable, score_function=None):
   """List all scores for all tests in the MPEG test set for a set of codecs."""
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[classname]:
-        ListOneTarget(codecs, rate, videofile, do_score, datatable,
-                      score_function)
+  # It is necessary to sort on target bitrate in order for graphs to display
+  # correctly.
+  for rate, filename in sorted(mpeg_settings.MpegFiles().AllFilesAndRates()):
+    videofile = encoder.Videofile(filename)
+    ListOneTarget(codecs, rate, videofile, do_score, datatable,
+                  score_function)
 
 
 def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):

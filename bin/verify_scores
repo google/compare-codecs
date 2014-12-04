@@ -68,13 +68,11 @@ def VerifyOneTarget(codec_names, rate, videofile, score):
 
 def VerifyResults(codec_names, score):
   change_counts = collections.Counter()
-  for clip_class in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[clip_class]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[clip_class]:
-        change_counts.update(VerifyOneTarget(codec_names, rate,
-                                             videofile, score))
-        print 'Result so far:', dict(change_counts)
+  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+    videofile = encoder.Videofile(filename)
+    change_counts.update(VerifyOneTarget(codec_names, rate,
+                                         videofile, score))
+    print 'Result so far:', dict(change_counts)
   return change_counts
 
 def main():

@@ -19,6 +19,7 @@ perform highly on the score function.
 """
 
 import encoder
+import os
 import score_tools
 
 class Optimizer(object):
@@ -66,5 +67,24 @@ class Optimizer(object):
 
 class FileAndRateSet(object):
   def __init__(self):
-    pass
+    self.rates_and_files = set()
 
+  def AddFilesAndRates(self, filenames, rates, basedir=None):
+    for rate in rates:
+      for filename in filenames:
+        if basedir:
+          self.rates_and_files.add((rate, os.path.join(basedir, filename)))
+        else:
+          self.rates_and_files.add((rate, filename))
+
+  def AllFilesAndRates(self):
+    """Returns all rate/file pairs"""
+    return list(self.rates_and_files)
+
+  def AllRatesForFile(self, filename_to_find):
+    """Returns a list of all rates for a specific filename."""
+    rates = set()
+    for rate, filename in self.AllFilesAndRates():
+      if filename == filename_to_find:
+        rates.add(rate)
+    return list(rates)

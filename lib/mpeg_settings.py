@@ -13,69 +13,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# The MPEG CFP rates, linked to filenames.
-#rates = {}
-# MPEG Royalty-Free Codec CFP, early 2013
-# TODO(hta): Encapsulate rates and files into an object.
-# Once that is done, we can make an object with these rates.
-#rates["A"] = (2500, 3500, 5000, 8000, 14000)
-#rates["B1"] = (1000, 1600, 2500, 4000, 6000)
-#rates["B2"] = (2000, 3000, 4500, 7000, 10000)
-#rates["C"] = (384, 512, 768, 1200, 2000)
-#rates["D"] = (256, 384, 512, 850, 1500)
-#rates["E"] = (256, 384, 512, 850, 1500)
 
-#files = {}
-#files["A"] = ("Traffic_2560x1600_30_crop.yuv",
-#"PeopleOnStreet_2560x1600_30_crop.yuv")
-#files["B1"] = ("Kimono1_1920x1080_24.yuv",
-#"ParkScene_1920x1080_24.yuv")
-# B2 files are missing: cactus and basketball drive
-#files["B2"] = ()
-#files["C"] = ("BasketballDrill_832x480_50.yuv",
-#"BQMall_832x480_60.yuv",
-#"PartyScene_832x480_50.yuv",
-#"RaceHorses_832x480_30.yuv")
+import optimizer
 
-# Missing file BQSquare
-#files["D"] = ("BasketballPass_416x240_50.yuv",
-#"BlowingBubbles_416x240_50.yuv",
-#"RaceHorses_416x240_30.yuv")
-
-
-#files["E"] = ("FourPeople_1280x720_60.yuv",
-#"Johnny_1280x720_60.yuv",
-#"KristenAndSara_1280x720_60.yuv")
-
-# MPEG codec comparision test, December 2013
-rates = {}
-rates['A'] = (1600, 2500, 4000, 6000)
-rates['B'] = (3000, 4500, 7000, 10000)
-rates['C'] = (512, 768, 1200, 2000)
-rates['D'] = (384, 512, 850, 1500)
-
-files = {}
-files['A'] = ("Kimono1_1920x1080_24.yuv",
-"ParkScene_1920x1080_24.yuv")
-files['B'] = ("Cactus_1920x1080_50.yuv",
-"BasketballDrive_1920x1080_50.yuv")
-files['C'] = ("BasketballDrill_832x480_50.yuv",
-"BQMall_832x480_60.yuv",
-"PartyScene_832x480_50.yuv",
-"RaceHorses_832x480_30.yuv")
-
-files["D"] = ("FourPeople_1280x720_60.yuv",
-"Johnny_1280x720_60.yuv",
-"KristenAndSara_1280x720_60.yuv")
+# Files and rates for the MPEG 2nd CFP for RF codecs, early 2013.
+def OldMpegFiles():
+  the_set = optimizer.FileAndRateSet()
+  my_directory = 'video/mpeg_video'
+  # Class A
+  the_set.AddFilesAndRates(["Traffic_2560x1600_30_crop.yuv",
+                            "PeopleOnStreet_2560x1600_30_crop.yuv"],
+                           [2500, 3500, 5000, 8000, 14000],
+                           my_directory)
+  # Class B1
+  the_set.AddFilesAndRates(["Kimono1_1920x1080_24.yuv",
+                            "ParkScene_1920x1080_24.yuv"],
+                           [1000, 1600, 2500, 4000, 6000],
+                           my_directory)
+  # Class B2
+  the_set.AddFilesAndRates(["Cactus_1920x1080_50.yuv",
+                            "BasketballDrive_1920x1080_50.yuv"],
+                           [2000, 3000, 4500, 7000, 10000],
+                            my_directory)
+  # Class C
+  the_set.AddFilesAndRates(["BasketballDrill_832x480_50.yuv",
+                            "BQMall_832x480_60.yuv",
+                            "PartyScene_832x480_50.yuv",
+                            "RaceHorses_832x480_30.yuv"],
+                           [384, 512, 768, 1200, 2000],
+                            my_directory)
+  # Class D
+  the_set.AddFilesAndRates(["BasketballPass_416x240_50.yuv",
+                            "BlowingBubbles_416x240_50.yuv",
+                            "RaceHorses_416x240_30.yuv"],
+                           [256, 384, 512, 850, 1500],
+                            my_directory)
+  # Class E
+  the_set.AddFilesAndRates(["FourPeople_1280x720_60.yuv",
+                            "Johnny_1280x720_60.yuv",
+                            "KristenAndSara_1280x720_60.yuv"],
+                           [256, 384, 512, 850, 1500],
+                            my_directory)
+  return the_set
 
 
-def TweakAll():
-  for classname in files.keys():
-    for filename in files[classname]:
-      for rate in rates[classname]:
-        print "./vp8tweaker --codec=vp8_mpeg_1d --loop ", rate, \
-               "../mpeg_video/" + filename + '&'
-
-
-if __name__ == '__main__':
-  TweakAll()
+# Files and rates for the MPEG codec comparision test, December 2013.
+def MpegFiles():
+  the_set = optimizer.FileAndRateSet()
+  my_directory = 'video/mpeg_video'
+  # Class A
+  the_set.AddFilesAndRates(["Kimono1_1920x1080_24.yuv",
+                            "ParkScene_1920x1080_24.yuv"],
+                           [1600, 2500, 4000, 6000],
+                           my_directory)
+  # Class B
+  the_set.AddFilesAndRates(["Cactus_1920x1080_50.yuv",
+                            "BasketballDrive_1920x1080_50.yuv"],
+                           [3000, 4500, 7000, 10000],
+                            my_directory)
+  # Class C
+  the_set.AddFilesAndRates(["BasketballDrill_832x480_50.yuv",
+                            "BQMall_832x480_60.yuv",
+                            "PartyScene_832x480_50.yuv",
+                            "RaceHorses_832x480_30.yuv"],
+                           [512, 768, 1200, 2000],
+                            my_directory)
+  # Class D
+  the_set.AddFilesAndRates(["FourPeople_1280x720_60.yuv",
+                            "Johnny_1280x720_60.yuv",
+                            "KristenAndSara_1280x720_60.yuv"],
+                           [384, 512, 850, 1500],
+                            my_directory)
+  return the_set

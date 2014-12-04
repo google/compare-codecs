@@ -17,25 +17,26 @@
 #
 set -e
 
-WORKDIR=$(dirname $0)
+LIBDIR=$WORKDIR/lib
 
-$WORKDIR/encoder_unittest.py
-$WORKDIR/score_tools_unittest.py
-$WORKDIR/optimizer_unittest.py
-$WORKDIR/pick_codec_unittest.py
-$WORKDIR/file_codec_unittest.py
-$WORKDIR/visual_metrics_unittest.py
-$WORKDIR/vp8_unittest.py
-$WORKDIR/vp8_mpeg_unittest.py
-$WORKDIR/vp8_mpeg_1d_unittest.py
-$WORKDIR/x264_unittest.py
-$WORKDIR/h261_unittest.py
-$WORKDIR/mjpeg_unittest.py
-$WORKDIR/vp9_unittest.py
+$LIBDIR/encoder_unittest.py
+$LIBDIR/score_tools_unittest.py
+$LIBDIR/optimizer_unittest.py
+$LIBDIR/pick_codec_unittest.py
+$LIBDIR/file_codec_unittest.py
+$LIBDIR/visual_metrics_unittest.py
+$LIBDIR/vp8_unittest.py
+$LIBDIR/vp8_mpeg_unittest.py
+$LIBDIR/vp8_mpeg_1d_unittest.py
+$LIBDIR/x264_unittest.py
+$LIBDIR/h261_unittest.py
+$LIBDIR/mjpeg_unittest.py
+$LIBDIR/vp9_unittest.py
 
 echo "Running pylint"
 pylint $(ls lib/*.py | grep -v 'gviz_api.py')
-pylint $(grep -l '#!/usr/bin/python' bin/*[a-z])
+# There is a backslash below in order to avoid the grep finding itself.
+pylint $(grep -l '#\!/usr/bin/python' bin/*[a-z])
 
 echo "Checking license statements"
 # List files that do not have an Apache-license blurb in them.

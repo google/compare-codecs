@@ -43,11 +43,9 @@ def VerifyOneTarget(codecs, rate, videofile):
 
 def VerifyResults(codecs):
   change_count = 0
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[classname]:
-        change_count += VerifyOneTarget(codecs, rate, videofile)
+  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+    videofile = encoder.Videofile(filename)
+    change_count += VerifyOneTarget(codecs, rate, videofile)
   return change_count
 
 def main():

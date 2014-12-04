@@ -35,17 +35,15 @@ def ExecuteConfig(codec_name, config):
 
   executed_count = 0
   not_executed_count = 0
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      videofile = encoder.Videofile('video/mpeg_video/' + filename)
-      for rate in mpeg_settings.rates[classname]:
-        encoding = my_encoder.Encoding(rate, videofile)
-        encoding.Recover()
-        if not encoding.Result():
-          executed_count += 1
-          encoding.Execute().Store()
-        else:
-          not_executed_count += 1
+  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+    videofile = encoder.Videofile(filename)
+    encoding = my_encoder.Encoding(rate, videofile)
+    encoding.Recover()
+    if not encoding.Result():
+      executed_count += 1
+      encoding.Execute().Store()
+    else:
+      not_executed_count += 1
   print 'Executed %d did not execute %d' % (executed_count, not_executed_count)
 
 def main():
