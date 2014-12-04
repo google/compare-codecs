@@ -67,29 +67,24 @@ class Optimizer(object):
 
 class FileAndRateSet(object):
   def __init__(self):
-    self.rates = {}
-    self.list_of_rates = None
+    self.rates_and_files = set()
 
   def AddFilesAndRates(self, filenames, rates, basedir=None):
-    self.list_of_rates = None
     for rate in rates:
-      if basedir:
-        self.rates.setdefault(rate, []).extend([os.path.join(basedir, filename)
-                                                for filename in filenames])
-      else:
-        self.rates.setdefault(rate, []).extend(filenames)
+      for filename in filenames:
+        if basedir:
+          self.rates_and_files.add((rate, os.path.join(basedir, filename)))
+        else:
+          self.rates_and_files.add((rate, filename))
 
   def AllFilesAndRates(self):
-    if not self.list_of_rates:
-      self.list_of_rates = []
-      for rate in self.rates:
-        self.list_of_rates.extend([(rate, filename)
-                                   for filename in self.rates[rate]])
-    return self.list_of_rates
+    """Returns all rate/file pairs"""
+    return list(self.rates_and_files)
 
   def AllRatesForFile(self, filename_to_find):
+    """Returns a list of all rates for a specific filename."""
     rates = set()
     for rate, filename in self.AllFilesAndRates():
       if filename == filename_to_find:
         rates.add(rate)
-    return rates
+    return list(rates)

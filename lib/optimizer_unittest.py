@@ -157,7 +157,7 @@ class TestFileAndRateSet(unittest.TestCase):
     the_set.AddFilesAndRates(['filename'], [100, 200])
     the_set.AddFilesAndRates(['otherfilename'], [200, 300])
     self.assertEqual(set([100, 200]),
-                    the_set.AllRatesForFile('filename'))
+                     set(the_set.AllRatesForFile('filename')))
 
 
 if __name__ == '__main__':
