@@ -5,19 +5,10 @@ title: Agreement
 
 <h2>{{ page.title }}</h2>
 
-Before you contribute, fill out this form and send it to ...
+Contributions to this site require that you have agreed to the
+Contributors License Agreement (CLA), as available from [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas), before their contribution can be accepted.
 
-I, the undersigned, agree that:
+See the forms at:
 
-  * I am the person identified below.
-  * I have the necessary rights to make the contributions I am making.
-  * I acknowledge that my contributions may be accepted or rejected by the
-    site maintainers.
-  * I am willing to have my contributions licensed under the
-    [license](/license/).
-
-Signed, (date), (place), (name).
-
-TODO: Get a version that a lawyer would allow us to sign.
-
-TODO: Figure out if we can email this in or have to paper-mail it.
+* [https://developers.google.com/open-source/cla/individual](https://developers.google.com/open-source/cla/individual)
+* [https://developers.google.com/open-source/cla/corporate](https://developers.google.com/open-source/cla/corporate)
