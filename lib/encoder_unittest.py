@@ -245,19 +245,19 @@ class TestEncoder(unittest.TestCase):
     next_encoder = encoder.Encoder(context, filename=filename)
     self.assertEqual(my_encoder.parameters, next_encoder.parameters)
 
-  def test_CanChangeMayReturnTrue(self):
+  def test_ParametersCanChangeMayReturnTrue(self):
     context = encoder.Context(DummyCodec())
     my_encoder = encoder.Encoder(context,
         encoder.OptionValueSet(encoder.OptionSet(
             encoder.Option('key', ['value1', 'value2'])),
                                '--parameters'))
-    self.assertTrue(my_encoder.CanChange())
+    self.assertTrue(my_encoder.ParametersCanChange())
 
-  def test_CanChangeMayReturnFalse(self):
+  def test_ParametersCanChangeMayReturnFalse(self):
     context = encoder.Context(DummyCodec())
     my_encoder = encoder.Encoder(context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
-    self.assertFalse(my_encoder.CanChange())
+    self.assertFalse(my_encoder.ParametersCanChange())
 
 
 class TestEncoding(unittest.TestCase):

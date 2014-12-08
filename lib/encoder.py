@@ -440,7 +440,7 @@ class Encoder(object):
     return self.context.codec.VerifyEncode(
       self.parameters, bitrate, videofile, workdir)
 
-  def CanChange(self):
+  def ParametersCanChange(self):
     return len(self.parameters.option_set.AllChangeableOptions()) >= 1
 
   def Store(self):
@@ -523,7 +523,7 @@ class Encoding(object):
     """
     result = []
     # Some codecs can't vary anything. If so, return the empty set.
-    if not self.encoder.CanChange():
+    if not self.encoder.ParametersCanChange():
       return EncodingSet([])
     # Check for suggested variants.
     suggested_tweak = self.context.codec.SuggestTweak(self)
