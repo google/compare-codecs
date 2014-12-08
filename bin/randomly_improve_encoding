@@ -28,17 +28,6 @@ import optimizer
 import score_tools
 import sys
 
-def FindNextEncoding(bestsofar):
-  if not bestsofar.Result():
-    return bestsofar
-
-  try:
-    return bestsofar.SomeUntriedVariants().BestGuess()
-  except AssertionError:
-    # TODO: Change the error on "can't vary anything" to be something else
-    print 'No untried variants for this codec'
-  return None
-
 def TryToImprove(my_optimizer, filename, bitrate):
   """Try to improve an encoding. Return true if improved."""
   videofile = encoder.Videofile(filename)
@@ -47,7 +36,7 @@ def TryToImprove(my_optimizer, filename, bitrate):
     previous_score = my_optimizer.Score(bestsofar)
   else:
     previous_score = -10000
-  next_encoding = FindNextEncoding(bestsofar)
+  next_encoding = my_optimizer.BestUntriedEncoding(bitrate, videofile)
   if next_encoding:
     print "Trying encoder", next_encoding.encoder.Hashname()
     next_encoding.Execute()

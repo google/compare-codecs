@@ -122,6 +122,15 @@ class TestOptimizer(unittest.TestCase):
     # If cliptime is not present, this will raise an exception.
     my_optimizer.Score(my_encoding)
 
+  def test_BestUntriedEncodingReturnsSomething(self):
+    my_optimizer = self.StdOptimizer()
+    first_encoding = my_optimizer.BestEncoding(100, self.videofile)
+    first_encoding.Execute().Store()
+    other_encoding = my_optimizer.BestUntriedEncoding(100, self.videofile)
+    self.assertTrue(other_encoding)
+    self.assertNotEqual(first_encoding.encoder.parameters.ToString(),
+                        other_encoding.encoder.parameters.ToString())
+
 
 class TestFileAndRateSet(unittest.TestCase):
 

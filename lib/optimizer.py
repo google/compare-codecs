@@ -63,6 +63,15 @@ class Optimizer(object):
   def AllScoredEncodings(self, bitrate, videofile):
     return self.context.cache.AllScoredEncodings(bitrate, videofile)
 
+  def BestUntriedEncoding(self, bitrate, videofile):
+    """Attempts to guess the best untried encoding for this file and rate."""
+    # Randomly vary some parameters and see if things improve.
+    # This is the final fallback.
+    encodings = self.BestEncoding(bitrate, videofile).SomeUntriedVariants()
+    for encoding in encodings.encodings:
+      if not encoding.Result():
+        return encoding
+    return None
 
 
 class FileAndRateSet(object):
