@@ -54,8 +54,8 @@ class Optimizer(object):
 
   def BestEncoding(self, bitrate, videofile):
     encodings = self.AllScoredEncodings(bitrate, videofile)
-    if not encodings.Empty():
-      return max(encodings.encodings, key=self.Score)
+    if encodings:
+      return max(encodings, key=self.Score)
     else:
       return self.context.codec.StartEncoder(self.context).Encoding(bitrate,
                                                                     videofile)
@@ -68,7 +68,7 @@ class Optimizer(object):
     # Randomly vary some parameters and see if things improve.
     # This is the final fallback.
     encodings = self.BestEncoding(bitrate, videofile).SomeUntriedVariants()
-    for encoding in encodings.encodings:
+    for encoding in encodings:
       if not encoding.Result():
         return encoding
     return None

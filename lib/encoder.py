@@ -493,7 +493,7 @@ class Encoder(object):
                                 option.SetValue(self.parameters, value))
       encodings.extend(self.context.cache.AllScoredRates(variant_encoder,
                                                          videofile).encodings)
-    return EncodingSet(encodings)
+    return encodings
 
 
 class Encoding(object):
@@ -519,12 +519,12 @@ class Encoding(object):
   def SomeUntriedVariants(self):
     """Returns some variant encodings that have not been tried.
 
-    If no such variant can be found, returns an empty EncodingSet.
+    If no such variant can be found, returns an empty sequence.
     """
     result = []
     # Some codecs can't vary anything. If so, return the empty set.
     if not self.encoder.ParametersCanChange():
-      return EncodingSet([])
+      return []
     # Check for suggested variants.
     suggested_tweak = self.context.codec.SuggestTweak(self)
     if suggested_tweak:
@@ -566,7 +566,7 @@ class Encoding(object):
             result.append(variant_encoding)
             seen.add(params_as_string)
 
-    return EncodingSet(result)
+    return result
 
   def Workdir(self):
     workdir = os.path.join(self.context.cache.WorkDir(),
@@ -594,14 +594,6 @@ class Encoding(object):
 
   def Recover(self):
     self.result = self.context.cache.ReadEncodingResult(self)
-
-
-class EncodingSet(object):
-  def __init__(self, encodings):
-    self.encodings = encodings
-
-  def Empty(self):
-    return len(self.encodings) == 0
 
 
 class EncodingDiskCache(object):
@@ -640,7 +632,7 @@ class EncodingDiskCache(object):
       candidate = Encoding(encoder, this_bitrate, videofile)
       candidate.Recover()
       candidates.append(candidate)
-    return EncodingSet(candidates)
+    return candidates
 
 
   def AllScoredEncodings(self, bitrate, videofile):
@@ -741,7 +733,7 @@ class EncodingMemoryCache(object):
           videofile == encoding.videofile and
           encoding.Result()):
         result.append(encoding)
-    return EncodingSet(result)
+    return result
 
   def AllScoredRates(self, encoder, videofile):
     result = []
@@ -751,7 +743,7 @@ class EncodingMemoryCache(object):
               encoding.encoder.parameters.ToString() and
           encoding.Result()):
         result.append(encoding)
-    return EncodingSet(result)
+    return result
 
   def StoreEncoder(self, encoder):
     self.encoders[encoder.Hashname()] = encoder
