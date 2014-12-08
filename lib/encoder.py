@@ -440,6 +440,9 @@ class Encoder(object):
     return self.context.codec.VerifyEncode(
       self.parameters, bitrate, videofile, workdir)
 
+  def ParametersCanChange(self):
+    return len(self.parameters.option_set.AllChangeableOptions()) >= 1
+
   def Store(self):
     self.context.cache.StoreEncoder(self)
 
@@ -519,6 +522,9 @@ class Encoding(object):
     If no such variant can be found, returns an empty EncodingSet.
     """
     result = []
+    # Some codecs can't vary anything. If so, return the empty set.
+    if not self.encoder.ParametersCanChange():
+      return EncodingSet([])
     # Check for suggested variants.
     suggested_tweak = self.context.codec.SuggestTweak(self)
     if suggested_tweak:
@@ -596,13 +602,6 @@ class EncodingSet(object):
 
   def Empty(self):
     return len(self.encodings) == 0
-
-  def BestGuess(self):
-    """Returns an untried encoding that may improve the score."""
-    for encoding in self.encodings:
-      if not encoding.Result():
-        return encoding
-
 
 
 class EncodingDiskCache(object):

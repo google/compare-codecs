@@ -245,6 +245,20 @@ class TestEncoder(unittest.TestCase):
     next_encoder = encoder.Encoder(context, filename=filename)
     self.assertEqual(my_encoder.parameters, next_encoder.parameters)
 
+  def test_ParametersCanChangeMayReturnTrue(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(context,
+        encoder.OptionValueSet(encoder.OptionSet(
+            encoder.Option('key', ['value1', 'value2'])),
+                               '--parameters'))
+    self.assertTrue(my_encoder.ParametersCanChange())
+
+  def test_ParametersCanChangeMayReturnFalse(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    self.assertFalse(my_encoder.ParametersCanChange())
+
 
 class TestEncoding(unittest.TestCase):
 
@@ -268,7 +282,6 @@ class TestEncoding(unittest.TestCase):
     # after 3 variants for the Dummy codec.
     variant_count = 0
     while not variants.Empty():
-      print variants.encodings
       for variant in variants.encodings:
         variant.Execute().Store()
         variant_count += 1

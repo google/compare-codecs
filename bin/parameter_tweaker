@@ -68,8 +68,7 @@ def main():
         return 0
       print "Starting from %s score %s" % (bestsofar.encoder.Hashname(),
                                            current_score)
-      variants = bestsofar.SomeUntriedVariants()
-      next_encoding = variants.BestGuess()
+      next_encoding = my_optimizer.BestUntriedEncoding(bitrate, videofile)
       if not next_encoding:
         print "Ran out of variants to try"
         return 1
