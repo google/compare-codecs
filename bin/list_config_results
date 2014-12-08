@@ -44,8 +44,8 @@ def main():
   bitrate = int(args.rate)
 
   encodings = my_optimizer.AllScoredEncodings(bitrate, videofile)
-  encodings.encodings.sort(key=my_optimizer.Score)
-  for encoding in encodings.encodings:
+  encodings.sort(key=my_optimizer.Score)
+  for encoding in encodings:
     if args.component:
       component = encoding.result[args.component]
     else:

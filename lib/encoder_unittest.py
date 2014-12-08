@@ -270,7 +270,7 @@ class TestEncoding(unittest.TestCase):
     # The dummy codec has a parameter with multiple possible values,
     # so at least some variants should be returned.
     variants = encoding.SomeUntriedVariants()
-    self.assertFalse(variants.Empty())
+    self.assertTrue(variants)
 
   def testGenerateUntriedVariantsUntilNoneFound(self):
     context = encoder.Context(DummyCodec())
@@ -281,17 +281,14 @@ class TestEncoding(unittest.TestCase):
     # Keep generating variants until we run out. This should happen
     # after 3 variants for the Dummy codec.
     variant_count = 0
-    while not variants.Empty():
-      for variant in variants.encodings:
+    while variants:
+      for variant in variants:
         variant.Execute().Store()
         variant_count += 1
       variants = encoding.SomeUntriedVariants()
     # We cannot guarantee that all 3 are found, since the process
     # is random, but no more than 3 should be found.
     self.assertGreaterEqual(3, variant_count)
-
-class TestEncodingSet(unittest.TestCase):
-  pass
 
 
 class TestVideofile(unittest.TestCase):
@@ -370,9 +367,9 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     my_encoding.result = testresult
     cache.StoreEncoding(my_encoding)
     result = cache.AllScoredRates(my_encoder, videofile)
-    self.assertEquals(2, len(result.encodings))
+    self.assertEquals(2, len(result))
     result = cache.AllScoredEncodings(123, videofile)
-    self.assertEquals(1, len(result.encodings))
+    self.assertEquals(1, len(result))
 
   def testAllEncoderFilenames(self):
     context = StorageOnlyContext()
