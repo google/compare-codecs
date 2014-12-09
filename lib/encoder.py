@@ -609,7 +609,8 @@ class EncodingDiskCache(object):
   def WorkDir(self):
     return self.workdir
 
-  def _FilesToEncodings(self, files, videofile, bitrate=0, encoder_in=None):
+  def _FilesToEncodings(self, files, videofile_in, bitrate=None,
+                        encoder_in=None):
     candidates = []
     for full_filename in files:
       encoder = encoder_in
@@ -618,7 +619,7 @@ class EncodingDiskCache(object):
         filename = os.path.dirname(filename)  # Cut off bitrate dir
         filename = os.path.basename(filename)  # Cut off leading codec name
         encoder = Encoder(self.context, filename=filename)
-      if bitrate == 0:
+      if not bitrate:
         filename = os.path.dirname(full_filename)
         target_bitrate = os.path.basename(filename)
         try:
@@ -629,28 +630,45 @@ class EncodingDiskCache(object):
           this_bitrate = 0
       else:
         this_bitrate = bitrate
+      if videofile_in:
+        videofile = videofile_in
+      else:
+        # Construct a pseudo videofile from the filename.
+        filename = os.path.basename(full_filename)
+        filename = re.sub(r'\.result', '.yuv', filename)
+        videofile = Videofile(filename)
       candidate = Encoding(encoder, this_bitrate, videofile)
       candidate.Recover()
       candidates.append(candidate)
     return candidates
 
+  def _QueryScoredEncodings(self, encoder=None, bitrate=None, videofile=None):
+    if encoder:
+      encoder_part = encoder.Hashname()
+    else:
+      encoder_part = '*'
+    if bitrate:
+      bitrate_part = self.context.codec.SpeedGroup(bitrate)
+    else:
+      bitrate_part = '*'
+    if videofile:
+      videofile_part = os.path.splitext(
+        os.path.basename(videofile.filename))[0] + '.result'
+    else:
+      videofile_part = '*' + '.result'
+    pattern = os.path.join(self.workdir, encoder_part,
+                           bitrate_part, videofile_part)
+    files = glob.glob(pattern)
+    return self._FilesToEncodings(files, videofile, bitrate)
 
   def AllScoredEncodings(self, bitrate, videofile):
-    videofilename = videofile.filename
-    basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = os.path.join(self.workdir, '*',
-                           self.context.codec.SpeedGroup(bitrate),
-                           basename + '.result')
-    files = glob.glob(pattern)
-    return self._FilesToEncodings(files, videofile, bitrate=bitrate)
+    return self._QueryScoredEncodings(bitrate=bitrate, videofile=videofile)
 
   def AllScoredRates(self, encoder, videofile):
-    videofilename = videofile.filename
-    basename = os.path.splitext(os.path.basename(videofilename))[0]
-    pattern = os.path.join(self.workdir, encoder.Hashname(),
-                           '*', basename + '.result')
-    files = glob.glob(pattern)
-    return self._FilesToEncodings(files, videofile, encoder_in=encoder)
+    return self._QueryScoredEncodings(encoder=encoder, videofile=videofile)
+
+  def AllScoredResultsForEncoder(self, encoder):
+    return self._QueryScoredEncodings(encoder=encoder)
 
   def StoreEncoder(self, encoder):
     """Stores an encoder object on disk.
@@ -744,6 +762,16 @@ class EncodingMemoryCache(object):
           encoding.Result()):
         result.append(encoding)
     return result
+
+  def AllScoredResultsForEncoder(self, encoder):
+    result = []
+    for encoding in self.encodings:
+      if (encoder.parameters.ToString() ==
+          encoding.encoder.parameters.ToString() and
+          encoding.Result()):
+        result.append(encoding)
+    return result
+
 
   def StoreEncoder(self, encoder):
     self.encoders[encoder.Hashname()] = encoder

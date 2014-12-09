@@ -70,10 +70,20 @@ class TestOptimizer(unittest.TestCase):
     self.cache_class = encoder.EncodingMemoryCache
     self.score_function = None
     self.videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
+    self.optimizer = None
 
   def StdOptimizer(self):
-    return optimizer.Optimizer(self.codec, self.file_set,
-                               cache_class=self.cache_class)
+    # This function is not in setup because some tests
+    # do not need it.
+    if not self.optimizer:
+      self.optimizer = optimizer.Optimizer(self.codec, self.file_set,
+                                           cache_class=self.cache_class)
+    return self.optimizer
+
+  def EncoderFromParameterString(self, parameter_string):
+    return encoder.Encoder(self.optimizer.context,
+        encoder.OptionValueSet(self.optimizer.context.codec.option_set,
+                               parameter_string))
 
   def testInit(self):
     optimizer.Optimizer(self.codec, self.file_set,
@@ -109,19 +119,6 @@ class TestOptimizer(unittest.TestCase):
     my_optimizer.BestEncoding(100, self.videofile).Execute().Store()
     self.assertIsNone(my_optimizer.BestEncoding(200, self.videofile).Result())
 
-  def test_AutoGenerateClipTime(self):
-    my_optimizer = optimizer.Optimizer(self.codec, self.file_set,
-                                       cache_class=self.cache_class,
-                                       score_function=ReturnsClipTime)
-    my_encoder = encoder.Encoder(my_optimizer.context,
-        encoder.OptionValueSet(encoder.OptionSet(), ''))
-    # Must use a tricked-out videofile to avoid disk access.
-    videofile = DummyVideofile('test_640x480_20.yuv', clip_time=1)
-    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
-    my_encoding.result = {'psnr':42, 'bitrate':123}
-    # If cliptime is not present, this will raise an exception.
-    my_optimizer.Score(my_encoding)
-
   def test_BestUntriedEncodingReturnsSomething(self):
     my_optimizer = self.StdOptimizer()
     first_encoding = my_optimizer.BestEncoding(100, self.videofile)
@@ -131,6 +128,27 @@ class TestOptimizer(unittest.TestCase):
     self.assertNotEqual(first_encoding.encoder.parameters.ToString(),
                         other_encoding.encoder.parameters.ToString())
 
+  def test_WorksBetterOnSomeOtherClip(self):
+    my_optimizer = self.StdOptimizer()
+    videofile2 = DummyVideofile('barfile_640_480_30.yuv', clip_time=1)
+    # Note - may have to do deterministic generation of these.
+    encoder1 = self.EncoderFromParameterString('--score=5') # Low score
+    encoder2 = self.EncoderFromParameterString('--score=10') # High score
+    # Store 2 scores for the second videofile.
+    encoding = encoder1.Encoding(100, videofile2)
+    encoding.Execute().Store()
+    encoding = encoder2.Encoding(100, videofile2)
+    encoding.Execute().Store()
+    # Store 1 score for the first videofile
+    first_encoding = encoder1.Encoding(100, self.videofile)
+    first_encoding.Execute().Store()
+    second_encoding = my_optimizer._WorksBetterOnSomeOtherClip(first_encoding,
+                                                               100,
+                                                               self.videofile)
+    self.assertTrue(second_encoding)
+    second_encoding.Execute()
+    self.assertEquals(first_encoding.videofile, second_encoding.videofile)
+    self.assertEquals(10, my_optimizer.Score(second_encoding))
 
 class TestFileAndRateSet(unittest.TestCase):
 

@@ -46,10 +46,6 @@ class Optimizer(object):
     else:
       result = self.context.cache.ReadEncodingResult(encoding,
           scoredir=scoredir)
-    # Temporary hack because there are so many stored clips without cliptime
-    # information:
-    if encoding.result and not 'cliptime' in encoding.result:
-      encoding.result['cliptime'] = encoding.videofile.ClipTime()
     return self.score_function(encoding.bitrate, result)
 
   def BestEncoding(self, bitrate, videofile):
@@ -63,11 +59,36 @@ class Optimizer(object):
   def AllScoredEncodings(self, bitrate, videofile):
     return self.context.cache.AllScoredEncodings(bitrate, videofile)
 
+  def _WorksBetterOnSomeOtherClip(self, encoding, bitrate, videofile):
+    """This function finds some encoding that works better on another
+    videofile than the current encoding, but hasn't been tried on this
+    encoding and bitrate."""
+    # First, find all encodings with this encoder, and look at their files
+    # and bitrates.
+    candidates = self.context.cache.AllScoredResultsForEncoder(encoding.encoder)
+
+    # Then, for each file/bitrate, see if this encoder is the best or not.
+    for candidate in candidates:
+      if candidate == encoding:
+        continue
+      best_candidate = self.BestEncoding(bitrate, candidate.videofile)
+      if best_candidate != candidate:
+        best_on_this = best_candidate.encoder.Encoding(bitrate, videofile)
+        best_on_this.Recover()
+        if not best_on_this.Result():
+          return best_on_this
+    return None
+
   def BestUntriedEncoding(self, bitrate, videofile):
     """Attempts to guess the best untried encoding for this file and rate."""
+    current_best = self.BestEncoding(bitrate, videofile)
+    might_work_better = self._WorksBetterOnSomeOtherClip(
+        current_best, bitrate, videofile)
+    if might_work_better:
+      return might_work_better
     # Randomly vary some parameters and see if things improve.
     # This is the final fallback.
-    encodings = self.BestEncoding(bitrate, videofile).SomeUntriedVariants()
+    encodings = current_best.SomeUntriedVariants()
     for encoding in encodings:
       if not encoding.Result():
         return encoding
