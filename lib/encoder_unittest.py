@@ -66,6 +66,15 @@ class StorageOnlyCodec(object):
     # pylint: disable=R0201
     return parameters
 
+class StorageOnlyCodecWithNoBitrate(StorageOnlyCodec):
+  def __init__(self):
+    super(StorageOnlyCodecWithNoBitrate, self).__init__()
+    self.name = 'merged-bitrate'
+
+  def SpeedGroup(self, bitrate):
+    # pylint: disable=R0201
+    return 'all'
+
 
 class StorageOnlyContext(object):
   """A context that is only useful for testing storage."""
@@ -347,12 +356,10 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     self.assertEquals(result, testresult)
 
   def testStoreMultipleEncodings(self):
-    # This test is sensitive to old data left around.
-    # The FileUsingCodecTest base class takes care of giving it an
-    # empty directory at test start.
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)
-    context.cache = cache  # This particular test needs the link.
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
@@ -418,6 +425,80 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     shutil.copytree(os.environ['CODEC_WORKDIR'], otherdir)
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertEquals(result, testresult)
+
+  def testAllScoredEncodingsForEncoder(self):
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
+    my_encoder = encoder.Encoder(
+      context,
+      encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    # Cache should start off empty.
+    self.assertFalse(cache.AllScoredEncodingsForEncoder(my_encoder))
+    videofile = encoder.Videofile('x/foo_640_480_20.yuv')
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    result = cache.AllScoredEncodingsForEncoder(my_encoder)
+    self.assertTrue(result)
+    self.assertEquals(1, len(result))
+    # The resulting videofile should have a basename = filename,
+    # because synthesizing filenames from result files loses directory
+    # information.
+    self.assertEquals('foo_640_480_20.yuv', result[0].videofile.filename)
+
+  def testStorageWithMergedBitrates(self):
+    context = StorageOnlyContext()
+    context.codec = StorageOnlyCodecWithNoBitrate()
+    cache = encoder.EncodingDiskCache(context)
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    videofile = encoder.Videofile('x/foo_640_480_20.yuv')
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    my_encoding = encoder.Encoding(my_encoder, 246, videofile)
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    result = cache.AllScoredRates(my_encoder, videofile)
+    self.assertEquals(1, len(result))
+    result = cache.AllScoredEncodings(123, videofile)
+    self.assertEquals(1, len(result))
+
+
+
+class TestEncodingMemoryCache(unittest.TestCase):
+  def testStoreMultipleEncodings(self):
+    context = StorageOnlyContext()
+    cache = encoder.EncodingMemoryCache(context)
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    videofile = encoder.Videofile('x/foo_640_480_20.yuv')
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile)
+
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    my_encoding = encoder.Encoding(my_encoder, 246, videofile)
+    my_encoding.result = testresult
+    cache.StoreEncoding(my_encoding)
+    result = cache.AllScoredRates(my_encoder, videofile)
+    self.assertEquals(2, len(result))
+    result = cache.AllScoredEncodings(123, videofile)
+    self.assertEquals(1, len(result))
 
 
 if __name__ == '__main__':
