@@ -60,12 +60,16 @@ class Optimizer(object):
     return self.context.cache.AllScoredEncodings(bitrate, videofile)
 
   def _WorksBetterOnSomeOtherClip(self, encoding, bitrate, videofile):
-    """This function finds some encoding that works better on another
+    """Find an encoder that works better than this one on some other file.
+
+    This function finds some encoding that works better on another
     videofile than the current encoding, but hasn't been tried on this
     encoding and bitrate."""
+
     # First, find all encodings with this encoder, and look at their files
     # and bitrates.
-    candidates = self.context.cache.AllScoredResultsForEncoder(encoding.encoder)
+    candidates = self.context.cache.AllScoredEncodingsForEncoder(
+        encoding.encoder)
 
     # Then, for each file/bitrate, see if this encoder is the best or not.
     for candidate in candidates:
@@ -73,6 +77,8 @@ class Optimizer(object):
         continue
       best_candidate = self.BestEncoding(bitrate, candidate.videofile)
       if best_candidate != candidate:
+        # Construct an encoding based on this encoder, and check if it
+        # has been tried. If it hasn't been tried, this is the one to try.
         best_on_this = best_candidate.encoder.Encoding(bitrate, videofile)
         best_on_this.Recover()
         if not best_on_this.Result():

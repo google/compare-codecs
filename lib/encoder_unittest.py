@@ -356,12 +356,10 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     self.assertEquals(result, testresult)
 
   def testStoreMultipleEncodings(self):
-    # This test is sensitive to old data left around.
-    # The FileUsingCodecTest base class takes care of giving it an
-    # empty directory at test start.
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)
-    context.cache = cache  # This particular test needs the link.
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
@@ -428,22 +426,23 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertEquals(result, testresult)
 
-  def testAllScoredResultsForEncoder(self):
+  def testAllScoredEncodingsForEncoder(self):
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)
-    context.cache = cache  # This particular test needs the link.
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
     my_encoder = encoder.Encoder(
       context,
       encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     # Cache should start off empty.
-    self.assertFalse(cache.AllScoredResultsForEncoder(my_encoder))
+    self.assertFalse(cache.AllScoredEncodingsForEncoder(my_encoder))
     videofile = encoder.Videofile('x/foo_640_480_20.yuv')
     my_encoding = encoder.Encoding(my_encoder, 123, videofile)
     testresult = {'foo': 'bar'}
     my_encoding.result = testresult
     cache.StoreEncoding(my_encoding)
-    result = cache.AllScoredResultsForEncoder(my_encoder)
+    result = cache.AllScoredEncodingsForEncoder(my_encoder)
     self.assertTrue(result)
     self.assertEquals(1, len(result))
     # The resulting videofile should have a basename = filename,
@@ -455,7 +454,8 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     context = StorageOnlyContext()
     context.codec = StorageOnlyCodecWithNoBitrate()
     cache = encoder.EncodingDiskCache(context)
-    context.cache = cache  # This particular test needs the link.
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
@@ -478,12 +478,10 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
 
 class TestEncodingMemoryCache(unittest.TestCase):
   def testStoreMultipleEncodings(self):
-    # This test is sensitive to old data left around.
-    # The FileUsingCodecTest base class takes care of giving it an
-    # empty directory at test start.
     context = StorageOnlyContext()
     cache = encoder.EncodingMemoryCache(context)
-    context.cache = cache  # This particular test needs the link.
+    # This particular test needs the context to know about the cache.
+    context.cache = cache
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
