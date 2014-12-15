@@ -109,7 +109,7 @@ class FileCodec(encoder.Codec):
                                             self.extension)
     self._EncodeFile(parameters, bitrate, videofile,
                      new_encoded_file)
-    if not filecmp.cmp(old_encoded_file, new_encoded_file):
+    if not VideoFilesEqual(old_encoded_file, new_encoded_file, self.extension):
       # If there is a difference, we leave the new encoded file so that
       # they can be compared by hand if desired.
       return False
@@ -131,3 +131,18 @@ def MatroskaFrameInfo(encodedfile):
       frameinfo.append({'size': int(m.group(1))*8})
 
   return frameinfo
+
+
+def VideoFilesEqual(old_encoded_file, new_encoded_file, extension):
+  if extension == 'webm':
+    # Matroska files contain UIDs that vary even if the video content
+    # is the same. So we must use vpxdec --md5 instead.
+    old_checksum = subprocess.check_output((encoder.Tool('vpxdec'),
+                                            '--md5',
+                                            old_encoded_file))
+    new_checksum = subprocess.check_output((encoder.Tool('vpxdec'),
+                                            '--md5',
+                                            new_encoded_file))
+    return old_checksum == new_checksum
+  else:
+    return filecmp.cmp(old_encoded_file, new_encoded_file)

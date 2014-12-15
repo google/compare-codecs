@@ -17,7 +17,9 @@
 import encoder
 import optimizer
 import test_tools
+import time
 import unittest
+import vp8
 
 import file_codec
 
@@ -62,7 +64,7 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     codec = CopyingCodec()
     my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
-      'one_black_frame_1024_768_30.yuv')
+        'one_black_frame_1024_768_30.yuv')
     encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.Result())
@@ -84,6 +86,19 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertFalse(encoding.VerifyEncode())
+
+  def test_VerifyMatroskaFile(self):
+    codec = vp8.Vp8Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # Matroska files will be identical if generated within the same
+    # clock second. So wait a bit.
+    time.sleep(1)
+    self.assertTrue(encoding.VerifyEncode())
+
 
 if __name__ == '__main__':
   unittest.main()
