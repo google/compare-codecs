@@ -32,6 +32,7 @@ def main():
   parser.add_argument("--codec")
   parser.add_argument('--component')
   parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--show_result', action='store_true', default=False)
 
   args = parser.parse_args()
 
@@ -48,6 +49,10 @@ def main():
   for encoding in encodings:
     if args.component:
       component = encoding.result[args.component]
+    elif args.show_result:
+      result = encoding.result.copy()
+      del result['frame']  # per-frame data is too big to show
+      component = str(result)
     else:
       component = ''
     print '%s %f %s %s' % (encoding.encoder.Hashname(),
