@@ -357,6 +357,7 @@ class Codec(object):
     raise Error("The base codec class can't execute anything")
 
   def VerifyEncode(self, parameters, bitrate, videofile, workdir):
+    """Returns true if a new encode of the file gives exactly the same file."""
     # pylint: disable=W0613, R0201
     raise Error("The base codec class can't verify anything")
 
@@ -440,6 +441,7 @@ class Encoder(object):
       self.parameters, bitrate, videofile, workdir)
 
   def VerifyEncode(self, bitrate, videofile, workdir):
+    """Returns true if a new encode of the file gives exactly the same file."""
     return self.context.codec.VerifyEncode(
       self.parameters, bitrate, videofile, workdir)
 
@@ -550,7 +552,7 @@ class Encoding(object):
         if not variant_encoding.Result():
           result.append(variant_encoding)
           seen.add(params_as_string)
-    
+
     # If none resulted, make 10 attempts to find an untried candidate
     # by making 2 random changes to the configuration.
     if not result:
@@ -588,6 +590,7 @@ class Encoding(object):
     return self
 
   def VerifyEncode(self):
+    """Returns true if a new encode of the file gives exactly the same file."""
     return self.encoder.VerifyEncode(self.bitrate, self.videofile,
                                      self.Workdir())
 
