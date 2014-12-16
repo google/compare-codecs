@@ -26,7 +26,6 @@ import optimizer
 import pick_codec
 import score_tools
 
-
 def StableEncode(codec_name, configuration, bitrate, videofile_name):
   codec = pick_codec.PickCodec(codec_name)
   my_context = encoder.Context(codec, encoder.EncodingDiskCache)
