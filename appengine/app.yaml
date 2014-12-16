@@ -1,0 +1,27 @@
+# This is the configuration for serving the site from Google app engine.
+# In order to serve updated pages, do this:
+# - Run jekyll to generate the static pages
+# - <path to appengine>/appcfg.py --oauth2 update appengine
+# You can only update this application with permission, but changing
+# the application name will allow you to serve your own copy.
+
+application: compare-codecs
+# Remember to update the serving version number if you increase the version!
+version: 2
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+# index.html configuration
+- url: /$
+  static_files: site/index.html
+  upload: site/index.html
+
+- url: /(.*)/
+  static_files: site/\1/index.html
+  upload: site/.*/index.html
+
+# All other files.
+- url: /
+  static_dir: site/
