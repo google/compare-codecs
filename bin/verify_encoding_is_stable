@@ -20,11 +20,8 @@
 import argparse
 import sys
 
-import mpeg_settings
 import encoder
-import optimizer
 import pick_codec
-import score_tools
 
 def StableEncode(codec_name, configuration, bitrate, videofile_name):
   codec = pick_codec.PickCodec(codec_name)

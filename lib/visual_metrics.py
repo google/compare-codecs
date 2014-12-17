@@ -247,12 +247,15 @@ def FileBetter(file_name_1, file_name_2, metric_column, method):
   return DataSetBetter(metric_set1_sorted, metric_set2_sorted, method)
 
 
-def HtmlPage(page_template, filestable, snrs, formatters):
+def HtmlPage(page_template, page_title="", page_subtitle="",
+             filestable="", snrs="", formatters=""):
   """
   Creates a HTML page from the template and variables passed to it.
   """
-  # Build up a dictionary of the five variables actually used in the template.
+  # Build up a dictionary of the variables actually used in the template.
   my_dict = {
+    'page_title': page_title,
+    'page_subtitle': page_subtitle,
     'filestable_dpsnr': filestable['dsnr'],
     'filestable_avg': filestable['avg'],
     'filestable_drate': filestable['drate'],
