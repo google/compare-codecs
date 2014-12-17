@@ -44,6 +44,7 @@ class Vp8Codec(file_codec.FileCodec):
       encoder.Option('max-intra-rate', ['100', '200', '400', '600', '800',
                                         '1200']),
       encoder.ChoiceOption(['good', 'best', 'rt']),
+      encoder.IntegerOption('cpu-used', -16, 16),
     )
 
   def StartEncoder(self, context):
@@ -56,6 +57,18 @@ class Vp8Codec(file_codec.FileCodec):
       '--buf-initial-sz=800 --buf-optimal-sz=1000 --max-intra-rate=1200 '
       '--resize-allowed=0 --drop-frame=0 '
       '--passes=1 --good --noise-sensitivity=0'))
+
+  def ConfigurationFixups(self, config):
+    # In RT mode, vp8 will change encoding based on elapsed time if
+    # cpu-used is positive, thus making encodings unstable.
+    # Negative values give stable encodings, with -1
+    # being the slowest variant.
+    if config.HasValue('good/best/rt'):
+      if config.GetValue('good/best/rt') == 'rt':
+        if (not config.HasValue('cpu-used')
+            or int(config.GetValue('cpu-used')) >= 0):
+          return config.ChangeValue('cpu-used', '-1')
+    return config
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (encoder.Tool('vpxenc') + ' ' + parameters.ToString()

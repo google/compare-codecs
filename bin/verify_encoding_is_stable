@@ -1,0 +1,63 @@
+#!/usr/bin/python
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Verifies whether any encodings have changed compared to what's in the
+# database. Intended for use after upgrading software, or for checking
+# whether specific parameters generate stable encodings.
+#
+import argparse
+import sys
+
+import mpeg_settings
+import encoder
+import optimizer
+import pick_codec
+import score_tools
+
+
+def StableEncode(codec_name, configuration, bitrate, videofile_name):
+  codec = pick_codec.PickCodec(codec_name)
+  my_context = encoder.Context(codec, encoder.EncodingDiskCache)
+  my_encoder = encoder.Encoder(my_context,
+                               parameters=encoder.OptionValueSet(
+                                   codec.option_set, configuration))
+  my_encoding = my_encoder.Encoding(bitrate, encoder.Videofile(videofile_name))
+  my_encoding.Recover()
+  if not my_encoding.Result():
+    # For detecting unstable encodings, we may want to try parameters
+    # that have not been run before. So we generate the baseline if missing.
+    print "Producing baseline encode"
+    my_encoding.Execute().Store()
+  return my_encoding.VerifyEncode()
+
+def main():
+  parser = argparse.ArgumentParser('Verifies a specific configuration')
+  parser.add_argument('--codec')
+  parser.add_argument('configuration', help='Parameters to use. '
+                      'Remember to quote the string and put'
+                      '"--" in the command line before it if needed.')
+  parser.add_argument('rate')
+  parser.add_argument('videofile')
+
+  args = parser.parse_args()
+  if StableEncode(args.codec, args.configuration, int(args.rate),
+                  args.videofile):
+    print 'Encoding is stable'
+  else:
+    print 'Encoding is NOT stable'
+
+
+if __name__ == '__main__':
+  sys.exit(main())

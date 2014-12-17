@@ -14,6 +14,7 @@
 # limitations under the License.
 """Unit tests for encoder module."""
 
+import encoder
 import optimizer
 import test_tools
 import unittest
@@ -46,7 +47,29 @@ class TestVp8(test_tools.FileUsingCodecTest):
     codec = vp8.Vp8Codec()
     self.assertEqual('5000', codec.SpeedGroup(5000))
 
+  def test_ConfigurationFixups(self):
+    codec = vp8.Vp8Codec()
+    # Any value but --rt should be ignored.
+    value_set = encoder.OptionValueSet(codec.option_set,
+                                      '--good')
+    value_set_out = codec.ConfigurationFixups(value_set)
+    self.assertFalse(value_set_out.HasValue('cpu-used'))
+    # Missing values should be filled in.
+    value_set = encoder.OptionValueSet(codec.option_set,
+                                      '--rt')
+    value_set_out = codec.ConfigurationFixups(value_set)
+    self.assertEqual('-1', value_set_out.GetValue('cpu-used'))
+    # Positive values should be converted to -1.
+    value_set = encoder.OptionValueSet(codec.option_set,
+                                      '--rt --cpu-used=5')
+    value_set_out = codec.ConfigurationFixups(value_set)
+    self.assertEqual('-1', value_set_out.GetValue('cpu-used'))
+    # Negative values should be untouched.
+    value_set = encoder.OptionValueSet(codec.option_set,
+                                      '--rt --cpu-used=-5')
+    value_set_out = codec.ConfigurationFixups(value_set)
+    self.assertEqual('-5', value_set_out.GetValue('cpu-used'))
+
+
 if __name__ == '__main__':
   unittest.main()
-
-
