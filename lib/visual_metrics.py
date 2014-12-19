@@ -167,10 +167,10 @@ def ParseMetricFile(file_name, metric_column):
 
 def GraphBetter(metric_set1_sorted, metric_set2_sorted, use_set2_as_base):
   """
-  Search through the sorted metric file for metrics on either side of
+  Search through the sorted metric set for metrics on either side of
   the metric from file 1.  Since both lists are sorted we really
   should not have to search through the entire range, but these
-  are small files."""
+  are small lists."""
   total_bitrate_difference_ratio = 0.0
   count = 0
   # TODO(hta): Replace whole thing with a call to numpy.interp()
@@ -266,7 +266,7 @@ def HtmlPage(page_template, page_title="", page_subtitle="",
 
 
 def ListOneTarget(codecs, rate, videofile, do_score, datatable,
-                  score_function=None):
+                  score_function=None, full_results=False):
   """Extend a datatable with the info about one video file's scores."""
   for codec_name in codecs:
     # For testing:
@@ -285,35 +285,50 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
     # Ignore results that score less than zero.
     if my_optimizer.Score(bestsofar) < 0.0:
       return
-    (datatable.setdefault(codec_name, {})
-             .setdefault(videofile.basename, [])
-             .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
+    if full_results:
+      (datatable.setdefault(codec_name, {})
+          .setdefault(videofile.basename, [])
+          .append({'target_bitrate': rate,
+                   'score': my_optimizer.Score(bestsofar),
+                   'result': bestsofar.ResultWithoutFrameData()}))
+    else:
+      (datatable.setdefault(codec_name, {})
+          .setdefault(videofile.basename, [])
+          .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
 
 
-def ListMpegResults(codecs, do_score, datatable, score_function=None):
+def ListMpegResults(codecs, do_score, datatable, score_function=None,
+                    full_results=False):
   """List all scores for all tests in the MPEG test set for a set of codecs."""
   # It is necessary to sort on target bitrate in order for graphs to display
   # correctly.
   for rate, filename in sorted(mpeg_settings.MpegFiles().AllFilesAndRates()):
     videofile = encoder.Videofile(filename)
     ListOneTarget(codecs, rate, videofile, do_score, datatable,
-                  score_function)
+                  score_function, full_results)
 
 
-def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
-  """Builds a Gviz DataTable giving this metric for the files and codecs"""
+def ExtractBitrateAndPsnr(datatable, codec, filename, full_results=False):
+  if full_results:
+    dataset = [(r['result']['bitrate'], r['result']['psnr'])
+                          for r in datatable[codec][filename]]
+  else:
+    dataset = datatable[codec][filename]
+  return dataset
 
-  description = {"file": ("string", "File")}
+
+def BuildComparisionTable(datatable, metric, baseline_codec, other_codecs,
+                          full_results=False):
+  """Builds a table of comparision data for this metric."""
+
 
   # Find the metric files in the baseline codec.
   videofile_name_list = datatable[baseline_codec].keys()
 
-  # Go through each codec and add a column header to our description.
   countoverall = {}
   sumoverall = {}
 
   for this_codec in other_codecs:
-    description[this_codec] = ("number", this_codec)
     countoverall[this_codec] = 0
     sumoverall[this_codec] = 0
 
@@ -322,7 +337,10 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   data = []
   for filename in videofile_name_list:
     row = {'file': filename }
-
+    baseline_dataset = ExtractBitrateAndPsnr(datatable,
+                                             baseline_codec,
+                                             filename,
+                                             full_results)
     # Read the metric file from each of the directories in our list.
     for this_codec in other_codecs:
 
@@ -331,9 +349,12 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
       # codec's metric
       if (this_codec in datatable and filename in datatable[this_codec]
           and filename in datatable[baseline_codec]):
+        this_dataset = ExtractBitrateAndPsnr(datatable,
+                                             this_codec,
+                                             filename,
+                                             full_results)
         overall = DataSetBetter(
-          datatable[baseline_codec][filename],
-          datatable[this_codec][filename], metric)
+          baseline_dataset, this_dataset, metric)
         row[this_codec] = overall
 
         sumoverall[this_codec] += overall
@@ -347,7 +368,15 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
     if countoverall[this_codec]:
       row[this_codec] = sumoverall[this_codec] / countoverall[this_codec]
   data.append(row)
+  return data
 
+def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
+  """Builds a Gviz DataTable giving this metric for the files and codecs"""
+
+  description = {"file": ("string", "File")}
+  data = BuildComparisionTable(datatable, metric, baseline_codec, other_codecs)
+  for this_codec in other_codecs:
+    description[this_codec] = ("number", this_codec)
   # Generate the gViz table
   gviz_data_table = gviz_api.DataTable(description)
   gviz_data_table.LoadData(data)

@@ -11,10 +11,6 @@ title: Results
 
 This page shows the video encoding results available on this particular site.
 
-NOTE: All results (excepte the first table) are fake. They will be
-generated using Javascript from
-JSON-formatted data files in the eventual site.
-
 ### No-limit results
 
 This is the result of comparing encodings based on PSNR and file size being
@@ -38,6 +34,7 @@ for the same quality metric.
 
 </div>
 
+<div style="display: none"> <!-- Hide this part for now -->
 ### Fixed QP results
 
 This table shows the overall numeric results based on PSNR, computed according
@@ -71,6 +68,7 @@ accumulated delay, divided by the length of the clip.
 | HEVC-HM     |        -6% |         +7% |         |
 {:.td-right}
 
+</div> <!--end of hiding -->
 
 ### Interactive Results
 
@@ -93,5 +91,5 @@ no matter what the content of the original frame N+1 and later were.
 </div>
 
 <script>
-FillInAllTables()
+google.setOnLoadCallback(FillInAllTables);
 </script>

@@ -299,6 +299,14 @@ class TestEncoding(unittest.TestCase):
     # is random, but no more than 3 should be found.
     self.assertGreaterEqual(3, variant_count)
 
+  def testReadResultWithoutFrameData(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = context.codec.StartEncoder(context)
+    videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
+    encoding = my_encoder.Encoding(1000, videofile)
+    encoding.result = {'foo': 5, 'frame': ['first', 'second']}
+    self.assertEqual({'foo': 5}, encoding.ResultWithoutFrameData())
+
 
 class TestVideofile(unittest.TestCase):
   def testMpegFormatName(self):

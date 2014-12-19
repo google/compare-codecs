@@ -521,6 +521,9 @@ class Encoding(object):
   def Result(self):
     return self.result
 
+  def ResultWithoutFrameData(self):
+    return {i: self.result[i] for i in self.result if i != 'frame'}
+
   def SomeUntriedVariants(self):
     """Returns some variant encodings that have not been tried.
 
