@@ -43,6 +43,11 @@ function FillInAllTables() {
   FillInOneTable('/results/generated/toplevel-rt.json', 'rt-results')
 }
 
+function FillInAllTablesNew() {
+  FillInOneTable('/results/generated/toplevel-psnr-new.json', 'basic-results')
+  FillInOneTable('/results/generated/toplevel-rt-new.json', 'rt-results')
+}
+
 function ParseParameters(parameters) {
   var param_list = {};
   var parts = parameters.substring(1).split('&');
@@ -88,6 +93,10 @@ function fetchEncodingInfo(parameters) {
                       overall_avg[i][codec2],
                       overall_drate[i][codec2]]);
     }
+    // Format all PSNR values to 2 digits.
+    var formatter = new google.visualization.NumberFormat({fractionDigits: 2});
+    formatter.format(viz_data, 1);
+    formatter.format(viz_data, 2);
     better_table = new google.visualization.Table(bettertable);
     better_table.draw(viz_data);
     google.visualization.events.addListener(better_table, 'select',
@@ -141,7 +150,7 @@ function displayGraph(filename) {
       pointSize:2,
       lineWidth:1,
       width:"100%",
-      height:"80%" });
+      height:"800px" });
 
   google.visualization.events.addListener(chart, 'onmouseover', chartMouseOver);
 
@@ -153,7 +162,12 @@ function chartMouseOver(e) {
 
 function displayDetailsOnEncoding(row_number) {
   var area = document.getElementById('encodinginfo');
-  area.innerHTML = '<pre>' +
-      JSON.stringify(row_to_details[row_number], null, 2) +
-      '</pre>';
+  var details = row_to_details[row_number];
+  area.innerHTML = 
+      '<dl>' +
+      '<dt>Score: <dd>' + details['score'] +
+      '<dt>Encode command: <dd>' + details['encode_command'] +
+      '<dt>Results:<dd><pre>' +
+      JSON.stringify(details['result'], null, 2) +
+      '</pre></dl>';
 }

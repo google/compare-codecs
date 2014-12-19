@@ -15,9 +15,11 @@ Comparing the performance of codecs
 
 <div id="heading"></div>
 
-<div id="bettertable"></div>
+<div id="table-and-graph" style="position: relative">
+<div id="bettertable" style="float: left; width: 400px; height: 600px"></div>
 
-<div id="metricgraph"></div>
+<div id="metricgraph" style="margin-left: 400px; height:600px"></div>
+</div>
 
 <div id="encodinginfo"></div>
 

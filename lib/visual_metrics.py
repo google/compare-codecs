@@ -70,7 +70,10 @@ def bdsnr(metric_set1, metric_set2):
   int2 = numpy.polyval(p_int2, max_int) - numpy.polyval(p_int2, min_int)
 
   # Calculate the average improvement.
-  avg_diff = (int2 - int1) / (max_int - min_int)
+  if max_int != min_int:
+    avg_diff = (int2 - int1) / (max_int - min_int)
+  else:
+    avg_diff = 0.0
   return avg_diff
 
 def bdrate(metric_set1, metric_set2):
@@ -289,6 +292,7 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
       (datatable.setdefault(codec_name, {})
           .setdefault(videofile.basename, [])
           .append({'target_bitrate': rate,
+                   'encode_command': bestsofar.EncodeCommandLine(),
                    'score': my_optimizer.Score(bestsofar),
                    'result': bestsofar.ResultWithoutFrameData()}))
     else:
@@ -382,7 +386,8 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   gviz_data_table.LoadData(data)
   return gviz_data_table
 
-def CrossPerformanceGvizTable(datatable, metric, codecs, criterion):
+def CrossPerformanceGvizTable(datatable, metric, codecs, criterion,
+                              new_style_links=False):
   """Build a square table of codecs and relative performance."""
   videofile_name_list = datatable[codecs[0]].keys()
 
@@ -405,8 +410,13 @@ def CrossPerformanceGvizTable(datatable, metric, codecs, criterion):
               datatable[codec2][filename], metric)
             count += 1
         if count > 0:
-          display = '<a href=/results/generated/%s-%s-%s.html>%5.2f</a>' % (
-            codec1, codec2, criterion, overall / count)
+          if new_style_links:
+            display = ('<a href=/results/show_result.html?' +
+                       'codec1=%s&codec2=%s&criterion=%s>%5.2f</a>') % (
+              codec1, codec2, criterion, overall / count)
+          else:
+            display = '<a href=/results/generated/%s-%s-%s.html>%5.2f</a>' % (
+              codec1, codec2, criterion, overall / count)
           lineitem[codec2] = (overall / count, display)
     data.append(lineitem)
 

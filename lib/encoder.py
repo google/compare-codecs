@@ -361,6 +361,11 @@ class Codec(object):
     # pylint: disable=W0613, R0201
     raise Error("The base codec class can't verify anything")
 
+  def EncodeCommandLine(self, parameters, bitrate, videofile, workdir):
+    """Returns a command line for encoding. Base codec class has none."""
+    # pylint: disable=R0201
+    return '# No command available'
+
   def ConfigurationFixups(self, config):
     """Hook for applying inter-parameter tweaks."""
     # pylint: disable=R0201
@@ -438,6 +443,10 @@ class Encoder(object):
 
   def Execute(self, bitrate, videofile, workdir):
     return self.context.codec.Execute(
+      self.parameters, bitrate, videofile, workdir)
+
+  def EncodeCommandLine(self, bitrate, videofile, workdir):
+    return self.context.codec.EncodeCommandLine(
       self.parameters, bitrate, videofile, workdir)
 
   def VerifyEncode(self, bitrate, videofile, workdir):
@@ -596,6 +605,10 @@ class Encoding(object):
     """Returns true if a new encode of the file gives exactly the same file."""
     return self.encoder.VerifyEncode(self.bitrate, self.videofile,
                                      self.Workdir())
+
+  def EncodeCommandLine(self):
+    """Returns a command line suitable for display, not execution."""
+    return self.encoder.EncodeCommandLine(self.bitrate, self.videofile, '$')
 
   def Store(self):
     self.encoder.Store()
