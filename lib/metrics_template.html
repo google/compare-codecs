@@ -186,6 +186,7 @@ var chart=0;
 var better=0;
 var metricdata=0;
 var metricview=0;
+var metrictable=0;
 var column=1;
 var formatter=0;
 
@@ -205,6 +206,11 @@ function setup_vis() {
 
   bettertable = new google.visualization.Table(
       document.getElementById("bettertable"));
+
+  var metric_element = document.getElementById("metrictable");
+  if (metric_element) {
+      metrictable = new google.visualization.Table(metric_element);
+  }
 
   draw_files();
 }
@@ -256,6 +262,11 @@ function query_file() {
       legend:{position:"in"}, title:imagestr, pointSize:2, lineWidth:1,
       width:chart_width, height:chart_height-50 });
 
+  // Draw the same thing as a table.
+  if (metrictable) {
+     metrictable.draw(metricview)
+  }
+
   google.visualization.events.addListener(chart, 'select', chartSelect);
   google.visualization.events.addListener(chart, 'onmouseover', chartMouseOver);
   google.visualization.events.addListener(chart, 'onmouseout', chartMouseOut);
@@ -271,7 +282,7 @@ function chartMouseOver(e) {
 }
 
 function pointDifference(row, col) {
-  if(!row || !col)
+  if(typeof(row) == 'undefined' || typeof(col) == 'undefined')
     return;
 
   var cols = metricdata.getNumberOfColumns();
@@ -382,7 +393,8 @@ google.setOnLoadCallback(setup_vis);
   <div class="container_12">
 
     <div class="grid_12 header">
-      <h2>VP8 Results</h2>
+      <h2>//%%page_title%%//</h2>
+      //%%page_subtitle%%//
     </div>
 
     <div class="grid_12 radio">
@@ -391,6 +403,7 @@ google.setOnLoadCallback(setup_vis);
 
       <div class="grid_5 alpha cliplist">
         <div id="bettertable"></div>
+        <!-- div id="metrictable"></div -->
       </div>
 
       <div class="grid_5 chartarea">

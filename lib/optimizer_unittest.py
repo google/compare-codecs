@@ -142,6 +142,7 @@ class TestOptimizer(unittest.TestCase):
     # Store 1 score for the first videofile
     first_encoding = encoder1.Encoding(100, self.videofile)
     first_encoding.Execute().Store()
+    # pylint: disable=W0212
     second_encoding = my_optimizer._WorksBetterOnSomeOtherClip(first_encoding,
                                                                100,
                                                                self.videofile)

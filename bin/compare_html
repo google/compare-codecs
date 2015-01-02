@@ -21,9 +21,10 @@ import argparse
 import sys
 
 import gviz_api
+import pick_codec
 import score_tools
 
-def FormatAsHtml(codecs, datatable):
+def FormatAsHtml(codecs, datatable, metric_name):
   """
   Print out the data recorded in "data" in an HTML file.
   data first level: codec
@@ -37,9 +38,16 @@ def FormatAsHtml(codecs, datatable):
   filestable['drate'] = ''
   filestable['avg'] = ''
 
+
   # Other_Codecs is directories after the baseline to compare to the base.
   other_codecs = codecs[1:]
   baseline_codec = codecs[0]
+
+  page_title = '%s compared to %s' % (pick_codec.LongName(baseline_codec),
+      ' and '.join([pick_codec.LongName(codec) for codec in other_codecs]))
+
+  page_subtitle = 'Best encodings based on the &quot;%s&quot; criterion' % (
+    metric_name)
 
   for metric in ['avg', 'dsnr', 'drate']:
     gviz_data_table = visual_metrics.BuildGvizDataTable(
@@ -99,7 +107,10 @@ def FormatAsHtml(codecs, datatable):
   page_template = template_file.read()
   template_file.close()
 
-  print visual_metrics.HtmlPage(page_template, filestable, snrs, formatters)
+  print visual_metrics.HtmlPage(page_template, page_title=page_title,
+                                page_subtitle=page_subtitle,
+                                filestable=filestable, snrs=snrs,
+                                formatters=formatters)
   return
 
 
@@ -114,7 +125,7 @@ def main():
   score_function = score_tools.PickScorer(args.criterion)
   visual_metrics.ListMpegResults(args.codecs, args.score, datatable,
                                  score_function=score_function)
-  FormatAsHtml(args.codecs, datatable)
+  FormatAsHtml(args.codecs, datatable, args.criterion)
   return 0
 
 if __name__ == '__main__':

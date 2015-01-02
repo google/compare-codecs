@@ -132,7 +132,8 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     page_template = 'Test: //%%filestable_dpsnr%%//'
     expected_result = 'Test: result'
     filestable = {'dsnr': 'result', 'avg': 'notused', 'drate': 'notused'}
-    result = visual_metrics.HtmlPage(page_template, filestable, None, None)
+    result = visual_metrics.HtmlPage(page_template, None,
+                                     filestable, None, None)
     self.assertEquals(expected_result, result)
 
   def test_ListOneTarget(self):
