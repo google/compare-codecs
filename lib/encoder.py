@@ -447,7 +447,7 @@ class Encoder(object):
 
   def EncodeCommandLine(self, bitrate, videofile, workdir):
     return self.context.codec.EncodeCommandLine(
-      self.parameters, bitrate, videofile, workdir)
+        self.parameters, bitrate, videofile, workdir)
 
   def VerifyEncode(self, bitrate, videofile, workdir):
     """Returns true if a new encode of the file gives exactly the same file."""

@@ -17,7 +17,7 @@
 #
 # This generates a JSON structure containing the information about scores.
 # The structure is as follows:
-# - A list of codecs that are being compared, with longnames
+# - A list of codecs that are being compared, with long names
 # - A summary list of files being compared and their relative performance
 # - A dictionary with key=codec shortname containing
 #   - A list of entries, each consisting of
@@ -35,6 +35,7 @@ import sys
 import pick_codec
 import score_tools
 import visual_metrics
+
 
 def main():
   parser = argparse.ArgumentParser()

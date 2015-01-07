@@ -76,6 +76,7 @@ def bdsnr(metric_set1, metric_set2):
     avg_diff = 0.0
   return avg_diff
 
+
 def bdrate(metric_set1, metric_set2):
   """
   BJONTEGAARD    Bjontegaard metric calculation
@@ -214,6 +215,7 @@ def GraphBetter(metric_set1_sorted, metric_set2_sorted, use_set2_as_base):
 
   return avg
 
+
 def DataSetBetter(metric_set1, metric_set2, method):
   """
   Compares two data sets and determines which is better and by how
@@ -289,6 +291,10 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
     if my_optimizer.Score(bestsofar) < 0.0:
       return
     if full_results:
+      # Datatable is a dictionary of codec name -> result sets.
+      # Each result set is an array containing result info.
+      # Each result info is a dictionary containing the
+      # target bitrate, the command line, the score and the result.
       (datatable.setdefault(codec_name, {})
           .setdefault(videofile.basename, [])
           .append({'target_bitrate': rate,
@@ -296,6 +302,9 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
                    'score': my_optimizer.Score(bestsofar),
                    'result': bestsofar.ResultWithoutFrameData()}))
     else:
+      # Datatable is a dictionary of codec name -> result sets.
+      # Each result set is an array containing result info.
+      # Each result info contains the achieved bitrate and the PSNR.
       (datatable.setdefault(codec_name, {})
           .setdefault(videofile.basename, [])
           .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
@@ -315,7 +324,7 @@ def ListMpegResults(codecs, do_score, datatable, score_function=None,
 def ExtractBitrateAndPsnr(datatable, codec, filename, full_results=False):
   if full_results:
     dataset = [(r['result']['bitrate'], r['result']['psnr'])
-                          for r in datatable[codec][filename]]
+               for r in datatable[codec][filename]]
   else:
     dataset = datatable[codec][filename]
   return dataset
@@ -348,9 +357,8 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
     # Read the metric file from each of the directories in our list.
     for this_codec in other_codecs:
 
-      # If there is a metric in this_codec,
-      # calculate the overall difference between it and the baseline
-      # codec's metric
+      # If there is a metric in this_codec, calculate the overall difference
+      # between it and the baseline codec's metric.
       if (this_codec in datatable and filename in datatable[this_codec]
           and filename in datatable[baseline_codec]):
         this_dataset = ExtractBitrateAndPsnr(datatable,
@@ -374,8 +382,9 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
   data.append(row)
   return data
 
+
 def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
-  """Builds a Gviz DataTable giving this metric for the files and codecs"""
+  """Builds a Gviz DataTable giving this metric for the files and codecs."""
 
   description = {"file": ("string", "File")}
   data = BuildComparisonTable(datatable, metric, baseline_codec, other_codecs)
@@ -385,6 +394,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   gviz_data_table = gviz_api.DataTable(description)
   gviz_data_table.LoadData(data)
   return gviz_data_table
+
 
 def CrossPerformanceGvizTable(datatable, metric, codecs, criterion,
                               new_style_links=False):

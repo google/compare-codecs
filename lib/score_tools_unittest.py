@@ -46,7 +46,7 @@ class TestScoreTools(unittest.TestCase):
               'encode_cputime': 0.7}
     self.assertEqual(10.0, score_tools.ScoreCpuPsnr(100, result))
     # Test 1.01 percent overrun in bitrate.
-    self.assertAlmostEqual(10.0 - 10*(100.0/99 - 1),
+    self.assertAlmostEqual(10.0 - 10 * (100.0 / 99 - 1),
                            score_tools.ScoreCpuPsnr(99, result))
     result['encode_cputime'] = 1.1
     self.assertAlmostEqual(0.0, score_tools.ScoreCpuPsnr(100, result))

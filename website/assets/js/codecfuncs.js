@@ -14,23 +14,23 @@ function FillInOneTable(url, id) {
     dataType: 'json',
   }).done(function(responseText) {
     var tableStyles = { allowHtml: true,
-                      alternatingRowStyle: false,
-                      showRowNumber: false,
-                      sort: 'disable',
-                      // Width is problematic, cross-device.
-                      width: '50%',
-                      cssClassNames: {
-                        // These map to .rslts-* classes
-                        headerRow: 'rslts-headerRow',
-                        tableRow: 'rslts-tableRow',
-                        oddTableRow: 'rslts-oddTableRow',
-                        selectedTableRow: 'rslts-selectedTableRow',
-                        hoverTableRow: 'rslts-hoverTableRow',
-                        headerCell: 'rslts-headerCell',
-                        tableCell: 'rslts-tableCell',
-                        rowNumberCell: 'rslts-rowNumberCell',
-                      }
-                    };
+			alternatingRowStyle: false,
+			showRowNumber: false,
+			sort: 'disable',
+			// Width is problematic, cross-device.
+			width: '50%',
+			cssClassNames: {
+                            // These map to .rslts-* classes
+                            headerRow: 'rslts-headerRow',
+                            tableRow: 'rslts-tableRow',
+                            oddTableRow: 'rslts-oddTableRow',
+                            selectedTableRow: 'rslts-selectedTableRow',
+                            hoverTableRow: 'rslts-hoverTableRow',
+                            headerCell: 'rslts-headerCell',
+                            tableCell: 'rslts-tableCell',
+                            rowNumberCell: 'rslts-rowNumberCell',
+			}
+                      };
     var data = new google.visualization.DataTable(responseText);
     var table = new google.visualization.Table(
     document.getElementById(id));
