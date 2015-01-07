@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Install all required software for the codec comparision tool.
+# Install all required software for the codec comparison tool.
 #
 # The initial version pulls in the vpx_codec_comparison repository,
 # and runs the install script from there. Things might migrate up later.

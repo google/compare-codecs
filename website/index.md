@@ -55,7 +55,7 @@ Testing a Whole Codec vs. Testing the Encoding in Isolation
 Testing codecs has very often been an acrimonious matter, because some parties
 wish to test just a specific component of the encoding process, while others
 feel that ignoring properties that matter in real life situations is making
-comparisions unfair and unreasonable.
+comparisons unfair and unreasonable.
 
 One simile (props to `FIXME` from Ericsson for this): "If you want to test the
 performance of an engine, you don't want to put it in a car - you isolate it
@@ -80,7 +80,7 @@ The scenarios we aim to cover in the initial set are the following:
 
   * Traditional "Fixed quality, no adaptation". This is not an important
     version in Real Life, but is important because it allows some means of
-    comparision with measurements done under this testing methodology at, for
+    comparison with measurements done under this testing methodology at, for
     instance, MPEG.
 
   * Pre-encoded video targeted at fixed bandwidth delivery. This is a

@@ -321,9 +321,9 @@ def ExtractBitrateAndPsnr(datatable, codec, filename, full_results=False):
   return dataset
 
 
-def BuildComparisionTable(datatable, metric, baseline_codec, other_codecs,
+def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
                           full_results=False):
-  """Builds a table of comparision data for this metric."""
+  """Builds a table of comparison data for this metric."""
 
 
   # Find the metric files in the baseline codec.
@@ -378,7 +378,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   """Builds a Gviz DataTable giving this metric for the files and codecs"""
 
   description = {"file": ("string", "File")}
-  data = BuildComparisionTable(datatable, metric, baseline_codec, other_codecs)
+  data = BuildComparisonTable(datatable, metric, baseline_codec, other_codecs)
   for this_codec in other_codecs:
     description[this_codec] = ("number", this_codec)
   # Generate the gViz table

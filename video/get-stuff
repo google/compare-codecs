@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Get some videos to run comparisions on.
+# Get some videos to run comparisons on.
 #
 set -e
 

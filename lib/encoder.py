@@ -335,7 +335,7 @@ class Codec(object):
   The class also contains a cache of evaluation results, and a score
   function.
   This is used by the functions that return the "best" of something,
-  as well as for making evaluations and comparision reports.
+  as well as for making evaluations and comparison reports.
   """
   def __init__(self, name, formatter=None):
     self.name = name
@@ -363,7 +363,7 @@ class Codec(object):
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, workdir):
     """Returns a command line for encoding. Base codec class has none."""
-    # pylint: disable=R0201
+    # pylint: disable=W0613, R0201
     return '# No command available'
 
   def ConfigurationFixups(self, config):

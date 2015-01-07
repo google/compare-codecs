@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# A JSON-generating codec comparision tool.
+# A JSON-generating codec comparison tool.
 #
 # This generates a JSON structure containing the information about scores.
 # The structure is as follows:
@@ -53,10 +53,10 @@ def main():
                                  full_results=True)
   overall = {}
   for metric in ['avg', 'dsnr', 'drate']:
-    overall[metric] = visual_metrics.BuildComparisionTable(datatable, metric,
-                                                           args.codecs[0],
-                                                           args.codecs[1:],
-                                                           full_results=True)
+    overall[metric] = visual_metrics.BuildComparisonTable(datatable, metric,
+                                                          args.codecs[0],
+                                                          args.codecs[1:],
+                                                          full_results=True)
   info_to_print = {'codecs': codec_names,
                    'overall': overall,
                    'detailed': datatable}
