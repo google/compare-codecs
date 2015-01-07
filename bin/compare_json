@@ -1,0 +1,68 @@
+#!/usr/bin/python
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# A JSON-generating codec comparison tool.
+#
+# This generates a JSON structure containing the information about scores.
+# The structure is as follows:
+# - A list of codecs that are being compared, with long names
+# - A summary list of files being compared and their relative performance
+# - A dictionary with key=codec shortname containing
+#   - A list of entries, each consisting of
+#     - A filename
+#     - A list of results, consisting of a list of entries for that codec,
+#       each a dictionary consisting of
+#       - The target bitrate
+#       - The score for the chosen metric
+#       - The result structure minus the frame info (to keep size down)
+
+import argparse
+import json
+import sys
+
+import pick_codec
+import score_tools
+import visual_metrics
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('codecs', nargs='*')
+  args = parser.parse_args()
+  codec_names = []
+  for codec in args.codecs:
+    codec_names.append((codec, pick_codec.LongName(codec)))
+
+  datatable = {}
+  score_function = score_tools.PickScorer(args.criterion)
+  visual_metrics.ListMpegResults(args.codecs, args.score, datatable,
+                                 score_function=score_function,
+                                 full_results=True)
+  overall = {}
+  for metric in ['avg', 'dsnr', 'drate']:
+    overall[metric] = visual_metrics.BuildComparisonTable(datatable, metric,
+                                                          args.codecs[0],
+                                                          args.codecs[1:],
+                                                          full_results=True)
+  info_to_print = {'codecs': codec_names,
+                   'overall': overall,
+                   'detailed': datatable}
+  print json.dumps(info_to_print, indent=2)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

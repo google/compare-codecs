@@ -57,7 +57,7 @@ def OldMpegFiles():
   return the_set
 
 
-# Files and rates for the MPEG codec comparision test, December 2013.
+# Files and rates for the MPEG codec comparison test, December 2013.
 def MpegFiles():
   the_set = optimizer.FileAndRateSet()
   my_directory = 'video/mpeg_video'

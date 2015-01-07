@@ -91,5 +91,5 @@ no matter what the content of the original frame N+1 and later were.
 </div>
 
 <script>
-google.setOnLoadCallback(FillInAllTables);
+google.setOnLoadCallback(FillInAllTablesNew);
 </script>

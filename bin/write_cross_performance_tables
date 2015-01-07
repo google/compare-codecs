@@ -27,13 +27,14 @@ def main():
   parser.add_argument('codecs', nargs='*',
                       default=pick_codec.codec_map.keys())
   parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--new_style', action='store_true', default=False)
   args = parser.parse_args()
   datatable = {}
   score_function = score_tools.PickScorer(args.criterion)
   visual_metrics.ListMpegResults(args.codecs, False, datatable,
                                  score_function=score_function)
   matrix = visual_metrics.CrossPerformanceGvizTable(datatable,
-      'avg', args.codecs, args.criterion)
+      'avg', args.codecs, args.criterion, new_style_links=args.new_style)
   print matrix.ToJSon(columns_order=['codec'] + args.codecs)
 
 if __name__ == '__main__':

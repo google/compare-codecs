@@ -335,7 +335,7 @@ class Codec(object):
   The class also contains a cache of evaluation results, and a score
   function.
   This is used by the functions that return the "best" of something,
-  as well as for making evaluations and comparision reports.
+  as well as for making evaluations and comparison reports.
   """
   def __init__(self, name, formatter=None):
     self.name = name
@@ -360,6 +360,11 @@ class Codec(object):
     """Returns true if a new encode of the file gives exactly the same file."""
     # pylint: disable=W0613, R0201
     raise Error("The base codec class can't verify anything")
+
+  def EncodeCommandLine(self, parameters, bitrate, videofile, workdir):
+    """Returns a command line for encoding. Base codec class has none."""
+    # pylint: disable=W0613, R0201
+    return '# No command available'
 
   def ConfigurationFixups(self, config):
     """Hook for applying inter-parameter tweaks."""
@@ -439,6 +444,10 @@ class Encoder(object):
   def Execute(self, bitrate, videofile, workdir):
     return self.context.codec.Execute(
       self.parameters, bitrate, videofile, workdir)
+
+  def EncodeCommandLine(self, bitrate, videofile, workdir):
+    return self.context.codec.EncodeCommandLine(
+        self.parameters, bitrate, videofile, workdir)
 
   def VerifyEncode(self, bitrate, videofile, workdir):
     """Returns true if a new encode of the file gives exactly the same file."""
@@ -521,6 +530,9 @@ class Encoding(object):
   def Result(self):
     return self.result
 
+  def ResultWithoutFrameData(self):
+    return {i: self.result[i] for i in self.result if i != 'frame'}
+
   def SomeUntriedVariants(self):
     """Returns some variant encodings that have not been tried.
 
@@ -593,6 +605,10 @@ class Encoding(object):
     """Returns true if a new encode of the file gives exactly the same file."""
     return self.encoder.VerifyEncode(self.bitrate, self.videofile,
                                      self.Workdir())
+
+  def EncodeCommandLine(self):
+    """Returns a command line suitable for display, not execution."""
+    return self.encoder.EncodeCommandLine(self.bitrate, self.videofile, '$')
 
   def Store(self):
     self.encoder.Store()

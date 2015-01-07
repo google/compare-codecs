@@ -53,12 +53,15 @@ def ScoreCpuPsnr(target_bitrate, result):
   Otherwise, PSNR rules."""
   score = result['psnr']
   # We penalize bitrates that exceed the target bitrate.
+  # Score reduction is 0.1 dB per percentage point over target.
   if result['bitrate'] > int(target_bitrate):
-    score -= (result['bitrate'] - int(target_bitrate)) * 0.1
+    percent_overshoot = 100.0 * ((result['bitrate'] - float(target_bitrate))
+        / float(target_bitrate))
+    score -= 0.1 * percent_overshoot
   # We penalize CPU usage that exceeds clip time.
   used_time = result['encode_cputime']
   available_time = result['cliptime']
-  
+
   if used_time > available_time:
     badness = (used_time - available_time) / available_time
     score -= badness * 100
