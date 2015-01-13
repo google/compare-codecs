@@ -27,9 +27,9 @@ class Vp8CodecMpegMode(vp8.Vp8Codec):
     super(Vp8CodecMpegMode, self).__init__(name)
     # Set the parts that are different from the VP8 codec.
     self.option_set = encoder.OptionSet(
-      encoder.IntegerOption('fixed-q', 0, 63),
-      encoder.IntegerOption('gold-q', 0, 63),
-      encoder.IntegerOption('key-q', 0, 63),
+      encoder.IntegerOption('fixed-q', 0, 63).Mandatory(),
+      encoder.IntegerOption('gold-q', 0, 63).Mandatory(),
+      encoder.IntegerOption('key-q', 0, 63).Mandatory(),
       encoder.ChoiceOption(['good', 'best', 'rt']),
     )
     # The start encoder is exactly the same as for VP8,
