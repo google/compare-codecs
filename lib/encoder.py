@@ -301,6 +301,19 @@ class OptionValueSet(object):
     del new_set.values[name]
     return new_set
 
+  def RemoveValue(self, name):
+    """Return an OptionValueSet without the specified parameter."""
+    if not self.option_set.HasOption(name):
+      raise Error('Unknown option name %s' % name)
+    if self.option_set.Option(name).mandatory:
+      raise Error('Cannot remove option %s' % name)
+    new_set = OptionValueSet(self.option_set, "", self.formatter)
+    new_set.values = self.values.copy()
+    del new_set.values[name]
+    new_set.other_parts = self.other_parts
+    return new_set
+    
+
   def RandomlyPatchOption(self, option):
     """ Modify a configuration by changing the value of this option."""
     if self.HasValue(option.name):
