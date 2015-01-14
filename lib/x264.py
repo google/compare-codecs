@@ -32,23 +32,33 @@ class X264Codec(file_codec.FileCodec):
       encoder.Option('rc-lookahead', ['0', '30', '60']),
       encoder.Option('vbv-init', ['0.5', '0.8', '0.9']),
       encoder.Option('ref', ['1', '2', '3', '16']),
+      encoder.ChoiceOption(['use-vbv-maxrate']),
+      encoder.Option('profile', ['baseline', 'main', 'high']),
+      encoder.Option('tune', ['psnr', 'ssim']),
+      encoder.DummyOption('vbv-maxrate'),
+      encoder.DummyOption('vbv-bufsize'),
     )
 
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--rc-lookahead 0 --ref 2 --vbv-init 0.8 --preset veryslow',
+      '--preset slow --tune psnr',
       formatter=self.option_formatter))
 
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
+    # The use-vbv-maxrate flag controls whether vbv-maxrate/vbv-bufsize
+    # are used. They may be unneeded.
+    # Still no opinion: '--no-scenecut --keyint infinite '
+    if parameters.HasValue('use-vbv-maxrate'):
+      parameters = parameters.RemoveValue('use-vbv-maxrate')
+      parameters = parameters.ChangeValue('vbv-maxrate', str(bitrate))
+      parameters = parameters.ChangeValue('vbv-bufsize', str(bitrate))
     commandline = ('%(x264)s '
-      '--vbv-maxrate %(bitrate)d --vbv-bufsize %(bitrate)d '
       '--bitrate %(bitrate)d --fps %(framerate)d '
       '--threads 1 '
-      '--profile baseline --no-scenecut --keyint infinite '
       '--input-res %(width)dx%(height)d '
-      '--tune psnr '
+      '--quiet '
       '%(parameters)s '
       '-o %(outputfile)s %(inputfile)s') % {
         'x264': encoder.Tool('x264'),
@@ -63,7 +73,7 @@ class X264Codec(file_codec.FileCodec):
 
 
   def DecodeCommandLine(self, videofile, encodedfile, yuvfile):
-    commandline = '%s -i %s %s' % (encoder.Tool("ffmpeg"),
+    commandline = '%s -loglevel error -i %s %s' % (encoder.Tool("ffmpeg"),
                                     encodedfile, yuvfile)
     return commandline
 

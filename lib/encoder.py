@@ -312,7 +312,7 @@ class OptionValueSet(object):
     del new_set.values[name]
     new_set.other_parts = self.other_parts
     return new_set
-    
+
 
   def RandomlyPatchOption(self, option):
     """ Modify a configuration by changing the value of this option."""
