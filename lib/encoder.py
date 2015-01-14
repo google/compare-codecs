@@ -59,6 +59,14 @@ class Option(object):
     # pylint: disable=W0102
     self.name = name
     self.values = frozenset(values)
+    self.mandatory = False
+
+  def Mandatory(self):
+    """Set this parameter as mandatory.
+
+    Intended use is as a trailer on the constructor."""
+    self.mandatory = True
+    return self
 
   def CanChange(self):
     return len(self.values) > 1
@@ -151,6 +159,9 @@ class OptionSet(object):
 
   def AllOptions(self):
     return self.options.values()
+
+  def AllMandatoryOptions(self):
+    return [option for option in self.AllOptions() if option.mandatory]
 
   def AllChangeableOptions(self):
     return [option for option in self.AllOptions() if option.CanChange()]
@@ -263,14 +274,31 @@ class OptionValueSet(object):
   def HasValue(self, name):
     return (name in self.values)
 
+  def _Clone(self):
+    """Return a clone of this OptionValueSet.
+
+    Used by internal functions that modify the copy."""
+    new_set = OptionValueSet(self.option_set, "", self.formatter)
+    new_set.values = self.values.copy()
+    new_set.other_parts = self.other_parts
+    return new_set
+
   def ChangeValue(self, name, value):
     """Return an OptionValueSet with the specified parameter changed."""
     if not self.option_set.HasOption(name):
       raise Error('Unknown option name %s' % name)
-    new_set = OptionValueSet(self.option_set, "", self.formatter)
-    new_set.values = self.values.copy()
+    new_set = self._Clone()
     new_set.values[name] = value
-    new_set.other_parts = self.other_parts
+    return new_set
+
+  def RemoveValue(self, name):
+    """Return an OptionValueSet without the specified parameter."""
+    if not self.option_set.HasOption(name):
+      raise Error('Unknown option name %s' % name)
+    if self.option_set.Option(name).mandatory:
+      raise Error('Cannot remove option %s' % name)
+    new_set = self._Clone()
+    del new_set.values[name]
     return new_set
 
   def RandomlyPatchOption(self, option):
@@ -285,11 +313,23 @@ class OptionValueSet(object):
     return newconfig
 
   def RandomlyPatchConfig(self):
-    """ Modify a configuration by changing the value of a random parameter."""
+    """ Modify a configuration by changing the value of a random parameter.
+
+    This may change values that are present, or add values for parameters
+    that are not present."""
     options = self.option_set.AllChangeableOptions()
     assert(len(options) >= 1)
     option_to_change = options[random.randint(0, len(options)-1)]
     return self.RandomlyPatchOption(option_to_change)
+
+  def RandomlyRemoveParameter(self):
+    """ Return a new OptionValueSet with one less parameter."""
+    removable_values = [name for name in self.values.keys()
+                        if not self.option_set.Option(name).mandatory]
+    if len(removable_values) < 1:
+      return None
+    option_to_change = random.choice(removable_values)
+    return self.RemoveValue(option_to_change)
 
 
 class Videofile(object):
@@ -508,6 +548,13 @@ class Encoder(object):
       encodings.extend(self.context.cache.AllScoredRates(variant_encoder,
                                                          videofile).encodings)
     return encodings
+
+  def RandomlyRemoveParameter(self):
+    parameters = self.parameters.RandomlyRemoveParameter()
+    if parameters:
+      return Encoder(self.context, parameters)
+    else:
+      return None
 
 
 class Encoding(object):

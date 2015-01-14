@@ -46,7 +46,10 @@ class Optimizer(object):
     else:
       result = self.context.cache.ReadEncodingResult(encoding,
           scoredir=scoredir)
-    return self.score_function(encoding.bitrate, result)
+    score = self.score_function(encoding.bitrate, result)
+    # Weakly penalize long command lines.
+    score -= len(encoding.encoder.parameters.values) * 0.00001
+    return score
 
   def BestEncoding(self, bitrate, videofile):
     encodings = self.AllScoredEncodings(bitrate, videofile)
@@ -85,12 +88,25 @@ class Optimizer(object):
           return best_on_this
     return None
 
+  def _EncodingWithOneLessParameter(self, encoding, bitrate, videofile):
+    """Find an untried encoder that has one parameter less than this one."""
+    new_encoder = encoding.encoder.RandomlyRemoveParameter()
+    if not new_encoder:
+      return None
+    new_encoding = new_encoder.Encoding(bitrate, videofile)
+    new_encoding.Recover()
+    return new_encoding
+
   def BestUntriedEncoding(self, bitrate, videofile):
     """Attempts to guess the best untried encoding for this file and rate."""
     current_best = self.BestEncoding(bitrate, videofile)
     might_work_better = self._WorksBetterOnSomeOtherClip(
         current_best, bitrate, videofile)
     if might_work_better:
+      return might_work_better
+    might_work_better = self._EncodingWithOneLessParameter(
+        current_best, bitrate, videofile)
+    if might_work_better and not might_work_better.Result():
       return might_work_better
     # Randomly vary some parameters and see if things improve.
     # This is the final fallback.

@@ -139,6 +139,13 @@ class TestOptionSet(unittest.TestCase):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     self.assertEquals('--foo', opts.Format('foo/bar', 'foo',
                                            encoder.OptionFormatter()))
+  
+  def test_Mandatory(self):
+    opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
+    self.assertFalse(opts.AllMandatoryOptions())
+    opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']).Mandatory())
+    self.assertEquals(set([opt.name for opt in opts.AllMandatoryOptions()]),
+                      set(['foo/bar']))
 
 
 class TestOptionValueSet(unittest.TestCase):
@@ -196,23 +203,37 @@ class TestOptionValueSet(unittest.TestCase):
     self.assertEqual(newconfig.ToString(), '--foo=bar')
     # Test case where original set did not have value.
     config = encoder.OptionValueSet(
-      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
-      '')
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+        '')
     newconfig = config.RandomlyPatchConfig()
     self.assertIn(newconfig.ToString(), ['--foo=foo', '--foo=bar'])
 
   def test_OtherFormatter(self):
     valueset = encoder.OptionValueSet(
-      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
-      '-foo foo',
-      formatter=encoder.OptionFormatter(prefix='-', infix=' '))
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+        '-foo foo',
+        formatter=encoder.OptionFormatter(prefix='-', infix=' '))
     self.assertEqual('-foo foo', valueset.ToString())
     valueset = encoder.OptionValueSet(
-      encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']),
-                        encoder.Option('xyz', ['abc', 'def'])),
-      '-foo foo -xyz abc',
-      formatter=encoder.OptionFormatter(prefix='-', infix=' '))
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']),
+                          encoder.Option('xyz', ['abc', 'def'])),
+        '-foo foo -xyz abc',
+        formatter=encoder.OptionFormatter(prefix='-', infix=' '))
     self.assertEqual('-foo foo -xyz abc', valueset.ToString())
+
+  def test_RandomlyRemoveParameterSuccessfully(self):
+    config = encoder.OptionValueSet(
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+        '--foo=foo')
+    newconfig = config.RandomlyRemoveParameter()
+    self.assertEqual('', newconfig.ToString())
+
+  def test_RandomlyRemoveParameterWithOnlyMandatory(self):
+    config = encoder.OptionValueSet(
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar']).Mandatory()),
+        '--foo=foo')
+    newconfig = config.RandomlyRemoveParameter()
+    self.assertFalse(newconfig)
 
 
 class TestCodec(unittest.TestCase):
@@ -440,8 +461,8 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     # This particular test needs the context to know about the cache.
     context.cache = cache
     my_encoder = encoder.Encoder(
-      context,
-      encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
     # Cache should start off empty.
     self.assertFalse(cache.AllScoredEncodingsForEncoder(my_encoder))

@@ -28,7 +28,7 @@ class Vp8CodecMpeg1dMode(vp8_mpeg.Vp8CodecMpegMode):
     super(Vp8CodecMpeg1dMode, self).__init__(name)
     # Set the parts that are different from the VP8 MPEG codec.
     self.option_set = encoder.OptionSet(
-      encoder.IntegerOption('key-q', 0, 63),
+      encoder.IntegerOption('key-q', 0, 63).Mandatory(),
       encoder.DummyOption('fixed-q'),
       encoder.DummyOption('gold-q'),
     )

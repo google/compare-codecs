@@ -28,6 +28,7 @@ class DummyCodec(encoder.Codec):
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
       encoder.Option('score',  ['0', '5', '10']),
+      encoder.Option('another_parameter', ['yes']),
     )
 
   def StartEncoder(self, context):
@@ -94,8 +95,9 @@ class TestOptimizer(unittest.TestCase):
                                        cache_class=self.cache_class,
                                        score_function=Returns1)
     my_optimizer.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertEqual(1,
-        my_optimizer.Score(my_optimizer.BestEncoding(100, self.videofile)))
+    self.assertAlmostEqual(1,
+        my_optimizer.Score(my_optimizer.BestEncoding(100, self.videofile)),
+        places=4)
 
   def test_FirstBestEncodingNoScore(self):
     my_optimizer = self.StdOptimizer()
@@ -111,8 +113,9 @@ class TestOptimizer(unittest.TestCase):
   def test_BestEncodingExecuteGivesScore(self):
     my_optimizer = self.StdOptimizer()
     my_optimizer.BestEncoding(100, self.videofile).Execute().Store()
-    self.assertEqual(5, my_optimizer.Score(
-        my_optimizer.BestEncoding(100, self.videofile)))
+    self.assertAlmostEqual(5, my_optimizer.Score(
+        my_optimizer.BestEncoding(100, self.videofile)),
+        places=4)
 
   def test_BestEncodingOtherSpeedNoScore(self):
     my_optimizer = self.StdOptimizer()
@@ -149,7 +152,31 @@ class TestOptimizer(unittest.TestCase):
     self.assertTrue(second_encoding)
     second_encoding.Execute()
     self.assertEquals(first_encoding.videofile, second_encoding.videofile)
-    self.assertEquals(10, my_optimizer.Score(second_encoding))
+    self.assertAlmostEqual(10, my_optimizer.Score(second_encoding),
+                           places=4)
+
+  def test_ShorterParameterListsScoreHigher(self):
+    my_optimizer = self.StdOptimizer()
+    encoder1 = self.EncoderFromParameterString('--score=5')
+    encoder2 = self.EncoderFromParameterString(
+      '--score=5 --another_parameter=yes')
+    encoding1 = encoder1.Encoding(100, self.videofile)
+    encoding1.Execute()
+    encoding2 = encoder2.Encoding(100, self.videofile)
+    encoding2.Execute()
+    self.assertGreater(my_optimizer.Score(encoding1),
+                       my_optimizer.Score(encoding2))
+
+  def test_EncodingWithOneLessParameter(self):
+    my_optimizer = self.StdOptimizer()
+    my_encoder = self.EncoderFromParameterString('--score=5')
+    first_encoding = my_encoder.Encoding(100, self.videofile)
+    next_encoding = my_optimizer._EncodingWithOneLessParameter(first_encoding,
+                                                              100,
+                                                              self.videofile)
+    self.assertTrue(next_encoding)
+    self.assertEqual(next_encoding.encoder.parameters.ToString(), '')
+
 
 class TestFileAndRateSet(unittest.TestCase):
 
