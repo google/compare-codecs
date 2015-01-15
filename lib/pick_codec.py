@@ -24,6 +24,7 @@ import vp9
 import ffmpeg
 import x264
 import x264_baseline
+import x264_realtime
 
 class CodecInfo(object):
   def __init__(self, constructor, shortname, longname):
@@ -44,7 +45,9 @@ codec_map = {
   'h263': CodecInfo(h263.H263Codec, 'H263', 'H.263'),
   'x264': CodecInfo(x264.X264Codec, 'H264', 'H.264 - x264 implementation'),
   'x264_base': CodecInfo(x264_baseline.X264BaselineCodec, 'H264-BL',
-                         'H264 Baseline - x264 implementation')
+                         'H264 Baseline - x264 implementation'),
+  'x264_rt': CodecInfo(x264_realtime.X264RealtimeCodec, 'H264-RT',
+                         'H264 - x264 implementation, realtime settings'),
 }
 
 def PickCodec(name):
