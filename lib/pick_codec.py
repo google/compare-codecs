@@ -23,6 +23,7 @@ import vp8_mpeg_1d
 import vp9
 import ffmpeg
 import x264
+import x264_baseline
 
 class CodecInfo(object):
   def __init__(self, constructor, shortname, longname):
@@ -42,6 +43,8 @@ codec_map = {
   'h261': CodecInfo(h261.H261Codec, 'H261', 'H.261'),
   'h263': CodecInfo(h263.H263Codec, 'H263', 'H.263'),
   'x264': CodecInfo(x264.X264Codec, 'H264', 'H.264 - x264 implementation'),
+  'x264_base': CodecInfo(x264_baseline.X264BaselineCodec, 'H264-BL',
+                         'H264 Baseline - x264 implementation')
 }
 
 def PickCodec(name):

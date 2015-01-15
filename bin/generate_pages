@@ -21,12 +21,11 @@ if [ ! -d $WORKDIR/website/results/generated ]; then
   mkdir $WORKDIR/website/results/generated
 fi
 
-codecs="x264 vp8 vp9 h263"
-
 function list_one_criterion {
   criterion=$1
-  for codec1 in $codecs; do
-    for codec2 in $codecs; do
+  shift
+  for codec1 in $@; do
+    for codec2 in $@; do
       if [ $codec1 != $codec2 ]; then
         echo "Generating $codec1 vs $codec2 criterion $criterion"
         compare_html --criterion $criterion $codec1 $codec2 \
@@ -40,12 +39,12 @@ function list_one_criterion {
   write_cross_performance_tables --criterion $criterion vp8 vp9 x264 h263 \
       > website/results/generated/toplevel-$criterion.json
   write_cross_performance_tables --new_style \
-      --criterion $criterion vp8 vp9 x264 h263 \
+      --criterion $criterion $@ \
       > website/results/generated/toplevel-$criterion-new.json
 
 }
 
-list_one_criterion psnr
-list_one_criterion rt
+list_one_criterion psnr x264 x264_base vp8 vp9
+list_one_criterion rt x264 x264_base vp8 vp9
 
 chmod -R a+rX website/results/generated

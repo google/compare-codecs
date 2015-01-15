@@ -151,6 +151,14 @@ class OptionSet(object):
   def RegisterOption(self, option):
     self.options[option.name] = option
 
+  def LockOption(self, name, value):
+    if not name in self.options:
+      raise Error('No such option name: %s' % name)
+    if not value in self.options[name].values:
+      raise Error('No such option value for %s: %s' % (name, value))
+    self.options[name].values = frozenset([value])
+    self.options[name].Mandatory()
+
   def Option(self, name):
     return self.options[name]
 
