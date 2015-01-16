@@ -130,6 +130,16 @@ class TestOptionSet(unittest.TestCase):
     self.assertTrue(opts.HasOption('foo'))
     self.assertTrue(opts.Option('foo'))
 
+  def test_LockOption(self):
+    opts = encoder.OptionSet(encoder.Option('foo', ['value1', 'value2']))
+    self.assertEqual(2, len(opts.Option('foo').values))
+    self.assertTrue(opts.Option('foo').CanChange())
+    opts.LockOption('foo', 'value1')
+    self.assertTrue(opts.Option('foo').mandatory)
+    print opts.Option('foo').values
+    self.assertEqual(1, len(opts.Option('foo').values))
+    self.assertFalse(opts.Option('foo').CanChange())
+
   def test_FindFlagOption(self):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     self.assertIsNone(opts.FindFlagOption('baz'))
