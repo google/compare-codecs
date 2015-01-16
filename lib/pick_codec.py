@@ -47,7 +47,7 @@ codec_map = {
   'x264_base': CodecInfo(x264_baseline.X264BaselineCodec, 'H264-BL',
                          'H264 Baseline - x264 implementation'),
   'x264_rt': CodecInfo(x264_realtime.X264RealtimeCodec, 'H264-RT',
-                         'H264 - x264 implementation, realtime settings'),
+                       'H264 - x264 implementation, realtime settings'),
 }
 
 def PickCodec(name):
