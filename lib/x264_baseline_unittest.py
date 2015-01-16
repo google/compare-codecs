@@ -18,15 +18,15 @@ import encoder
 import optimizer
 import unittest
 import test_tools
-import x264
+import x264_baseline
 
-class TestX264(test_tools.FileUsingCodecTest):
+class TestX264Baseline(test_tools.FileUsingCodecTest):
   def test_Init(self):
-    codec = x264.X264Codec()
-    self.assertEqual(codec.name, 'x264')
+    codec = x264_baseline.X264BaselineCodec()
+    self.assertEqual(codec.name, 'x264-base')
 
   def test_OneBlackFrame(self):
-    codec = x264.X264Codec()
+    codec = x264_baseline.X264BaselineCodec()
     my_optimizer = optimizer.Optimizer(codec)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
         'one_black_frame_1024_768_30.yuv')
@@ -35,25 +35,15 @@ class TestX264(test_tools.FileUsingCodecTest):
     # Most codecs should be good at this.
     self.assertLess(40.0, my_optimizer.Score(encoding))
 
-  def test_VbvMaxrateFlag(self):
-    codec = x264.X264Codec()
+  def test_HasBaselineFlag(self):
+    codec = x264_baseline.X264BaselineCodec()
     context = encoder.Context(codec)
     my_encoder = codec.StartEncoder(context)
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
         'one_black_frame_1024_768_30.yuv')
     encoding = my_encoder.Encoding(1000, videofile)
-    # The start encoder should have no bitrate.
     commandline = encoding.EncodeCommandLine()
-    self.assertNotRegexpMatches(commandline, 'vbv-maxrate')
-    # Add in the use-vbv-maxrate parameter.
-    new_encoder = encoder.Encoder(context,
-        my_encoder.parameters.ChangeValue('use-vbv-maxrate', 'use-vbv-maxrate'))
-    encoding = new_encoder.Encoding(1000, videofile)
-    commandline = encoding.EncodeCommandLine()
-    # vbv-maxrate should occur, but not use-vbv-maxrate.
-    self.assertRegexpMatches(commandline, '--vbv-maxrate 1000 ')
-    self.assertNotRegexpMatches(commandline, 'use-vbv-maxrate')
-
+    self.assertRegexpMatches(commandline, '--profile baseline ')
 
 if __name__ == '__main__':
   unittest.main()
