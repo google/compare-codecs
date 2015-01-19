@@ -39,6 +39,7 @@ import os
 import random
 import re
 import shutil
+import sys
 
 
 class Error(Exception):
@@ -479,7 +480,8 @@ class Encoder(object):
       else:
         self.parameters = self.context.cache.ReadEncoderParameters(filename)
         if self.Hashname() != filename:
-          raise Error("Filename %s contains wrong arguments" % filename)
+          raise Error("Filename %s for codec %s contains wrong arguments"
+                      % (filename, context.codec.name))
     else:
       self.parameters = context.codec.ConfigurationFixups(parameters)
 
@@ -810,7 +812,11 @@ class EncodingDiskCache(object):
     if os.path.isfile(filename):
       with open(filename, 'r') as resultfile:
         stringbuffer = resultfile.read()
-        return ast.literal_eval(stringbuffer)
+        try:
+          return ast.literal_eval(stringbuffer)
+        except:
+          raise Error('Unexpected AST error: %s, filename was %s' %
+                      (sys.exc_info()[0], filename))
     return None
 
 
