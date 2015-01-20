@@ -136,7 +136,6 @@ class TestOptionSet(unittest.TestCase):
     self.assertTrue(opts.Option('foo').CanChange())
     opts.LockOption('foo', 'value1')
     self.assertTrue(opts.Option('foo').mandatory)
-    print opts.Option('foo').values
     self.assertEqual(1, len(opts.Option('foo').values))
     self.assertFalse(opts.Option('foo').CanChange())
 
@@ -149,7 +148,7 @@ class TestOptionSet(unittest.TestCase):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     self.assertEquals('--foo', opts.Format('foo/bar', 'foo',
                                            encoder.OptionFormatter()))
-  
+
   def test_Mandatory(self):
     opts = encoder.OptionSet(encoder.ChoiceOption(['foo', 'bar']))
     self.assertFalse(opts.AllMandatoryOptions())
@@ -299,6 +298,29 @@ class TestEncoder(unittest.TestCase):
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     self.assertFalse(my_encoder.ParametersCanChange())
 
+  def testInitFromFile(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder.Store()
+    new_encoder = encoder.Encoder(context, filename=my_encoder.Hashname())
+    self.assertEquals(new_encoder.parameters, my_encoder.parameters)
+
+  def testInitFromBrokenFile(self):
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    my_encoder.Store()
+    # Break stored object. Note: This uses knowledge of the memory cache.
+    old_filename = my_encoder.Hashname()
+    parameters = context.cache.encoders[old_filename].parameters
+    parameters.other_parts.append('--extra-stuff')
+    # Now Hashname() should return a different value.
+    with self.assertRaisesRegexp(encoder.Error, 'contains wrong arguments'):
+      # pylint: disable=W0612
+      new_encoder = encoder.Encoder(context, filename=old_filename)
 
 class TestEncoding(unittest.TestCase):
 
