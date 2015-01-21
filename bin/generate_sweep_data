@@ -1,0 +1,86 @@
+#!/usr/bin/python
+# Copyright 2015 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Generate bitrate sweep data - a JSON file providing the encoding info for
+# all attempts at encoding a file with an encoder that is part of the
+# served pages.
+# This will serve as the basis for graphs that show the performance of
+# specific configurations.
+
+import encoder
+import glob
+import json
+import optimizer
+import pick_codec
+import re
+import score_tools
+import sys
+
+def ReportOneSweep(codec_name, criterion_name, videofile_name, encoder_name):
+  my_optimizer = optimizer.Optimizer(pick_codec.PickCodec(codec_name),
+      score_function=score_tools.PickScorer(criterion_name))
+  videofile = encoder.Videofile(videofile_name)
+  my_encoder = encoder.Encoder(my_optimizer.context, filename=encoder_name)
+  my_encodings = my_encoder.AllScoredRates(videofile)
+  my_encodings.sort(key=lambda x: x.bitrate)
+  reports = []
+  for my_encoding in my_encodings:
+    # TODO: Move the actual dictionary generation into a function
+    # of visual_metrics
+    reports.append({'config_id': my_encoding.encoder.Hashname(),
+                   'target_bitrate': my_encoding.bitrate,
+                   'encode_command': my_encoding.EncodeCommandLine(),
+                   'score': my_optimizer.Score(my_encoding),
+                   'result': my_encoding.ResultWithoutFrameData()})
+  return reports
+
+
+def main():
+  files = glob.glob('website/results/generated/*.json')
+  sweepdata = {}
+  codecs = {}
+  for filename in files:
+    with open(filename, 'r') as file:
+      resultobject = json.load(file)
+      if not 'detailed' in resultobject:
+        # Not a details file. Skip.
+        continue
+      # Extract criterion from filename. Not really pretty.
+      m = re.search(r'-([a-z]+)\.json$', filename)
+      if not m:
+        # Not a filename we can extract criterion from.
+        continue
+      criterion = m.group(1)
+      details = resultobject['detailed']
+      # Record codec information. Should be consistent across files.
+      codecs.update(resultobject['codecs'])
+      for codec_name in details.keys():
+        for videofilename in details[codec_name].keys():
+          encoders = set()
+          for encoding in details[codec_name][videofilename]:
+            encoders.add(encoding['config_id'])
+          for encoder in encoders:
+            encodinglist = sweepdata.setdefault(codec_name, {}) \
+                .setdefault(videofilename, {})
+            encodinglist[encoder] = (
+                ReportOneSweep(codec_name, criterion, videofilename, encoder))
+  result = {}
+  result['codecs'] = codecs
+  result['sweepdata'] = sweepdata
+  print json.dumps(result, indent=2)
+
+
+if __name__ == '__main__':
+  sys.exit(main())

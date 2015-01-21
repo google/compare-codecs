@@ -294,10 +294,12 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
       # Datatable is a dictionary of codec name -> result sets.
       # Each result set is an array containing result info.
       # Each result info is a dictionary containing the
+      # ID of the configuration used, the
       # target bitrate, the command line, the score and the result.
       (datatable.setdefault(codec_name, {})
           .setdefault(videofile.basename, [])
-          .append({'target_bitrate': rate,
+          .append({'config_id': bestsofar.encoder.Hashname(),
+                   'target_bitrate': rate,
                    'encode_command': bestsofar.EncodeCommandLine(),
                    'score': my_optimizer.Score(bestsofar),
                    'result': bestsofar.ResultWithoutFrameData()}))

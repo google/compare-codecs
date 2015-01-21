@@ -3,10 +3,12 @@ google.load('visualization', '1.0', {'packages':['table', 'corechart']})
 
 // Global variables for the comparision pages.
 var better_table = null;  // A gviz table listing the files considered.
-var selected_file = null;
+var selected_file = 0;
 var selected_metric = null;
 var encoding_info = null;
 var row_to_details = null;  // An array of row-to-details mappings.
+var codec_to_encodings = {};
+var evaluation_criterion = '';
 
 function FillInOneTable(url, id) {
   $.ajax({
@@ -66,6 +68,8 @@ function fetchEncodingInfo(parameters) {
   var codec1 = param_list['codec1'];
   var codec2 = param_list['codec2'];
   var criterion = param_list['criterion'];
+  // Make criterion available globally.
+  evaluation_criterion = criterion;
   var document_name = codec1 + '-' + codec2 +
       '-' + criterion + '.json';
   var url = '/results/generated/' + document_name;
@@ -126,6 +130,16 @@ function displayGraph(filename) {
   var codec2 = encoding_info['codecs'][1][0];
   var detailed_1 = encoding_info['detailed'][codec1][filename];
   var detailed_2 = encoding_info['detailed'][codec2][filename];
+  codec_to_encodings[codec1] = {};
+  codec_to_encodings[codec2] = {};
+  // Note all the encodings used for each codec (for linking).
+  for (var i = 0; i < detailed_1.length; i++) {
+    codec_to_encodings[codec1][detailed_1[i]['config_id']] = 1;
+  }
+  for (var i = 0; i < detailed_2.length; i++) {
+    codec_to_encodings[codec2][detailed_2[i]['config_id']] = 1;
+  }
+  // TODO(hta): Call displayGraphLines instead of code below.
   metricdata.addColumn('number', 'bitrate');
   metricdata.addColumn('number', codec1);
   metricdata.addColumn('number', codec2);
@@ -134,11 +148,13 @@ function displayGraph(filename) {
   for (var i = 0; i < detailed_1.length; i++) {
     var result = detailed_1[i]['result'];
     metricdata.addRow([result['bitrate'], result['psnr'], null]);
+    detailed_1[i]['codec'] = codec1
     row_to_details.push(detailed_1[i]);
   }
   for (var i = 0; i < detailed_2.length; i++) {
     var result = detailed_2[i]['result'];
     metricdata.addRow([result['bitrate'], null, result['psnr']]);
+    detailed_2[i]['codec'] = codec2
     row_to_details.push(detailed_2[i]);
   }
   chart.draw(metricdata, {curveType:'function',
@@ -156,18 +172,93 @@ function displayGraph(filename) {
 
 }
 
+function displayGraphLines(result_array) {
+  var graph_area = document.getElementById('metricgraph');
+  var chart = new google.visualization.ScatterChart(graph_area);
+  var metricdata = new google.visualization.DataTable();
+  var metricview = new google.visualization.DataView(metricdata);
+  metricdata.addColumn('number', 'bitrate');
+  var number_of_lines = result_array.length
+  for (var i = 0; i < result_array.length; i++) {
+    metricdata.addColumn('number', i);
+  }
+  // Populate rows.
+  // Also store a global mapping of row number to result.
+  row_to_details = [];
+  for (var i = 0; i < result_array.length; i++) {
+    detailed = result_array[i];
+    for (var j = 0; j < detailed.length; j++) {
+      var result = detailed[j]['result'];
+      var row = new Array(number_of_lines + 1);
+      row[0] = result['bitrate'];
+      row[i+1] = result['psnr'];
+      metricdata.addRow(row);
+      row_to_details.push(detailed[j]);
+    }
+  }
+  chart.draw(metricdata, {curveType:'function',
+      chartArea:{left:60, top:6, width:"100%", height:"80%"},
+      hAxis:{title:"datarate in kbps"},
+      vAxis:{title:"quality in decibels"},
+      legend:{position:"in"},
+      title:"chart-title",
+      pointSize:2,
+      lineWidth:1,
+      width:"100%",
+      height:"800px" });
+
+  google.visualization.events.addListener(chart, 'onmouseover', chartMouseOver);
+}
+
 function chartMouseOver(e) {
-  displayDetailsOnEncoding(e.row);
+  // Under certain circumstances, e.row is "null".
+  if (typeof e.row == 'number') {
+    displayDetailsOnEncoding(e.row);
+  }
 }
 
 function displayDetailsOnEncoding(row_number) {
   var area = document.getElementById('encodinginfo');
-  var details = row_to_details[row_number];
-  area.innerHTML = 
+  var details = row_to_details[row_number]
+  area.innerHTML =
       '<dl>' +
+      '<dt>Configuration ID: <dd>' + details['config_id'] +
       '<dt>Score: <dd>' + details['score'] +
       '<dt>Encode command: <dd>' + details['encode_command'] +
       '<dt>Results:<dd><pre>' +
       JSON.stringify(details['result'], null, 2) +
       '</pre></dl>';
+  // Update the "more info" link with the right data (if present).
+  sweeplink = document.getElementById('sweepdatalink');
+  if (sweeplink) {
+    var filename = encoding_info['overall']['avg'][selected_file]['file'];
+    sweeplink.href = '/results/sweepdata.html?codec=' + details['codec']
+      + '&filename=' + filename
+      + '&criterion=' + evaluation_criterion
+      + '&configs=' + Object.keys(codec_to_encodings[details['codec']]).join(',');
+    sweeplink.style.visibility = "visible";
+  }
+}
+
+function showSweepData(parameters) {
+  var param_list = ParseParameters(parameters);
+  var codec = param_list['codec'];
+  var criterion = param_list['criterion'];
+  var filename = param_list['filename'];
+  var configs = param_list['configs'].split(',');
+  // We assume that sweep data is the global variable "sweepdata".
+  var config_data_list = sweepdata['sweepdata'][codec][filename]
+  var list_to_show = [];
+  for (var i = 0; i < configs.length; i++) {
+    list_to_show.push(config_data_list[configs[i]]);
+  }
+  displayGraphLines(list_to_show);
+
+  infotable = document.getElementById('infotable');
+  infotable.innerHTML = '<p>Codec: ' + codec + '<p>Filename: ' + filename;
+  for (var i = 0; i < configs.length; i++) {
+    var para = '<p>' + configs[i];
+    para += ' - ' + sweepdata['sweepdata'][codec][filename][configs[i]].length + ' encodings</p>';
+    infotable.innerHTML += para;
+  }
 }

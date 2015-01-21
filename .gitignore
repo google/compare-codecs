@@ -4,6 +4,7 @@
 vpx_codec_comparison/
 website/out/
 website/tmp/
+website/_data/
 website/results/generated/
 _site
 _config-local.yml

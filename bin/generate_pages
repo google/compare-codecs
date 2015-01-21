@@ -28,8 +28,6 @@ function list_one_criterion {
     for codec2 in $@; do
       if [ $codec1 != $codec2 ]; then
         echo "Generating $codec1 vs $codec2 criterion $criterion"
-        compare_html --criterion $criterion $codec1 $codec2 \
-           > website/results/generated/$codec1-$codec2-$criterion.html
         compare_json --criterion $criterion $codec1 $codec2 \
            > website/results/generated/$codec1-$codec2-$criterion.json
       fi
@@ -41,6 +39,7 @@ function list_one_criterion {
   write_cross_performance_tables --new_style \
       --criterion $criterion $@ \
       > website/results/generated/toplevel-$criterion-new.json
+  generate_sweep_data > website/_data/sweepdata.json
 
 }
 
