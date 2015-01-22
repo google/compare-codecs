@@ -39,11 +39,12 @@ function list_one_criterion {
   write_cross_performance_tables --new_style \
       --criterion $criterion $@ \
       > website/results/generated/toplevel-$criterion-new.json
-  generate_sweep_data > website/_data/sweepdata.json
 
 }
 
 list_one_criterion psnr x264 x264_base vp8 vp9
 list_one_criterion rt x264_rt x264_base vp8 vp9
+generate_sweep_data > website/_data/sweepdata.json.new
+mv website/_data/sweepdata.json.new website/_data/sweepdata.json
 
 chmod -R a+rX website/results/generated

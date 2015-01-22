@@ -15,24 +15,26 @@ This graph shows the PSNR/size of a number of related configurations.
 Mouse over the points on the chart to see the command lines used and the
 detailed results for each encoding.
 
-Note that when picking configurations to display in the "best of" charts,
-the configuration with the highest score is picked, not the one with the
-highest PSNR. Score is displayed in the detailed results.
+Use the buttons at bottom to pick which metric is graphed.
 
 <div id="heading"></div>
 
-<div id="table-and-graph" style="position: relative">
-<div id="infotable" style="float: left; width: 400px; height: 600px"></div>
-
-<div id="metricgraph" style="margin-left: 400px; height:600px"></div>
+<div class="row" id="table-and-graph">
+  <div class="col-md-6" id="infotable"></div>
+  <div class="col-md-6" id="metricgraph" style="height:600px"></div>
 </div>
-
-<div id="encodinginfo"></div>
+<div class="row" id="encodinginfo"></div>
 <script>
 sweepdata = {{ site.data.sweepdata | jsonify }}
 </script>
+<input type="button" value="PSNR"
+ onclick="showSweepData(location.search, 'psnr')">
+<input type="button" value="Score"
+ onclick="showSweepData(location.search, 'score')">
+<input type="button" value="Encode CPU time"
+ onclick="showSweepData(location.search, 'encode_cputime')">
 <script>
 google.setOnLoadCallback(function() {
-  showSweepData(location.search)
+  showSweepData(location.search, 'psnr');
 });
 </script>

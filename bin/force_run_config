@@ -24,14 +24,19 @@ import mpeg_settings
 import encoder
 import pick_codec
 
-def ExecuteConfig(codec_name, config):
+def ExecuteConfig(codec_name, config_string=None, config_id=None):
   codec = pick_codec.PickCodec(codec_name)
   context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
-  my_encoder = encoder.Encoder(
-      context,
-      encoder.OptionValueSet(codec.option_set,
-                             config,
-                             formatter=codec.option_formatter))
+  if config_string and config_id:
+    raise encoder.Error('Cannot have both an ID and a configuration string')
+  if config_string:
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(codec.option_set,
+                              config,
+                              formatter=codec.option_formatter))
+  else:
+    my_encoder = encoder.Encoder(context, filename=config_id)
 
   executed_count = 0
   not_executed_count = 0
@@ -51,12 +56,15 @@ def main():
   parser.add_argument('--score', action='store_true', default=False)
   parser.add_argument('--criterion', default='psnr')
   parser.add_argument('--codec')
-  parser.add_argument('configuration', help='Parameters to use. '
+  parser.add_argument('--config_id', help='ID for the parameter set.')
+  parser.add_argument('configuration', nargs='?', default=None,
+                      help='Parameters to use. '
                       'Remember to quote the string and put'
                       '"--" in the command line before it if needed.')
 
   args = parser.parse_args()
-  ExecuteConfig(args.codec, args.configuration)
+  ExecuteConfig(args.codec, config_id=args.config_id,
+                config_string=args.configuration)
   return 0
 
 if __name__ == '__main__':

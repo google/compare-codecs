@@ -9,6 +9,11 @@ var encoding_info = null;
 var row_to_details = null;  // An array of row-to-details mappings.
 var codec_to_encodings = {};
 var evaluation_criterion = '';
+var metric_units = {
+  'score': 'Score - decibels',
+  'psnr': 'Quality in decibels PSNR',
+  'encode_cputime': 'Encode CPU time in seconds'
+};
 
 function FillInOneTable(url, id) {
   $.ajax({
@@ -113,11 +118,9 @@ function fetchEncodingInfo(parameters) {
 
 function selectBetterHandler() {
   var selection = better_table.getSelection();
-  for (var i = 0; i < selection.length; i++) {
-    item = selection[i];
-  }
+  // Select the last item in the selection.
+  item = selection[selection.length-1];
   selected_file = item.row;
-
   displayGraph(encoding_info['overall']['avg'][selected_file]['file']);
 }
 
@@ -160,7 +163,7 @@ function displayGraph(filename) {
   chart.draw(metricdata, {curveType:'function',
       chartArea:{left:60, top:6, width:"100%", height:"80%"},
       hAxis:{title:"datarate in kbps"},
-      vAxis:{title:"quality in decibels"},
+      vAxis:{title: metric_units['psnr']},
       legend:{position:"in"},
       title:"chart-title",
       pointSize:2,
@@ -172,7 +175,7 @@ function displayGraph(filename) {
 
 }
 
-function displayGraphLines(result_array) {
+function displayGraphLines(result_array, metric) {
   var graph_area = document.getElementById('metricgraph');
   var chart = new google.visualization.ScatterChart(graph_area);
   var metricdata = new google.visualization.DataTable();
@@ -183,7 +186,8 @@ function displayGraphLines(result_array) {
     metricdata.addColumn('number', i);
   }
   // Populate rows.
-  // Also store a global mapping of row number to result.
+  // Also store a global mapping of row number to result,
+  // which is used by the mouseover function.
   row_to_details = [];
   for (var i = 0; i < result_array.length; i++) {
     detailed = result_array[i];
@@ -191,7 +195,11 @@ function displayGraphLines(result_array) {
       var result = detailed[j]['result'];
       var row = new Array(number_of_lines + 1);
       row[0] = result['bitrate'];
-      row[i+1] = result['psnr'];
+      if (metric in detailed[j]) {
+        row[i+1] = detailed[j][metric];
+      } else {
+        row[i+1] = result[metric];
+      }
       metricdata.addRow(row);
       row_to_details.push(detailed[j]);
     }
@@ -199,7 +207,7 @@ function displayGraphLines(result_array) {
   chart.draw(metricdata, {curveType:'function',
       chartArea:{left:60, top:6, width:"100%", height:"80%"},
       hAxis:{title:"datarate in kbps"},
-      vAxis:{title:"quality in decibels"},
+      vAxis:{title: metric_units[metric]},
       legend:{position:"in"},
       title:"chart-title",
       pointSize:2,
@@ -240,7 +248,7 @@ function displayDetailsOnEncoding(row_number) {
   }
 }
 
-function showSweepData(parameters) {
+function showSweepData(parameters, metric) {
   var param_list = ParseParameters(parameters);
   var codec = param_list['codec'];
   var criterion = param_list['criterion'];
@@ -252,10 +260,11 @@ function showSweepData(parameters) {
   for (var i = 0; i < configs.length; i++) {
     list_to_show.push(config_data_list[configs[i]]);
   }
-  displayGraphLines(list_to_show);
+  displayGraphLines(list_to_show, metric);
 
   infotable = document.getElementById('infotable');
-  infotable.innerHTML = '<p>Codec: ' + codec + '<p>Filename: ' + filename;
+  infotable.innerHTML = '<p>Codec: ' + codec + '<p>Filename: ' + filename +
+    '<p>Metric graphed: ' + metric;
   for (var i = 0; i < configs.length; i++) {
     var para = '<p>' + configs[i];
     para += ' - ' + sweepdata['sweepdata'][codec][filename][configs[i]].length + ' encodings</p>';
