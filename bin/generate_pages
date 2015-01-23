@@ -28,8 +28,6 @@ function list_one_criterion {
     for codec2 in $@; do
       if [ $codec1 != $codec2 ]; then
         echo "Generating $codec1 vs $codec2 criterion $criterion"
-        compare_html --criterion $criterion $codec1 $codec2 \
-           > website/results/generated/$codec1-$codec2-$criterion.html
         compare_json --criterion $criterion $codec1 $codec2 \
            > website/results/generated/$codec1-$codec2-$criterion.json
       fi
@@ -46,5 +44,7 @@ function list_one_criterion {
 
 list_one_criterion psnr x264 x264_base vp8 vp9
 list_one_criterion rt x264_rt x264_base vp8 vp9
+generate_sweep_data > website/_data/sweepdata.json.new
+mv website/_data/sweepdata.json.new website/_data/sweepdata.json
 
 chmod -R a+rX website/results/generated
