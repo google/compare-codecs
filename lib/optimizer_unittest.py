@@ -171,9 +171,11 @@ class TestOptimizer(unittest.TestCase):
     my_optimizer = self.StdOptimizer()
     my_encoder = self.EncoderFromParameterString('--score=5')
     first_encoding = my_encoder.Encoding(100, self.videofile)
+    # pylint: disable=W0212
     next_encoding = my_optimizer._EncodingWithOneLessParameter(first_encoding,
                                                               100,
-                                                              self.videofile)
+                                                              self.videofile,
+                                                              None)
     self.assertTrue(next_encoding)
     self.assertEqual(next_encoding.encoder.parameters.ToString(), '')
 

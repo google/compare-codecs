@@ -88,24 +88,34 @@ class Optimizer(object):
           return best_on_this
     return None
 
-  def _EncodingWithOneLessParameter(self, encoding, bitrate, videofile):
+  def _EncodingWithOneLessParameter(self, encoding, bitrate, videofile,
+                                    considered_seen):
     """Find an untried encoder that has one parameter less than this one."""
+    # pylint: disable=R0201
     new_encoder = encoding.encoder.RandomlyRemoveParameter()
     if not new_encoder:
+      return None
+    if considered_seen and new_encoder.Hashname() in considered_seen:
       return None
     new_encoding = new_encoder.Encoding(bitrate, videofile)
     new_encoding.Recover()
     return new_encoding
 
-  def BestUntriedEncoding(self, bitrate, videofile):
-    """Attempts to guess the best untried encoding for this file and rate."""
+  def BestUntriedEncoding(self, bitrate, videofile, considered_seen=None):
+    """Attempts to guess the best untried encoding for this file and rate.
+
+    Arguments:
+    - bitrate - target bitrate in kbits/sec.
+    - videofile - encoder.Videofile object for the file to be encoded.
+    - considered_seen - list of hashnames for encoders that are not wanted.
+    """
     current_best = self.BestEncoding(bitrate, videofile)
     might_work_better = self._WorksBetterOnSomeOtherClip(
         current_best, bitrate, videofile)
     if might_work_better:
       return might_work_better
     might_work_better = self._EncodingWithOneLessParameter(
-        current_best, bitrate, videofile)
+        current_best, bitrate, videofile, considered_seen)
     if might_work_better and not might_work_better.Result():
       return might_work_better
     # Randomly vary some parameters and see if things improve.
