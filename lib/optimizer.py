@@ -101,6 +101,23 @@ class Optimizer(object):
     new_encoding.Recover()
     return new_encoding
 
+  # pylint: disable=unused-argument
+  def _EncodingGoodOnOtherRate(self, encoding, bitrate, videofile,
+                               considered_seen):
+    """Find an untried encoder that is "best" on some other bitrate."""
+
+    if not self.file_set:
+      return None
+    for other_rate in self.file_set.AllRatesForFile(videofile.filename):
+      new_encoder = self.BestEncoding(other_rate, videofile).encoder
+      if considered_seen and new_encoder.Hashname() in considered_seen:
+        continue
+      new_encoding = new_encoder.Encoding(bitrate, videofile)
+      new_encoding.Recover()
+      if not new_encoding.Result():
+        return new_encoding
+    return None
+
   def BestUntriedEncoding(self, bitrate, videofile, considered_seen=None):
     """Attempts to guess the best untried encoding for this file and rate.
 
@@ -112,6 +129,10 @@ class Optimizer(object):
     current_best = self.BestEncoding(bitrate, videofile)
     might_work_better = self._WorksBetterOnSomeOtherClip(
         current_best, bitrate, videofile)
+    if might_work_better:
+      return might_work_better
+    might_work_better = self._EncodingGoodOnOtherRate(
+        current_best, bitrate, videofile, considered_seen)
     if might_work_better:
       return might_work_better
     might_work_better = self._EncodingWithOneLessParameter(

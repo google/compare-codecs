@@ -179,6 +179,23 @@ class TestOptimizer(unittest.TestCase):
     self.assertTrue(next_encoding)
     self.assertEqual(next_encoding.encoder.parameters.ToString(), '')
 
+  def test_EncodingGoodOnOtherRate(self):
+    self.file_set = optimizer.FileAndRateSet()
+    self.file_set.AddFilesAndRates([self.videofile.filename], [100, 200])
+    my_optimizer = self.StdOptimizer()
+    my_encoder = self.EncoderFromParameterString('--score=7')
+    my_encoder.Encoding(100, self.videofile).Execute().Store()
+    first_encoder = self.EncoderFromParameterString('--score=8')
+    first_encoding = first_encoder.Encoding(200, self.videofile)
+    first_encoding.Execute().Store()
+    # pylint: disable=W0212
+    next_encoding = my_optimizer._EncodingGoodOnOtherRate(first_encoding,
+                                                          200,
+                                                          self.videofile,
+                                                          None)
+    self.assertTrue(next_encoding)
+    self.assertEqual('--score=7', next_encoding.encoder.parameters.ToString())
+
 
 class TestFileAndRateSet(unittest.TestCase):
 

@@ -33,6 +33,9 @@ $LIBDIR/h261_unittest.py
 $LIBDIR/mjpeg_unittest.py
 $LIBDIR/vp9_unittest.py
 
+# Large tests
+$LIBDIR/optimizer_largetest.py
+
 echo "Running pylint"
 pylint $(ls lib/*.py | grep -v 'gviz_api.py')
 # There is a backslash below in order to avoid the grep finding itself.

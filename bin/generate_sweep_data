@@ -57,16 +57,16 @@ def ReportOneSweep(codec_name, criterion_name, videofile_name, encoder_name):
 def ReportOnEncoders(criterion, codec_name, videofile_name,
                      encoders, sweepdata):
 
-  for encoder in encoders:
-    # The reporting format is a dict keyed by codec name, where
-    # each member is a dict keyed by filename.
-    # In the filename-keyed dict, each member is a dict keyed
-    # by the encoder identifier, which is in turn a list
-    # of encodings returned by ReportOneSweeep.
-    list_of_codecs = sweepdata.setdefault(codec_name, {})
-    list_of_encodings = list_of_codecs.setdefault(videofile_name, {})
-    list_of_encodings[encoder] = (
-      ReportOneSweep(codec_name, criterion, videofile_name, encoder))
+  # The reporting format is a dict keyed by codec name, where
+  # each member is a dict keyed by filename.
+  # In the filename-keyed dict, each member is a dict keyed
+  # by the encoder identifier, which is in turn a list
+  # of encodings returned by ReportOneSweeep.
+  list_of_codecs = sweepdata.setdefault(codec_name, {})
+  list_of_encodings = list_of_codecs.setdefault(videofile_name, {})
+  for this_encoder in encoders:
+    list_of_encodings[this_encoder] = (
+      ReportOneSweep(codec_name, criterion, videofile_name, this_encoder))
 
 
 def main():
@@ -74,8 +74,8 @@ def main():
   sweepdata = {}
   codecs = {}
   for filename in files:
-    with open(filename, 'r') as file:
-      resultobject = json.load(file)
+    with open(filename, 'r') as input_file:
+      resultobject = json.load(input_file)
       if not 'detailed' in resultobject:
         # Not a details file. Skip.
         continue
