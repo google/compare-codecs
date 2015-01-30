@@ -27,6 +27,7 @@ import optimizer
 import test_tools
 import vp8
 
+
 class DummyCodec(encoder.Codec):
   def __init__(self):
     super(DummyCodec, self).__init__('dummy')
@@ -43,9 +44,9 @@ class DummyCodec(encoder.Codec):
 
   def Execute(self, parameters, rate, videofile, workdir):
     # pylint: disable=W0613
-    m = re.search(r'--score=(\d+)', parameters.ToString())
-    if m:
-      return {'psnr': int(m.group(1)), 'bitrate': 100}
+    match = re.search(r'--score=(\d+)', parameters.ToString())
+    if match:
+      return {'psnr': int(match.group(1)), 'bitrate': 100}
     else:
       return {'psnr': -100, 'bitrate': 100}
 
@@ -70,9 +71,8 @@ def ReturnsClipTime(target_bitrate, result):
 
 
 class TestOptimization(test_tools.FileUsingCodecTest):
-
-  def test_Optimize(self):
-    """Run the optimizer for a few cycles.
+  def test_OptimizeOverMultipleEncoders(self):
+    """Run the optimizer for a few cycles with a real codec.
 
     This may turn out to be an over-heavy test for every-checkin testing."""
     my_fileset = test_tools.TestFileSet()
