@@ -33,7 +33,9 @@ os.getenv(CODEC_TOOLPATH) gives the directory of encoder/decoder tools.
 """
 
 import ast
+import exceptions
 import glob
+import json
 import md5
 import os
 import random
@@ -795,7 +797,7 @@ class EncodingDiskCache(object):
       return
     videoname = encoding.videofile.basename
     with open('%s/%s.result' % (dirname, videoname), 'w') as resultfile:
-      resultfile.write(str(encoding.result))
+      json.dump(encoding.result, resultfile, indent=2)
 
   def ReadEncodingResult(self, encoding, scoredir=None):
     """Reads an encoding result back from storage, if present.
@@ -813,9 +815,15 @@ class EncodingDiskCache(object):
       with open(filename, 'r') as resultfile:
         stringbuffer = resultfile.read()
         try:
-          return ast.literal_eval(stringbuffer)
+          return json.loads(stringbuffer)
+        except exceptions.ValueError:
+          try:
+            return ast.literal_eval(stringbuffer)
+          except:
+            raise Error('Unexpected AST error: %s, filename was %s' %
+                        (sys.exc_info()[0], filename))
         except:
-          raise Error('Unexpected AST error: %s, filename was %s' %
+          raise Error('Unexpected JSON error: %s, filename was %s' %
                       (sys.exc_info()[0], filename))
     return None
 

@@ -535,6 +535,30 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     result = cache.AllScoredEncodings(123, videofile)
     self.assertEquals(1, len(result))
 
+  def testReadResultEncodedInAst(self):
+    # We've changed the storage format for results from AST to JSON.
+    # This test verifies that AST formatted results are still readable.
+    context = StorageOnlyContext()
+    cache = encoder.EncodingDiskCache(context)
+    my_encoder = encoder.Encoder(
+        context,
+        encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
+    cache.StoreEncoder(my_encoder)
+    my_encoding = encoder.Encoding(my_encoder, 123,
+                                   encoder.Videofile('x/foo_640_480_20.yuv'))
+    testresult = {'foo': 'bar'}
+    my_encoding.result = testresult
+    # The following code is a copy of cache.StoreEncoding, with the
+    # encoding step changed.
+    dirname = '%s/%s/%s' % (cache.workdir, my_encoding.encoder.Hashname(),
+                            cache.context.codec.SpeedGroup(my_encoding.bitrate))
+    videoname = my_encoding.videofile.basename
+    with open('%s/%s.result' % (dirname, videoname), 'w') as resultfile:
+      resultfile.write(str(my_encoding.result))
+
+    my_encoding.result = None
+    result = cache.ReadEncodingResult(my_encoding)
+    self.assertEquals(result, testresult)
 
 
 class TestEncodingMemoryCache(unittest.TestCase):
