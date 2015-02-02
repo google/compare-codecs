@@ -27,9 +27,9 @@ import pick_codec
 def ExecuteConfig(codec_name, config_string=None, config_id=None):
   codec = pick_codec.PickCodec(codec_name)
   context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
-  if config_string and config_id:
+  if config_string is not None and config_id is not None:
     raise encoder.Error('Cannot have both an ID and a configuration string')
-  if config_string:
+  if config_string is not None:
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(codec.option_set,
