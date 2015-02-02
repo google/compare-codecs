@@ -71,6 +71,7 @@ def ReturnsClipTime(target_bitrate, result):
 
 
 class TestOptimization(test_tools.FileUsingCodecTest):
+  # pylint: disable=R0201
   def test_OptimizeOverMultipleEncoders(self):
     """Run the optimizer for a few cycles with a real codec.
 

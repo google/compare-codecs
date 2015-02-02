@@ -102,7 +102,7 @@ class Optimizer(object):
     new_encoding.Recover()
     return new_encoding
 
-  # pylint: disable=unused-argument
+  # pylint: disable=W0613
   def _EncodingGoodOnOtherRate(self, encoding, bitrate, videofile,
                                hashnames_to_ignore):
     """Find an untried encoder that is "best" on some other bitrate."""
@@ -127,7 +127,7 @@ class Optimizer(object):
     - bitrate - target bitrate in kbits/sec.
     - videofile - encoder.Videofile object for the file to be encoded.
     - hashnames_to_ignore - set of hashnames for encoders that should not be
-                        returned from this function..
+                            returned from this function.
     """
     hashnames_to_ignore = hashnames_to_ignore or set()
     current_best = self.BestEncoding(bitrate, videofile)
