@@ -88,24 +88,59 @@ class Optimizer(object):
           return best_on_this
     return None
 
-  def _EncodingWithOneLessParameter(self, encoding, bitrate, videofile):
+  def _EncodingWithOneLessParameter(self, encoding, bitrate, videofile,
+                                    hashnames_to_ignore):
     """Find an untried encoder that has one parameter less than this one."""
+    # pylint: disable=R0201
+    hashnames_to_ignore = hashnames_to_ignore or set()
     new_encoder = encoding.encoder.RandomlyRemoveParameter()
     if not new_encoder:
+      return None
+    if new_encoder.Hashname() in hashnames_to_ignore:
       return None
     new_encoding = new_encoder.Encoding(bitrate, videofile)
     new_encoding.Recover()
     return new_encoding
 
-  def BestUntriedEncoding(self, bitrate, videofile):
-    """Attempts to guess the best untried encoding for this file and rate."""
+  # pylint: disable=W0613
+  def _EncodingGoodOnOtherRate(self, encoding, bitrate, videofile,
+                               hashnames_to_ignore):
+    """Find an untried encoder that is "best" on some other bitrate."""
+
+    hashnames_to_ignore = hashnames_to_ignore or set()
+    if not self.file_set:
+      return None
+    for other_rate in self.file_set.AllRatesForFile(videofile.filename):
+      new_encoder = self.BestEncoding(other_rate, videofile).encoder
+      if new_encoder.Hashname() in hashnames_to_ignore:
+        continue
+      new_encoding = new_encoder.Encoding(bitrate, videofile)
+      new_encoding.Recover()
+      if not new_encoding.Result():
+        return new_encoding
+    return None
+
+  def BestUntriedEncoding(self, bitrate, videofile, hashnames_to_ignore=None):
+    """Attempts to guess the best untried encoding for this file and rate.
+
+    Arguments:
+    - bitrate - target bitrate in kbits/sec.
+    - videofile - encoder.Videofile object for the file to be encoded.
+    - hashnames_to_ignore - set of hashnames for encoders that should not be
+                            returned from this function.
+    """
+    hashnames_to_ignore = hashnames_to_ignore or set()
     current_best = self.BestEncoding(bitrate, videofile)
     might_work_better = self._WorksBetterOnSomeOtherClip(
         current_best, bitrate, videofile)
     if might_work_better:
       return might_work_better
+    might_work_better = self._EncodingGoodOnOtherRate(
+        current_best, bitrate, videofile, hashnames_to_ignore)
+    if might_work_better:
+      return might_work_better
     might_work_better = self._EncodingWithOneLessParameter(
-        current_best, bitrate, videofile)
+        current_best, bitrate, videofile, hashnames_to_ignore)
     if might_work_better and not might_work_better.Result():
       return might_work_better
     # Randomly vary some parameters and see if things improve.

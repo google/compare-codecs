@@ -21,6 +21,7 @@ import tempfile
 import unittest
 
 import encoder
+import optimizer
 
 def InitWorkDir():
   dirname = tempfile.mkdtemp(prefix='codec-unittest-workdir')
@@ -45,6 +46,20 @@ def FinishWorkDir(dirname):
   if os.environ['CODEC_WORKDIR'] != dirname:
     raise encoder.Error('Dirname was wrong in FinishWorkDir')
   shutil.rmtree(dirname)
+
+def TestFileSet():
+  """Returns a file set containing a file with one black frame.
+
+  Creates the file as a side effect."""
+
+  the_set = optimizer.FileAndRateSet()
+  filename = 'one_black_frame_1024_768_30.yuv'
+  MakeYuvFileWithOneBlankFrame(filename)
+  my_directory = os.environ['CODEC_WORKDIR']
+  the_set.AddFilesAndRates([filename],
+                           [300, 1000, 3000],
+                           my_directory)
+  return the_set
 
 class FileUsingCodecTest(unittest.TestCase):
   @classmethod
