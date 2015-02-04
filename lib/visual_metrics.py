@@ -221,6 +221,7 @@ def DataSetBetter(metric_set1, metric_set2, method):
   Compares two data sets and determines which is better and by how
   much.
   The input metric set is sorted on bitrate.
+  The first set is the one to compare, the second set is the baseline.
   """
   # Be fair to both graphs by testing all the points in each.
   if method == 'avg':
@@ -271,7 +272,7 @@ def HtmlPage(page_template, page_title="", page_subtitle="",
 
 
 def ListOneTarget(codecs, rate, videofile, do_score, datatable,
-                  score_function=None, full_results=False):
+                  score_function=None):
   """Extend a datatable with the info about one video file's scores."""
   for codec_name in codecs:
     # For testing:
@@ -282,60 +283,71 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
     else:
       my_optimizer = codec_name
       codec_name = my_optimizer.context.codec.name
-    bestsofar = my_optimizer.BestEncoding(rate, videofile)
-    if do_score and not bestsofar.Result():
-      bestsofar.Execute()
-      bestsofar.Store()
-    assert(bestsofar.Result())
-    # Ignore results that score less than zero.
-    if my_optimizer.Score(bestsofar) < 0.0:
-      return
-    if full_results:
-      # Datatable is a dictionary of codec name -> result sets.
-      # Each result set is an array containing result info.
-      # Each result info is a dictionary containing the
-      # ID of the configuration used, the
-      # target bitrate, the command line, the score and the result.
-      (datatable.setdefault(codec_name, {})
-          .setdefault(videofile.basename, [])
-          .append({'config_id': bestsofar.encoder.Hashname(),
-                   'target_bitrate': rate,
-                   'encode_command': bestsofar.EncodeCommandLine(),
-                   'score': my_optimizer.Score(bestsofar),
-                   'result': bestsofar.ResultWithoutFrameData()}))
-    else:
-      # Datatable is a dictionary of codec name -> result sets.
-      # Each result set is an array containing result info.
-      # Each result info contains the achieved bitrate and the PSNR.
-      (datatable.setdefault(codec_name, {})
-          .setdefault(videofile.basename, [])
-          .append((bestsofar.result['bitrate'], bestsofar.result['psnr'])))
+    best_encoding = my_optimizer.BestEncoding(rate, videofile)
+    if do_score and not best_encoding.Result():
+      best_encoding.Execute()
+      best_encoding.Store()
+    AddOneEncoding(codec_name, my_optimizer, best_encoding, videofile,
+                   datatable)
 
 
-def ListMpegResults(codecs, do_score, datatable, score_function=None,
-                    full_results=False):
+def AddOneEncoding(codec_name, my_optimizer, this_encoding, videofile,
+                  datatable):
+  assert(this_encoding.Result())
+  # Ignore results that score less than zero.
+  if my_optimizer.Score(this_encoding) < 0.0:
+    return
+  # Datatable is a dictionary of codec name -> result sets.
+  # Each result set is an array containing result info.
+  # Each result info is a dictionary containing the
+  # ID of the configuration used, the
+  # target bitrate, the command line, the score and the result.
+  (datatable.setdefault(codec_name, {})
+     .setdefault(videofile.basename, [])
+     .append({'config_id': this_encoding.encoder.Hashname(),
+              'target_bitrate': this_encoding.bitrate,
+              'encode_command': this_encoding.EncodeCommandLine(),
+              'score': my_optimizer.Score(this_encoding),
+              'result': this_encoding.ResultWithoutFrameData()}))
+
+
+def ListMpegResults(codecs, do_score, datatable, score_function=None):
   """List all scores for all tests in the MPEG test set for a set of codecs."""
   # It is necessary to sort on target bitrate in order for graphs to display
   # correctly.
   for rate, filename in sorted(mpeg_settings.MpegFiles().AllFilesAndRates()):
     videofile = encoder.Videofile(filename)
     ListOneTarget(codecs, rate, videofile, do_score, datatable,
-                  score_function, full_results)
+                  score_function)
 
 
-def ExtractBitrateAndPsnr(datatable, codec, filename, full_results=False):
-  if full_results:
-    dataset = [(r['result']['bitrate'], r['result']['psnr'])
-               for r in datatable[codec][filename]]
-  else:
-    dataset = datatable[codec][filename]
+def ListMpegSingleConfigResults(codecs, datatable, score_function=None):
+  encoder_list = {}
+  optimizer_list = {}
+  for codec_name in codecs:
+    codec = pick_codec.PickCodec(codec_name)
+    my_optimizer = optimizer.Optimizer(codec,
+        score_function=score_function, file_set=mpeg_settings.MpegFiles())
+    optimizer_list[codec_name] = my_optimizer
+    encoder_list[codec_name] = my_optimizer.BestOverallEncoder()
+  for rate, filename in sorted(mpeg_settings.MpegFiles().AllFilesAndRates()):
+    videofile = encoder.Videofile(filename)
+    for codec_name in codecs:
+      if encoder_list[codec_name]:
+        my_encoding = encoder_list[codec_name].Encoding(rate, videofile)
+        my_encoding.Recover()
+        AddOneEncoding(codec_name, optimizer_list[codec_name],
+                       my_encoding, videofile, datatable)
+
+
+def ExtractBitrateAndPsnr(datatable, codec, filename):
+  dataset = [(r['result']['bitrate'], r['result']['psnr'])
+             for r in datatable[codec][filename]]
   return dataset
 
 
-def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
-                          full_results=False):
+def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs):
   """Builds a table of comparison data for this metric."""
-
 
   # Find the metric files in the baseline codec.
   videofile_name_list = datatable[baseline_codec].keys()
@@ -354,8 +366,7 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
     row = {'file': filename }
     baseline_dataset = ExtractBitrateAndPsnr(datatable,
                                              baseline_codec,
-                                             filename,
-                                             full_results)
+                                             filename)
     # Read the metric file from each of the directories in our list.
     for this_codec in other_codecs:
 
@@ -365,8 +376,7 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs,
           and filename in datatable[baseline_codec]):
         this_dataset = ExtractBitrateAndPsnr(datatable,
                                              this_codec,
-                                             filename,
-                                             full_results)
+                                             filename)
         overall = DataSetBetter(
           baseline_dataset, this_dataset, metric)
         row[this_codec] = overall
@@ -398,8 +408,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
   return gviz_data_table
 
 
-def CrossPerformanceGvizTable(datatable, metric, codecs, criterion,
-                              new_style_links=False):
+def CrossPerformanceGvizTable(datatable, metric, codecs, criterion):
   """Build a square table of codecs and relative performance."""
   videofile_name_list = datatable[codecs[0]].keys()
 
@@ -418,17 +427,13 @@ def CrossPerformanceGvizTable(datatable, metric, codecs, criterion,
           if (codec1 in datatable and filename in datatable[codec1]
               and codec2 in datatable and filename in datatable[codec2]):
             overall += DataSetBetter(
-              datatable[codec1][filename],
-              datatable[codec2][filename], metric)
+              ExtractBitrateAndPsnr(datatable, codec2, filename),
+              ExtractBitrateAndPsnr(datatable, codec1, filename), metric)
             count += 1
         if count > 0:
-          if new_style_links:
-            display = ('<a href=/results/show_result.html?' +
-                       'codec1=%s&codec2=%s&criterion=%s>%5.2f</a>') % (
-              codec1, codec2, criterion, overall / count)
-          else:
-            display = '<a href=/results/generated/%s-%s-%s.html>%5.2f</a>' % (
-              codec1, codec2, criterion, overall / count)
+          display = ('<a href=/results/show_result.html?' +
+                     'codec1=%s&codec2=%s&criterion=%s>%5.2f</a>') % (
+                       codec2, codec1, criterion, overall / count)
           lineitem[codec2] = (overall / count, display)
     data.append(lineitem)
 

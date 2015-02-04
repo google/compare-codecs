@@ -46,12 +46,8 @@ function FillInOneTable(url, id) {
 }
 
 function FillInAllTables() {
-  FillInOneTable('/results/generated/toplevel-psnr.json', 'basic-results')
-  FillInOneTable('/results/generated/toplevel-rt.json', 'rt-results')
-}
-
-function FillInAllTablesNew() {
-  FillInOneTable('/results/generated/toplevel-psnr-new.json', 'basic-results')
+  FillInOneTable('/results/generated/toplevel-psnr-single.json', 'config-results')
+  FillInOneTable('/results/generated/toplevel-psnr-new.json', 'tuned-results')
   FillInOneTable('/results/generated/toplevel-rt-new.json', 'rt-results')
 }
 
@@ -86,8 +82,9 @@ function fetchEncodingInfo(parameters) {
     encoding_info = responseObject;
     var heading = document.getElementById("heading");
     var codec_names = responseObject['codecs'];
-    heading.innerHTML = codec_names[0][1] + ' and ' + codec_names[1][1] +
-      ' on criterion ' + criterion;
+    heading.innerHTML = 'Baseline: ' + codec_names[1][1] + '<br>' +
+      'Compared to: ' + codec_names[0][1] + '<br>' +
+      'Criterion: ' + criterion;
     var bettertable = document.getElementById("bettertable");
     // Construct a table with the codecs across, and the file names
     // down. Show relative performance of all codecs but the first one.

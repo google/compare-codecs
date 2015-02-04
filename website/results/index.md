@@ -17,13 +17,37 @@ This is the result of comparing encodings based on PSNR and file size being
 below a certain bitrate, with no restrictions on tools applied, and no
 penalty applied for moving bits around within the bitstream.
 
-The top row gives the baseline codec; the first column gives the codec it
+The first column gives the baseline codec; the top row gives the codec it
 is compared to, and the number gives the change in bitrate between the two
 for the same quality metric.
 
+Positive numbers indicate an increase in filesize (left codec is better);
+negative numbers indicate a decrease in filesize (top codec is better).
+
 <!--Note: This table will be overwritten on page load.
     It is present to show what the tables will look like. -->
-<div id="basic-results">
+<div id="config-results">
+
+| PLACEHOLDER |        VP8 |        x264 |  H263 |
+| ----------- | ---------- | ----------- | ----- |
+| VP8         |            |        -22% |  -71% |
+| x264        |       +30% |             |  -64% |
+| H263        |      +262% |       +203% |       |
+{:.td-right}
+
+</div>
+
+### Tuned results listing
+
+This is the same results as above, but this time, we add the ability to
+tune the parameters at each data point.
+
+This will show how far it's possible to squeeze the performance of each
+codec - "you can't do better than this".
+
+<!--Note: This table will be overwritten on page load.
+    It is present to show what the tables will look like. -->
+<div id="tuned-results">
 
 | PLACEHOLDER |        VP8 |        x264 |  H263 |
 | ----------- | ---------- | ----------- | ----- |
@@ -91,5 +115,5 @@ no matter what the content of the original frame N+1 and later were.
 </div>
 
 <script>
-google.setOnLoadCallback(FillInAllTablesNew);
+google.setOnLoadCallback(FillInAllTables);
 </script>

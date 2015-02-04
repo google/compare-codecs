@@ -46,6 +46,8 @@ class Optimizer(object):
     else:
       result = self.context.cache.ReadEncodingResult(encoding,
           scoredir=scoredir)
+    if not result:
+      raise encoder.Error('Trying to score an encoding without result')
     score = self.score_function(encoding.bitrate, result)
     # Weakly penalize long command lines.
     score -= len(encoding.encoder.parameters.values) * 0.00001
@@ -151,6 +153,40 @@ class Optimizer(object):
         return encoding
     return None
 
+  def BestOverallEncoder(self):
+    """Returns the configuration that is best over all files.
+
+    This looks only at configurations that have been run for every
+    file and rate in the fileset."""
+    files_and_rates = self.file_set.AllFilesAndRates()
+    all_scored_encodings = self.context.cache.AllScoredEncodings(
+        files_and_rates[0][0],
+        encoder.Videofile(files_and_rates[0][1]))
+    candidate_encoders = set([x.encoder.Hashname()
+                              for x in all_scored_encodings])
+    for rate, filename in files_and_rates[1:]:
+      these_encoders = set([x.encoder.Hashname()
+                            for x in self.context.cache.AllScoredEncodings(
+                              rate, encoder.Videofile(filename))])
+      candidate_encoders.intersection_update(these_encoders)
+    if len(candidate_encoders) == 0:
+      return None
+    if len(candidate_encoders) == 1:
+      return encoder.Encoder(self.context, filename=candidate_encoders.pop())
+    best_score = -10000
+    best_encoder = None
+    for hashname in candidate_encoders:
+      this_total = 0
+      this_encoder = encoder.Encoder(self.context, filename=hashname)
+      for rate, filename in files_and_rates:
+        this_encoding = this_encoder.Encoding(rate, encoder.Videofile(filename))
+        this_encoding.Recover()
+        this_total += self.Score(this_encoding)
+      if this_total > best_score:
+        best_score = this_total
+        best_encoder = this_encoder
+    return best_encoder
+
 
 class FileAndRateSet(object):
   def __init__(self):
@@ -175,3 +211,9 @@ class FileAndRateSet(object):
       if filename == filename_to_find:
         rates.add(rate)
     return list(rates)
+
+  def AllFileNames(self):
+    names = set()
+    for _, filename in self.AllFilesAndRates():
+      names.add(filename)
+    return list(names)
