@@ -27,7 +27,7 @@ RATE=850
 VIDEOFILE=video/mpeg_video/Johnny_1280x720_60.yuv
 
 compare_codecs vp8 vp9 > /dev/null
-compare_html vp8 vp9 > /dev/null
+compare_json vp8 vp9 > /dev/null
 force_run_config --codec h261 -- ''
 frame_size_tool $RATE $VIDEOFILE > /dev/null
 # generate_pages

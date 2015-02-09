@@ -196,6 +196,36 @@ class TestOptimizer(unittest.TestCase):
     self.assertTrue(next_encoding)
     self.assertEqual('--score=7', next_encoding.encoder.parameters.ToString())
 
+  def test_BestOverallConfiguration(self):
+    self.file_set = optimizer.FileAndRateSet()
+    self.file_set.AddFilesAndRates([self.videofile.filename], [100, 200])
+    my_optimizer = self.StdOptimizer()
+    # When there is nothing in the database, None should be returned.
+    best_encoder = my_optimizer.BestOverallEncoder()
+    self.assertIsNone(best_encoder)
+    # Fill in the database with all the files and rates.
+    my_encoder = self.EncoderFromParameterString('--score=7')
+    for rate, filename in self.file_set.AllFilesAndRates():
+      my_encoder.Encoding(rate, encoder.Videofile(filename)).Execute().Store()
+    best_encoder = my_optimizer.BestOverallEncoder()
+    self.assertTrue(best_encoder)
+    self.assertEquals(my_encoder.parameters.ToString(),
+                      best_encoder.parameters.ToString())
+    # Add an incomplete encode. This should be ignored.
+    (self.EncoderFromParameterString('--score=9')
+        .Encoding(100, self.videofile).Execute().Store())
+    best_encoder = my_optimizer.BestOverallEncoder()
+    self.assertTrue(best_encoder)
+    self.assertEquals(my_encoder.parameters.ToString(),
+                      best_encoder.parameters.ToString())
+     #  Complete the set for 'score=9'. This should cause a change.
+    (self.EncoderFromParameterString('--score=9')
+        .Encoding(200, self.videofile).Execute().Store())
+    best_encoder = my_optimizer.BestOverallEncoder()
+    self.assertTrue(best_encoder)
+    self.assertEquals('--score=9',
+                      best_encoder.parameters.ToString())
+
 
 class TestFileAndRateSet(unittest.TestCase):
 

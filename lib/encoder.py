@@ -842,7 +842,7 @@ class EncodingMemoryCache(object):
     result = []
     for encoding in self.encodings:
       if (bitrate == encoding.bitrate and
-          videofile == encoding.videofile and
+          videofile.filename == encoding.videofile.filename and
           encoding.Result()):
         result.append(encoding)
     return result
@@ -879,7 +879,7 @@ class EncodingMemoryCache(object):
     # we must find an encoding with the same properties as the one we're
     # reading parameters for, and return the result from that.
     for encoding in self.encodings:
-      if (encoding_in.videofile == encoding.videofile and
+      if (encoding_in.videofile.filename == encoding.videofile.filename and
           encoding_in.encoder.parameters.ToString() ==
               encoding.encoder.parameters.ToString() and
           encoding_in.bitrate == encoding.bitrate and

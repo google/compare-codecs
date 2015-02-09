@@ -49,9 +49,16 @@ class FakeOptimizer(object):
     return 1.0
 
 
+class FakeEncoder(object):
+  def Hashname(self):
+    return 'FakeName'
+
+
 class FakeEncoding(object):
   def __init__(self):
     self.result = {'bitrate': 1000, 'psnr': 1.0}
+    self.encoder = FakeEncoder()
+    self.bitrate = 1000
 
   def Execute(self):
     pass
@@ -61,6 +68,12 @@ class FakeEncoding(object):
 
   def Result(self):
     return self.result
+
+  def ResultWithoutFrameData(self):
+    return self.Result()
+
+  def EncodeCommandLine(self):
+    return '# Fake command line'
 
 
 class TestVisualMetricsFunctions(unittest.TestCase):
@@ -152,6 +165,40 @@ class TestVisualMetricsFunctions(unittest.TestCase):
     data_table = visual_metrics.CrossPerformanceGvizTable(
         datatable, metric, codecs, 'psnr')
     self.assertEquals(2, data_table.NumberOfRows())
+
+  def test_BuildComparisonTable(self):
+    datatable = {
+      'codec1': { 'dummyfile' : [
+        {'result':{'bitrate': 100, 'psnr': 30.0 }},
+        {'result':{'bitrate': 200, 'psnr': 40.0 }}
+      ]},
+      'codec2': { 'dummyfile' : [
+        {'result':{'bitrate': 100, 'psnr': 31.0 }},
+        {'result':{'bitrate': 200, 'psnr': 42.0 }}
+      ]},
+    }
+    result = visual_metrics.BuildComparisonTable(datatable, 'avg',
+                                                 'codec1', ['codec2'])
+    self.assertEquals(2, len(result))
+    self.assertEquals('OVERALL avg', result[1]['file'])
+
+  def test_CrossPerformanceGvizTable(self):
+    datatable = {
+      'codec1': { 'dummyfile' : [
+        {'result':{'bitrate': 100, 'psnr': 30.0 }},
+        {'result':{'bitrate': 200, 'psnr': 40.0 }}
+      ]},
+      'codec2': { 'dummyfile' : [
+        {'result':{'bitrate': 100, 'psnr': 31.0 }},
+        {'result':{'bitrate': 200, 'psnr': 42.0 }}
+      ]},
+    }
+    result = visual_metrics.CrossPerformanceGvizTable(datatable, 'avg',
+                                                      ['codec1', 'codec2'],
+                                                      'rt')
+    self.assertEquals(3, len(result.columns))
+    self.assertEquals(2, result.NumberOfRows())
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -30,31 +30,49 @@ import score_tools
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('videofile')
+  parser.add_argument('videofile', nargs='?')
   parser.add_argument('--codec')
   parser.add_argument('--component')
+  parser.add_argument('--single_config', action='store_true')
   parser.add_argument('--criterion', default='psnr')
 
   args = parser.parse_args()
 
-  videofile = encoder.Videofile(args.videofile)
   codec = pick_codec.PickCodec(args.codec)
   my_optimizer = optimizer.Optimizer(codec,
-      score_function=score_tools.PickScorer(args.criterion))
+      score_function=score_tools.PickScorer(args.criterion),
+      file_set=mpeg_settings.MpegFiles())
+  if args.videofile:
+    videofiles = [args.videofile]
+  else:
+    videofiles=my_optimizer.file_set.AllFileNames()
 
-  for bitrate in mpeg_settings.MpegFiles().AllRatesForFile(args.videofile):
-    encoding = my_optimizer.BestEncoding(bitrate, videofile)
-    if not encoding.Result():
-      continue
-    if args.component:
-      component = encoding.result[args.component]
-    else:
-      component = ''
-    print '%s %d %f %s %s' % (encoding.encoder.Hashname(),
-                              bitrate,
-                              my_optimizer.Score(encoding),
-                              component,
-                              encoding.encoder.parameters.ToString())
+  if args.single_config:
+    best_encoder = my_optimizer.BestOverallEncoder()
+    if not best_encoder:
+      print 'No overall best encoder'
+      return 1
+  for videofile_name in videofiles:
+    print '--- %s ---' % videofile_name
+    videofile = encoder.Videofile(videofile_name)
+    for bitrate in sorted(
+        mpeg_settings.MpegFiles().AllRatesForFile(videofile_name)):
+      if args.single_config:
+        encoding = best_encoder.Encoding(bitrate, videofile)
+        encoding.Recover()
+      else:
+        encoding = my_optimizer.BestEncoding(bitrate, videofile)
+      if not encoding.Result():
+        continue
+      if args.component:
+        component = encoding.result[args.component]
+      else:
+        component = ''
+      print '%s %d %f %s %s' % (encoding.encoder.Hashname(),
+                                bitrate,
+                                my_optimizer.Score(encoding),
+                                component,
+                                encoding.encoder.parameters.ToString())
 
 if __name__ == '__main__':
   sys.exit(main())

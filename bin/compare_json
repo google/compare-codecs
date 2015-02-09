@@ -40,6 +40,7 @@ import visual_metrics
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--single_config', action='store_true', default=False)
   parser.add_argument('--criterion', default='psnr')
   parser.add_argument('codecs', nargs='*')
   args = parser.parse_args()
@@ -49,15 +50,17 @@ def main():
 
   datatable = {}
   score_function = score_tools.PickScorer(args.criterion)
-  visual_metrics.ListMpegResults(args.codecs, args.score, datatable,
-                                 score_function=score_function,
-                                 full_results=True)
+  if args.single_config:
+    visual_metrics.ListMpegSingleConfigResults(args.codecs, datatable,
+                                               score_function=score_function)
+  else:
+    visual_metrics.ListMpegResults(args.codecs, args.score, datatable,
+                                   score_function=score_function)
   overall = {}
   for metric in ['avg', 'dsnr', 'drate']:
     overall[metric] = visual_metrics.BuildComparisonTable(datatable, metric,
                                                           args.codecs[0],
-                                                          args.codecs[1:],
-                                                          full_results=True)
+                                                          args.codecs[1:])
   info_to_print = {'codecs': codec_names,
                    'overall': overall,
                    'detailed': datatable}

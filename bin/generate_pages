@@ -30,20 +30,27 @@ function list_one_criterion {
         echo "Generating $codec1 vs $codec2 criterion $criterion"
         compare_json --criterion $criterion $codec1 $codec2 \
            > website/results/generated/$codec1-$codec2-$criterion.json
+        compare_json --criterion $criterion --single_config $codec1 $codec2 \
+           > website/results/generated/$codec1-$codec2-$criterion-single.json
       fi
     done
   done
   echo "Generating cross performance tables for $criterion"
-  write_cross_performance_tables --criterion $criterion vp8 vp9 x264 h263 \
-      > website/results/generated/toplevel-$criterion.json
-  write_cross_performance_tables --new_style \
+  write_cross_performance_tables \
       --criterion $criterion $@ \
       > website/results/generated/toplevel-$criterion-new.json
+  write_cross_performance_tables --single_config \
+      --criterion $criterion $@ \
+      > website/results/generated/toplevel-$criterion-single.json
 
 }
 
 list_one_criterion psnr x264 x264_base vp8 vp9
 list_one_criterion rt x264_rt x264_base vp8 vp9
+
+if [ ! -d website/_data ]; then
+  mkdir website/_data
+fi
 generate_sweep_data > website/_data/sweepdata.json.new
 mv website/_data/sweepdata.json.new website/_data/sweepdata.json
 

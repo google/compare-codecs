@@ -75,12 +75,18 @@ def main():
   codecs = {}
   for filename in files:
     with open(filename, 'r') as input_file:
-      resultobject = json.load(input_file)
+      try:
+        resultobject = json.load(input_file)
+      except ValueError:
+        print >> sys.stderr, 'Unreadable JSON file: %s' % filename
+        continue
       if not 'detailed' in resultobject:
         # Not a details file. Skip.
         continue
       # Extract criterion from filename. Not really pretty.
-      m = re.search(r'-([a-z]+)\.json$', filename)
+      m = re.search(r'-([a-z]+)-single\.json$', filename)
+      if not m:
+        m = re.search(r'-([a-z]+)\.json$', filename)
       if not m:
         # Not a filename we can extract criterion from.
         continue
@@ -93,7 +99,8 @@ def main():
           encoders = set()
           # De-duplicate the config IDs. We only want each config_id once.
           for encoding in details[codec_name][videofile_name]:
-            encoders.add(encoding['config_id'])
+            if 'config_id' in encoding:
+              encoders.add(encoding['config_id'])
           ReportOnEncoders(criterion, codec_name, videofile_name, encoders,
                            sweepdata)
   result = {}

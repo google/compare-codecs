@@ -584,6 +584,15 @@ class TestEncodingMemoryCache(unittest.TestCase):
     self.assertEquals(2, len(result))
     result = cache.AllScoredEncodings(123, videofile)
     self.assertEquals(1, len(result))
+    # Verify that it's working correctly with a new videofile object.
+    videofile2 = encoder.Videofile(videofile.filename)
+    result = cache.AllScoredEncodings(123, videofile2)
+    my_encoding = encoder.Encoding(my_encoder, 123, videofile2)
+    self.assertTrue(cache.ReadEncodingResult(my_encoding))
+    # Verify that it's working correctly with an encoder created via hashname.
+    encoder2 = encoder.Encoder(context, filename=my_encoder.Hashname())
+    encoding2 = encoder2.Encoding(123, videofile2)
+    self.assertTrue(cache.ReadEncodingResult(encoding2))
 
 
 if __name__ == '__main__':
