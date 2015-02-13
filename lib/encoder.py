@@ -373,10 +373,12 @@ class Videofile(object):
     encodedframesize = encodedsize / framecount
     return encodedframesize * self.framerate * 8 / 1000
 
-  def ClipTime(self):
+  def FrameCount(self):
     framesize = self.width * self.height * 3 / 2
-    framecount = os.path.getsize(self.filename) / framesize
-    return float(framecount) / self.framerate
+    return os.path.getsize(self.filename) / framesize
+
+  def ClipTime(self):
+    return float(self.FrameCount()) / self.framerate
 
 
 class Codec(object):

@@ -24,8 +24,8 @@ class MotionJpegCodec(ffmpeg.FfmpegCodec):
     self.codecname = 'mjpeg'
     self.extension = 'mjpeg'
     self.option_set = encoder.OptionSet(
-      encoder.IntegerOption('qmin', 0, 1),
-      encoder.IntegerOption('qmax', 0, 1),
+      encoder.IntegerOption('qmin', 1, 69),
+      encoder.IntegerOption('qmax', 2, 1024),
     )
 
   def StartEncoder(self, context):

@@ -41,10 +41,11 @@ class FfmpegCodec(file_codec.FileCodec):
 
   def EncodeCommandLine(self, parameters, bitrate, videofile, encodedfile):
     commandline = (
-      '%s -loglevel warning %s -s %dx%d -i %s -codec:v %s -b:v %dk -y %s' % (
+      '%s -loglevel warning -s %dx%d -i %s -codec:v %s %s -b:v %dk -y %s' % (
         encoder.Tool('ffmpeg'),
-        parameters.ToString(), videofile.width, videofile.height,
+        videofile.width, videofile.height,
         videofile.filename, self.codecname,
+        parameters.ToString(),
         bitrate, encodedfile))
     return commandline
 
