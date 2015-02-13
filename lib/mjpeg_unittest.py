@@ -14,6 +14,7 @@
 # limitations under the License.
 """Unit tests for Motion JPEG encoder module."""
 
+import encoder
 import optimizer
 import unittest
 import test_tools
@@ -32,7 +33,17 @@ class TestMotionJpegCodec(test_tools.FileUsingCodecTest):
     encoding.Execute()
     self.assertLess(50.0, my_optimizer.Score(encoding))
 
+  def test_ParametersSet(self):
+    codec = mjpeg.MotionJpegCodec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    my_encoder = encoder.Encoder(my_optimizer.context,
+        encoder.OptionValueSet(codec.option_set, '-qmin 1 -qmax 1',
+                               formatter=codec.option_formatter))
+    encoding = my_encoder.Encoding(5000, videofile)
+    encoding.Execute()
+    self.assertLess(50.0, my_optimizer.Score(encoding))
+
 if __name__ == '__main__':
   unittest.main()
-
-

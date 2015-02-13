@@ -20,11 +20,10 @@
 #
 set -e
 
-# Requirements for compiling libvpx.
-sudo apt-get install yasm
+# Requirements for compiling various packages and scripts.
+sudo apt-get install yasm mkvtoolnix mercurial cmake cmake-curses-gui \
+  build-essential yasm
 
-# More tools called by the scripts
-sudo apt-get install mkvtoolnix
 # Install prerequisites for running Jekyll as a web server
 sudo apt-get install ruby1.9.1-dev
 sudo apt-get install nodejs
@@ -39,5 +38,3 @@ sudo gem install jekyll -v 1.5.1
 ./compile_tools.sh
 
 echo "All software installed"
-
-

@@ -16,6 +16,7 @@
 import encoder
 import h261
 import h263
+import hevc_jm
 import mjpeg
 import vp8
 import vp8_mpeg
@@ -25,6 +26,7 @@ import ffmpeg
 import x264
 import x264_baseline
 import x264_realtime
+import x265
 
 class CodecInfo(object):
   def __init__(self, constructor, shortname, longname):
@@ -48,7 +50,10 @@ codec_map = {
                          'H264 Baseline - x264 implementation'),
   'x264_rt': CodecInfo(x264_realtime.X264RealtimeCodec, 'H264-RT',
                        'H264 - x264 implementation, realtime settings'),
+  'x265': CodecInfo(x265.X265Codec, 'H265', 'HEVC - x265 implementation'),
+  'hevc': CodecInfo(hevc_jm.HevcCodec, 'HEVC', 'HEVC - JM implementation'),
 }
+
 
 def PickCodec(name):
   if name is None:
@@ -56,6 +61,7 @@ def PickCodec(name):
   if name in codec_map:
     return codec_map[name].constructor()
   raise encoder.Error('Unrecognized codec name %s' % name)
+
 
 def ShortName(name):
   """Return a pretty but short name for the codec."""
@@ -68,6 +74,3 @@ def LongName(name):
   if name in codec_map:
     return codec_map[name].longname
   raise encoder.Error('Unrecognized codec name %s' % name)
-
-
-

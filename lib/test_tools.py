@@ -30,16 +30,21 @@ def InitWorkDir():
   os.environ['CODEC_WORKDIR'] = dirname
   return dirname
 
-def MakeYuvFileWithOneBlankFrame(name):
-  """ Make an YUV file with one black frame.
+def MakeYuvFileWithBlankFrames(name, count):
+  """ Make an YUV file with one or more blank frames (all zeroes).
   The size of the frame is encoded in the filename."""
   videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
                                            name))
   # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
   framesize = videofile.width * videofile.height * 3 / 2
   with open(videofile.filename, 'w') as real_file:
-    real_file.write('\0' * framesize)
+    real_file.write('\0' * framesize * count)
   return videofile
+
+def MakeYuvFileWithOneBlankFrame(name):
+  """ Make an YUV file with one black frame.
+  The size of the frame is encoded in the filename."""
+  return MakeYuvFileWithBlankFrames(name, 1)
 
 def FinishWorkDir(dirname):
   # Verification of validity
@@ -65,9 +70,7 @@ class FileUsingCodecTest(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls._workdir = InitWorkDir()
-  
+
   @classmethod
   def tearDownClass(cls):
     FinishWorkDir(cls._workdir)
-
-
