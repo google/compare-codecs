@@ -99,6 +99,7 @@ build_ffmpeg() {
   # A Feb 2015 version
   # git checkout 60bb893
   # Checking out a named version.
+  git pull origin release/2.5
   git checkout n2.5.3
   ./configure
   make clean
@@ -125,7 +126,7 @@ build_hevc_hm() {
 
   # Build the HEVC HM
   if [ ! -d jctvc-hm ]; then
-    mkdir jtcvc-hm
+    mkdir jctvc-hm
   fi
   HM_VERSION=HM-16.3
   cd jctvc-hm
