@@ -13,21 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Unit tests for the optimizer.
-#
+""" Unit tests for the optimizer. """
+import os
 import re
 import unittest
 
 import encoder
 import optimizer
+import test_tools
 
 class DummyCodec(encoder.Codec):
   def __init__(self):
     super(DummyCodec, self).__init__('dummy')
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
-      encoder.Option('score',  ['0', '5', '10']),
+      encoder.Option('score', ['0', '5', '10']),
       encoder.Option('another_parameter', ['yes']),
     )
 
@@ -38,9 +38,9 @@ class DummyCodec(encoder.Codec):
 
   def Execute(self, parameters, rate, videofile, workdir):
     # pylint: disable=W0613
-    m = re.search(r'--score=(\d+)', parameters.ToString())
-    if m:
-      return {'psnr': int(m.group(1)), 'bitrate': 100}
+    match = re.search(r'--score=(\d+)', parameters.ToString())
+    if match:
+      return {'psnr': int(match.group(1)), 'bitrate': 100}
     else:
       return {'psnr': -100, 'bitrate': 100}
 
@@ -180,7 +180,7 @@ class TestOptimizer(unittest.TestCase):
     self.assertEqual(next_encoding.encoder.parameters.ToString(), '')
 
   def test_EncodingGoodOnOtherRate(self):
-    self.file_set = optimizer.FileAndRateSet()
+    self.file_set = optimizer.FileAndRateSet(verify_files_present=False)
     self.file_set.AddFilesAndRates([self.videofile.filename], [100, 200])
     my_optimizer = self.StdOptimizer()
     my_encoder = self.EncoderFromParameterString('--score=7')
@@ -197,7 +197,7 @@ class TestOptimizer(unittest.TestCase):
     self.assertEqual('--score=7', next_encoding.encoder.parameters.ToString())
 
   def test_BestOverallConfiguration(self):
-    self.file_set = optimizer.FileAndRateSet()
+    self.file_set = optimizer.FileAndRateSet(verify_files_present=False)
     self.file_set.AddFilesAndRates([self.videofile.filename], [100, 200])
     my_optimizer = self.StdOptimizer()
     # When there is nothing in the database, None should be returned.
@@ -230,24 +230,24 @@ class TestOptimizer(unittest.TestCase):
 class TestFileAndRateSet(unittest.TestCase):
 
   def test_OneFileAddedAndReturned(self):
-    the_set = optimizer.FileAndRateSet()
+    the_set = optimizer.FileAndRateSet(verify_files_present=False)
     the_set.AddFilesAndRates(['filename'], [100], 'dirname')
     self.assertEqual([(100, 'dirname/filename')], the_set.AllFilesAndRates())
 
   def test_NoDirName(self):
-    the_set = optimizer.FileAndRateSet()
+    the_set = optimizer.FileAndRateSet(verify_files_present=False)
     the_set.AddFilesAndRates(['filename'], [100])
     self.assertEqual([(100, 'filename')], the_set.AllFilesAndRates())
 
   def test_OneFileMultipleRates(self):
-    the_set = optimizer.FileAndRateSet()
+    the_set = optimizer.FileAndRateSet(verify_files_present=False)
     the_set.AddFilesAndRates(['filename'], [100, 200], 'dirname')
     self.assertEqual(set([(100, 'dirname/filename'),
                           (200, 'dirname/filename')]),
                      set(the_set.AllFilesAndRates()))
 
   def test_TwoAddCalls(self):
-    the_set = optimizer.FileAndRateSet()
+    the_set = optimizer.FileAndRateSet(verify_files_present=False)
     the_set.AddFilesAndRates(['filename'], [100, 200], 'dirname')
     the_set.AddFilesAndRates(['otherfilename'], [200, 300], 'dirname')
     self.assertEqual(set([(100, 'dirname/filename'),
@@ -257,11 +257,28 @@ class TestFileAndRateSet(unittest.TestCase):
                      set(the_set.AllFilesAndRates()))
 
   def test_RatesForFile(self):
-    the_set = optimizer.FileAndRateSet()
+    the_set = optimizer.FileAndRateSet(verify_files_present=False)
     the_set.AddFilesAndRates(['filename'], [100, 200])
     the_set.AddFilesAndRates(['otherfilename'], [200, 300])
     self.assertEqual(set([100, 200]),
                      set(the_set.AllRatesForFile('filename')))
+
+
+class TestFileAndRateSetWithRealFiles(test_tools.FileUsingCodecTest):
+  def test_AddMissingFile(self):
+    the_set = optimizer.FileAndRateSet()
+    the_set.AddFilesAndRates(['nosuchfile'], [100])
+    self.assertFalse(the_set.AllFilesAndRates())
+    self.assertFalse(the_set.set_is_complete)
+
+  def test_AddPresentFile(self):
+    the_set = optimizer.FileAndRateSet()
+    file_name = 'file_1024_768_30.yuv'
+    test_tools.MakeYuvFileWithOneBlankFrame(file_name)
+    the_set.AddFilesAndRates([file_name], [100],
+                             basedir=os.getenv('CODEC_WORKDIR'))
+    self.assertTrue(the_set.AllFilesAndRates())
+    self.assertTrue(the_set.set_is_complete)
 
 
 if __name__ == '__main__':
