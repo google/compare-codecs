@@ -84,13 +84,13 @@ def main():
         # Not a details file. Skip.
         continue
       # Extract criterion from filename. Not really pretty.
-      m = re.search(r'-([a-z]+)-single\.json$', filename)
-      if not m:
-        m = re.search(r'-([a-z]+)\.json$', filename)
-      if not m:
+      match = re.search(r'-([a-z]+)-single\.json$', filename)
+      if not match:
+        match = re.search(r'-([a-z]+)\.json$', filename)
+      if not match:
         # Not a filename we can extract criterion from.
         continue
-      criterion = m.group(1)
+      criterion = match.group(1)
       details = resultobject['detailed']
       # Record codec information. Should be consistent across files.
       codecs.update(resultobject['codecs'])

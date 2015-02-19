@@ -45,7 +45,7 @@ def main():
   if args.videofile:
     videofiles = [args.videofile]
   else:
-    videofiles=my_optimizer.file_set.AllFileNames()
+    videofiles = my_optimizer.file_set.AllFileNames()
 
   if args.single_config:
     best_encoder = my_optimizer.BestOverallEncoder()

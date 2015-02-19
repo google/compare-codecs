@@ -17,10 +17,6 @@ This uses ffmpeg for encoding and decoding.
 The default FFMPEG encoder uses mpeg4, so that we can see if it's roughly
 compatible with the vpxenc-produced qualities.
 """
-import ast
-import os
-import subprocess
-
 import encoder
 import file_codec
 

@@ -78,7 +78,7 @@ class Option(object):
     """Find a new value for the option, different from not_this.
     not_this doesn't have to be a member of the values list, but can be.
     """
-    assert(self.CanChange)
+    assert self.CanChange
     rest = list(self.values - set([not_this]))
     return rest[random.randint(0, len(rest) - 1)]
 
@@ -113,7 +113,7 @@ class ChoiceOption(Option):
     return '--%s' % value
 
   def FlagIsValidValue(self, value):
-    return (value in self.values)
+    return value in self.values
 
   def Format(self, value, formatter):
     return formatter.Format(value, None)
@@ -229,36 +229,36 @@ class OptionValueSet(object):
     matcher = r'\s*%s([^%s ]*)(%s(\S+))?' % (formatter.prefix,
                                              formatter.infix[0:1],
                                              formatter.infix)
-    m = re.match(matcher, unparsed)
-    while m:
-      self._HandleFlag(m)
-      unparsed = unparsed[m.end():]
-      m = re.match(matcher, unparsed)
+    match = re.match(matcher, unparsed)
+    while match:
+      self._HandleFlag(match)
+      unparsed = unparsed[match.end():]
+      match = re.match(matcher, unparsed)
 
-  def _HandleFlag(self, m):
-    if self._HandleNameValueFlag(m):
+  def _HandleFlag(self, match):
+    if self._HandleNameValueFlag(match):
       return
-    if self._HandleChoiceFlag(m):
+    if self._HandleChoiceFlag(match):
       return
     # It is not a known name=value or a known flag.
     # Remember it, but don't make it available for manipulation.
-    self.other_parts.append(m.group(0).strip())
+    self.other_parts.append(match.group(0).strip())
 
-  def _HandleNameValueFlag(self, m):
-    name = m.group(1)
-    if m.group(2) and self.option_set.HasOption(name):
+  def _HandleNameValueFlag(self, match):
+    name = match.group(1)
+    if match.group(2) and self.option_set.HasOption(name):
       # Known name=value option.
-      name = m.group(1)
-      value = m.group(3)
+      name = match.group(1)
+      value = match.group(3)
       self.values[name] = value
       return True
     return False
 
-  def _HandleChoiceFlag(self, m):
-    option = self.option_set.FindFlagOption(m.group(1))
+  def _HandleChoiceFlag(self, match):
+    option = self.option_set.FindFlagOption(match.group(1))
     if option:
       # Known flag option (no value)
-      self.values[option.name] = m.group(1)
+      self.values[option.name] = match.group(1)
       return True
     return False
 
@@ -283,7 +283,7 @@ class OptionValueSet(object):
       raise Error('No value for option %s' % name)
 
   def HasValue(self, name):
-    return (name in self.values)
+    return name in self.values
 
   def _Clone(self):
     """Return a clone of this OptionValueSet.
@@ -320,7 +320,7 @@ class OptionValueSet(object):
     else:
       newconfig = self.ChangeValue(
         option.name, option.PickAnother(''))
-    assert(self != newconfig)
+    assert self != newconfig
     return newconfig
 
   def RandomlyPatchConfig(self):
@@ -329,7 +329,7 @@ class OptionValueSet(object):
     This may change values that are present, or add values for parameters
     that are not present."""
     options = self.option_set.AllChangeableOptions()
-    assert(len(options) >= 1)
+    assert len(options) >= 1
     option_to_change = options[random.randint(0, len(options)-1)]
     return self.RandomlyPatchOption(option_to_change)
 
@@ -347,17 +347,17 @@ class Videofile(object):
   def __init__(self, filename):
     """ Parse the file name to find width, height and framerate. """
     self.filename = filename
-    m = re.search(r'_(\d+)x(\d+)_(\d+)', filename)
-    if m:
-      self.width = int(m.group(1))
-      self.height = int(m.group(2))
-      self.framerate = int(m.group(3))
+    match = re.search(r'_(\d+)x(\d+)_(\d+)', filename)
+    if match:
+      self.width = int(match.group(1))
+      self.height = int(match.group(2))
+      self.framerate = int(match.group(3))
     else:
-      m = re.search(r'_(\d+)_(\d+)_(\d+).yuv$', filename)
-      if m:
-        self.width = int(m.group(1))
-        self.height = int(m.group(2))
-        self.framerate = int(m.group(3))
+      match = re.search(r'_(\d+)_(\d+)_(\d+).yuv$', filename)
+      if match:
+        self.width = int(match.group(1))
+        self.height = int(match.group(2))
+        self.framerate = int(match.group(3))
       else:
         raise Error("Unable to parse filename " + filename)
     self.basename = os.path.splitext(os.path.basename(filename))[0]
@@ -515,24 +515,10 @@ class Encoder(object):
     self.context.cache.StoreEncoder(self)
 
   def Hashname(self):
-    m = md5.new()
-    m.update(self.parameters.ToString())
-    hashname = m.hexdigest()[:12]
+    parameter_hash = md5.new()
+    parameter_hash.update(self.parameters.ToString())
+    hashname = parameter_hash.hexdigest()[:12]
     return hashname
-
-  def OptionValue(self, option_name):
-    """Returns the value of an option, or '?' if option has no value."""
-    try:
-      return Option(option_name).GetValue(self.parameters)
-    except Error:
-      return '?'
-
-  def ChoiceValue(self, option_name_list):
-    """Returns the value of an option, or '?' if option has no value."""
-    try:
-      return ChoiceOption(option_name_list).GetValue(self.parameters)
-    except Error:
-      return '?'
 
   def OptionValues(self):
     """Returns a dictionary of all current option values."""
@@ -583,7 +569,7 @@ class Encoding(object):
     """
     self.encoder = encoder
     self.context = encoder.context
-    assert(type(bitrate) == type(0))
+    assert type(bitrate) == type(0)
     self.bitrate = bitrate
     self.videofile = videofile
     self.result = None
