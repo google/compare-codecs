@@ -53,7 +53,11 @@ def VerifyOneTarget(codec_names, rate, videofile, score):
     bestsofar = my_optimizer.BestEncoding(rate, videofile)
     if score:
       bestsofar.Execute().Store()
-    old_score = my_optimizer.Score(bestsofar, scoredir='snapshot')
+    try:
+      old_score = my_optimizer.Score(bestsofar, scoredir='snapshot')
+    except encoder.Error:
+      print 'No old score for %s, continuing' % (bestsofar.encoder.Hashname())
+      continue
     new_score = my_optimizer.Score(bestsofar)
     result = ClassifyScoreRelation(old_score, new_score)
     change_counts[result] += 1
@@ -78,7 +82,7 @@ def VerifyResults(codec_names, score):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('codec_names', nargs='*',
-                      default=pick_codec.codec_map.keys())
+                      default=pick_codec.AllCodecNames())
   parser.add_argument('--score', action='store_true', default=False)
   args = parser.parse_args()
   change_count = VerifyResults(args.codec_names, score=args.score)

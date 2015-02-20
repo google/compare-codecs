@@ -28,6 +28,9 @@ import pick_codec
 def VerifyHashnames(codecs, remove_offending_encoders):
   change_count = 0
   for codec_name in codecs:
+    # This code only works with EncodingDiskCache, not EncodingMemoryCache,
+    # but pylint picks up EncodingMemoryCache as the likely cache type.
+    # pylint: disable=maybe-no-member
     codec = pick_codec.PickCodec(codec_name)
     context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
     filenames = context.cache.AllEncoderFilenames()
@@ -61,7 +64,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--remove', action='store_true', default=False)
   parser.add_argument('codecs', nargs='*',
-                      default=pick_codec.codec_map.keys())
+                      default=pick_codec.AllCodecNames())
   args = parser.parse_args()
   change_count = VerifyHashnames(args.codecs, args.remove)
   print 'Number of changes: %d' % change_count

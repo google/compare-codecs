@@ -34,7 +34,7 @@ class CodecInfo(object):
     self.shortname = shortname
     self.longname = longname
 
-codec_map = {
+CODEC_MAP = {
   'vp8': CodecInfo(vp8.Vp8Codec, 'VP8', 'VP8'),
   'vp8_mpeg' : CodecInfo(vp8_mpeg.Vp8CodecMpegMode, 'VP8MP',
                          'VP8 in MPEG-compatible mode'),
@@ -58,19 +58,22 @@ codec_map = {
 def PickCodec(name):
   if name is None:
     name = 'vp8'
-  if name in codec_map:
-    return codec_map[name].constructor()
+  if name in CODEC_MAP:
+    return CODEC_MAP[name].constructor()
   raise encoder.Error('Unrecognized codec name %s' % name)
 
 
 def ShortName(name):
   """Return a pretty but short name for the codec."""
-  if name in codec_map:
-    return codec_map[name].shortname
+  if name in CODEC_MAP:
+    return CODEC_MAP[name].shortname
   raise encoder.Error('Unrecognized codec name %s' % name)
 
 def LongName(name):
   """Return a pretty but long name for the codec."""
-  if name in codec_map:
-    return codec_map[name].longname
+  if name in CODEC_MAP:
+    return CODEC_MAP[name].longname
   raise encoder.Error('Unrecognized codec name %s' % name)
+
+def AllCodecNames():
+  return CODEC_MAP.keys()

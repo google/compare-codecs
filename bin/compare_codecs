@@ -38,7 +38,7 @@ def ListOneTarget(codecs, scorer_function, rate, videofile, do_score):
     if do_score and not bestsofar.Result():
       bestsofar.Execute()
       bestsofar.Store()
-    assert(bestsofar.Result())
+    assert bestsofar.Result()
     print ' %6d %4.1f %4.1f' % (bestsofar.result['bitrate'],
                                 bestsofar.result['psnr'],
                                 my_optimizer.Score(bestsofar)),
@@ -47,8 +47,8 @@ def ListOneTarget(codecs, scorer_function, rate, videofile, do_score):
 def ListResults(codecs, scorer, do_score):
   scorer_function = score_tools.PickScorer(scorer)
   print '%-28s %5s' % ('File', 'Rate'),
-  for c in codecs:
-    print '%17s' % pick_codec.ShortName(c),
+  for codec in codecs:
+    print '%17s' % pick_codec.ShortName(codec),
   print
   for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
     videofile = encoder.Videofile(filename)
@@ -59,7 +59,7 @@ def main():
   parser.add_argument('--score', action='store_true', default=False)
   parser.add_argument('--criterion', default='psnr')
   parser.add_argument('codecs', nargs='*',
-                      default=pick_codec.codec_map.keys())
+                      default=pick_codec.AllCodecNames())
   args = parser.parse_args()
   ListResults(args.codecs, args.criterion, args.score)
   return 0

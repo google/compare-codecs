@@ -56,7 +56,7 @@ class CorruptingCodec(file_codec.FileCodec):
     # We make the codec "work" by copying from the original file
     # as a decode.
     return 'cp %s %s' % (videofile.filename, outputfile)
- 
+
 
 class TestFileCodec(test_tools.FileUsingCodecTest):
 
