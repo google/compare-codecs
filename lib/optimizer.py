@@ -189,16 +189,23 @@ class Optimizer(object):
 
 
 class FileAndRateSet(object):
-  def __init__(self):
+  def __init__(self, verify_files_present=True):
     self.rates_and_files = set()
+    self.verify_files_present = verify_files_present
+    self.set_is_complete = True
 
   def AddFilesAndRates(self, filenames, rates, basedir=None):
     for rate in rates:
       for filename in filenames:
         if basedir:
-          self.rates_and_files.add((rate, os.path.join(basedir, filename)))
+          full_filename = os.path.join(basedir, filename)
         else:
-          self.rates_and_files.add((rate, filename))
+          full_filename = filename
+        if self.verify_files_present:
+          if not os.path.isfile(full_filename):
+            self.set_is_complete = False
+            return
+        self.rates_and_files.add((rate, full_filename))
 
   def AllFilesAndRates(self):
     """Returns all rate/file pairs"""
