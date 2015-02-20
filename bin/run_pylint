@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/bash
 # Copyright 2014 Google.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Lists the available codecs in this distribution.
+# Run pylint across all the Python scripts.
 #
-
-import pick_codec
-import sys
-
-def main():
-  for codec in pick_codec.AllCodecNames():
-    print codec, ' - ', pick_codec.LongName(codec)
-
-if __name__ == '__main__':
-  sys.exit(main())
+echo "Running pylint"
+pylint --rcfile .pylint.rc $(ls lib/*.py | grep -v 'gviz_api.py')
+# There is a backslash below in order to avoid the grep finding itself.
+pylint --rcfile .pylint.rc $(grep -l '#\!/usr/bin/python' bin/*[a-z])
+    

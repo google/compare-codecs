@@ -25,17 +25,22 @@ set -x
 
 RATE=850
 VIDEOFILE=video/mpeg_video/Johnny_1280x720_60.yuv
+if [ ! -f $VIDEOFILE ]; then
+  echo "Skipping tests that require $VIDEOFILE"
+else
+  frame_size_tool $RATE $VIDEOFILE > /dev/null
+  list_best_results $VIDEOFILE > /dev/null
+  list_config_results $RATE $VIDEOFILE > /dev/null
+  parameter_tweaker $RATE $VIDEOFILE
+fi
 
 compare_codecs vp8 vp9 > /dev/null
 compare_json vp8 vp9 > /dev/null
 force_run_config --codec h261 -- ''
-frame_size_tool $RATE $VIDEOFILE > /dev/null
 # generate_pages
 list_codecs > /dev/null
-list_best_results $VIDEOFILE > /dev/null
-list_config_results $RATE $VIDEOFILE > /dev/null
-parameter_tweaker $RATE $VIDEOFILE
 randomly_improve_encoding --iterations 1
+sensitivity_analysis > /dev/null
 # take_snapshot
 verify_encodings h261
 verify_hashnames h261

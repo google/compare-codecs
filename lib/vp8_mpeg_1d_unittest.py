@@ -47,7 +47,7 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
     my_optimizer = optimizer.Optimizer(codec)
     my_encoder = codec.StartEncoder(my_optimizer.context)
     encoding = encoder.Encoding(my_encoder, 500, videofile)
-    encoding.result = { 'bitrate' : 1000 }
+    encoding.result = {'bitrate': 1000}
     # Since the bitrate is too high, the suggstion should be to increase it.
     new_encoding = codec.SuggestTweak(encoding)
     self.assertEqual('63', new_encoding.encoder.parameters.GetValue('key-q'))
@@ -58,7 +58,7 @@ class TestVp8Mpeg1dCodec(test_tools.FileUsingCodecTest):
     my_optimizer = optimizer.Optimizer(codec)
     my_encoder = codec.StartEncoder(my_optimizer.context)
     encoding = encoder.Encoding(my_encoder, 500, videofile)
-    encoding.result = { 'bitrate' : 200 }
+    encoding.result = {'bitrate': 200}
     # Since the bitrate is too high, the suggstion should be to increase it.
     new_encoding = codec.SuggestTweak(encoding)
     self.assertEqual('0', new_encoding.encoder.parameters.GetValue('key-q'))

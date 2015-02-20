@@ -201,7 +201,6 @@ class FileAndRateSet(object):
           full_filename = os.path.join(basedir, filename)
         else:
           full_filename = filename
-        # Meaningless comment.
         if self.verify_files_present:
           if not os.path.isfile(full_filename):
             self.set_is_complete = False
