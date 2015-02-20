@@ -45,6 +45,11 @@ def bdsnr(metric_set1, metric_set2):
   code adapted from code written by : (c) 2010 Giuseppe Valenzise
   http://www.mathworks.com/matlabcentral/fileexchange/27798-bjontegaard-metric/content/bjontegaard.m
   """
+  # pylint: disable=too-many-locals
+  # numpy seems to do tricks with its exports.
+  # pylint: disable=no-member
+  # map() is recommended against.
+  # pylint: disable=bad-builtin
   rate1 = [x[0] for x in metric_set1]
   psnr1 = [x[1] for x in metric_set1]
   rate2 = [x[0] for x in metric_set2]
@@ -54,16 +59,16 @@ def bdsnr(metric_set1, metric_set2):
   log_rate2 = map(math.log, rate2)
 
   # Best cubic poly fit for graph represented by log_ratex, psrn_x.
-  p1 = numpy.polyfit(log_rate1, psnr1, 3)
-  p2 = numpy.polyfit(log_rate2, psnr2, 3)
+  poly1 = numpy.polyfit(log_rate1, psnr1, 3)
+  poly2 = numpy.polyfit(log_rate2, psnr2, 3)
 
   # Integration interval.
   min_int = max([min(log_rate1), min(log_rate2)])
   max_int = min([max(log_rate1), max(log_rate2)])
 
-  # Integrate p1, and p2.
-  p_int1 = numpy.polyint(p1)
-  p_int2 = numpy.polyint(p2)
+  # Integrate poly1, and poly2.
+  p_int1 = numpy.polyint(poly1)
+  p_int2 = numpy.polyint(poly2)
 
   # Calculate the integrated value over the interval we care about.
   int1 = numpy.polyval(p_int1, max_int) - numpy.polyval(p_int1, min_int)
@@ -89,6 +94,10 @@ def bdrate(metric_set1, metric_set2):
   adapted from code from: (c) 2010 Giuseppe Valenzise
 
   """
+  # numpy plays games with its exported functions.
+  # pylint: disable=no-member
+  # pylint: disable=too-many-locals
+  # pylint: disable=bad-builtin
   rate1 = [x[0] for x in metric_set1]
   psnr1 = [x[1] for x in metric_set1]
   rate2 = [x[0] for x in metric_set2]
@@ -98,16 +107,16 @@ def bdrate(metric_set1, metric_set2):
   log_rate2 = map(math.log, rate2)
 
   # Best cubic poly fit for graph represented by log_ratex, psrn_x.
-  p1 = numpy.polyfit(psnr1, log_rate1, 3)
-  p2 = numpy.polyfit(psnr2, log_rate2, 3)
+  poly1 = numpy.polyfit(psnr1, log_rate1, 3)
+  poly2 = numpy.polyfit(psnr2, log_rate2, 3)
 
   # Integration interval.
   min_int = max([min(psnr1), min(psnr2)])
   max_int = min([max(psnr1), max(psnr2)])
 
   # find integral
-  p_int1 = numpy.polyint(p1)
-  p_int2 = numpy.polyint(p2)
+  p_int1 = numpy.polyint(poly1)
+  p_int2 = numpy.polyint(poly2)
 
   # Calculate the integrated value over the interval we care about.
   int1 = numpy.polyval(p_int1, max_int) - numpy.polyval(p_int1, min_int)
@@ -118,7 +127,7 @@ def bdrate(metric_set1, metric_set2):
 
   # In really bad formed data the exponent can grow too large.
   # clamp it.
-  if avg_exp_diff > 200 :
+  if avg_exp_diff > 200:
     avg_exp_diff = 200
 
   # Convert to a percentage.
@@ -143,7 +152,7 @@ def HasMetrics(line):
   """
   The metrics files produced by vpxenc are started with a B for headers.
   """
-  if line[0:1] != "B" and len(string.split(line))>0:
+  if line[0:1] != "B" and len(string.split(line)) > 0:
     return True
   return False
 
@@ -175,6 +184,7 @@ def GraphBetter(metric_set1_sorted, metric_set2_sorted, use_set2_as_base):
   the metric from file 1.  Since both lists are sorted we really
   should not have to search through the entire range, but these
   are small lists."""
+  # pylint: disable=too-many-locals
   total_bitrate_difference_ratio = 0.0
   count = 0
   # TODO(hta): Replace whole thing with a call to numpy.interp()
@@ -258,6 +268,7 @@ def HtmlPage(page_template, page_title="", page_subtitle="",
   """
   Creates a HTML page from the template and variables passed to it.
   """
+  # pylint: disable=too-many-arguments
   # Build up a dictionary of the variables actually used in the template.
   my_dict = {
     'page_title': page_title,
@@ -274,6 +285,7 @@ def HtmlPage(page_template, page_title="", page_subtitle="",
 def ListOneTarget(codecs, rate, videofile, do_score, datatable,
                   score_function=None):
   """Extend a datatable with the info about one video file's scores."""
+  # pylint: disable=too-many-arguments
   for codec_name in codecs:
     # For testing:
     # Allow for direct context injection rather than picking by name.
@@ -293,7 +305,7 @@ def ListOneTarget(codecs, rate, videofile, do_score, datatable,
 
 def AddOneEncoding(codec_name, my_optimizer, this_encoding, videofile,
                   datatable):
-  assert(this_encoding.Result())
+  assert this_encoding.Result()
   # Ignore results that score less than zero.
   if my_optimizer.Score(this_encoding) < 0.0:
     return
@@ -363,7 +375,7 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs):
   # gviz_api sample code.
   data = []
   for filename in videofile_name_list:
-    row = {'file': filename }
+    row = {'file': filename}
     baseline_dataset = ExtractBitrateAndPsnr(datatable,
                                              baseline_codec,
                                              filename)
@@ -410,6 +422,7 @@ def BuildGvizDataTable(datatable, metric, baseline_codec, other_codecs):
 
 def CrossPerformanceGvizTable(datatable, metric, codecs, criterion):
   """Build a square table of codecs and relative performance."""
+  # pylint: disable=too-many-locals
   videofile_name_list = datatable[codecs[0]].keys()
 
   description = {}

@@ -53,7 +53,7 @@ def VerifyResults(codecs, criterion):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('codecs', nargs='*',
-                      default=pick_codec.codec_map.keys())
+                      default=pick_codec.AllCodecNames())
   parser.add_argument('--criterion', default='psnr')
   args = parser.parse_args()
   change_count = VerifyResults(args.codecs, args.criterion)

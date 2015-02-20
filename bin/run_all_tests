@@ -36,10 +36,7 @@ $LIBDIR/vp9_unittest.py
 # Large tests
 $LIBDIR/optimizer_largetest.py
 
-echo "Running pylint"
-pylint --rcfile .pylint.rc $(ls lib/*.py | grep -v 'gviz_api.py')
-# There is a backslash below in order to avoid the grep finding itself.
-pylint --rcfile .pylint.rc $(grep -l '#\!/usr/bin/python' bin/*[a-z])
+run_pylint
 
 echo "Checking license statements"
 # List files that do not have an Apache-license blurb in them.

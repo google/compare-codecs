@@ -25,7 +25,7 @@ import visual_metrics
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('codecs', nargs='*',
-                      default=pick_codec.codec_map.keys())
+                      default=pick_codec.AllCodecNames())
   parser.add_argument('--criterion', default='psnr')
   parser.add_argument('--single_config', action='store_true', default=False)
   args = parser.parse_args()

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Unit tests for X.264 encoder module."""
 
-import encoder
 import optimizer
 import unittest
 import test_tools

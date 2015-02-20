@@ -29,6 +29,7 @@ class FileCodec(encoder.Codec):
   """
   def __init__(self, name, formatter=None):
     super(FileCodec, self).__init__(name, formatter=formatter)
+    self.extension = 'must-have-extension'
 
   def _EncodeFile(self, parameters, bitrate, videofile, encodedfile):
     commandline = self.EncodeCommandLine(
@@ -125,10 +126,10 @@ def MatroskaFrameInfo(encodedfile):
   mkvinfo = subprocess.check_output(commandline, shell=True)
   frameinfo = []
   for line in mkvinfo.splitlines():
-    m = re.search(r'Frame with size (\d+)', line)
-    if m:
+    match = re.search(r'Frame with size (\d+)', line)
+    if match:
       # The mkvinfo tool gives frame size in bytes. We want bits.
-      frameinfo.append({'size': int(m.group(1))*8})
+      frameinfo.append({'size': int(match.group(1))*8})
 
   return frameinfo
 

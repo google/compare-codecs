@@ -51,6 +51,7 @@ class FakeOptimizer(object):
 
 class FakeEncoder(object):
   def Hashname(self):
+    # pylint: disable=no-self-use
     return 'FakeName'
 
 
@@ -73,6 +74,7 @@ class FakeEncoding(object):
     return self.Result()
 
   def EncodeCommandLine(self):
+    # pylint: disable=no-self-use
     return '# Fake command line'
 
 
@@ -157,7 +159,23 @@ class TestVisualMetricsFunctions(unittest.TestCase):
                                  False, datatable)
     self.assertEquals(1, len(datatable['mock'][filename]))
 
-  def test_CrossPerformanceGvizTable(self):
+  def test_BuildComparisonTable(self):
+    datatable = {
+      'codec1': {'dummyfile': [
+        {'result': {'bitrate': 100, 'psnr': 30.0}},
+        {'result': {'bitrate': 200, 'psnr': 40.0}}
+      ]},
+      'codec2': {'dummyfile': [
+        {'result': {'bitrate': 100, 'psnr': 31.0}},
+        {'result': {'bitrate': 200, 'psnr': 42.0}}
+      ]},
+    }
+    result = visual_metrics.BuildComparisonTable(datatable, 'avg',
+                                                 'codec1', ['codec2'])
+    self.assertEquals(2, len(result))
+    self.assertEquals('OVERALL avg', result[1]['file'])
+
+  def test_CrossPerformanceGvizTableWithoutData(self):
     datatable = {'dummy1':{}}
     metric = 'meaningless'
     codecs = ['dummy1', 'dummy2']
@@ -166,31 +184,15 @@ class TestVisualMetricsFunctions(unittest.TestCase):
         datatable, metric, codecs, 'psnr')
     self.assertEquals(2, data_table.NumberOfRows())
 
-  def test_BuildComparisonTable(self):
+  def test_CrossPerformanceGvizTableWithData(self):
     datatable = {
-      'codec1': { 'dummyfile' : [
-        {'result':{'bitrate': 100, 'psnr': 30.0 }},
-        {'result':{'bitrate': 200, 'psnr': 40.0 }}
+      'codec1': {'dummyfile': [
+        {'result': {'bitrate': 100, 'psnr': 30.0}},
+        {'result': {'bitrate': 200, 'psnr': 40.0}}
       ]},
-      'codec2': { 'dummyfile' : [
-        {'result':{'bitrate': 100, 'psnr': 31.0 }},
-        {'result':{'bitrate': 200, 'psnr': 42.0 }}
-      ]},
-    }
-    result = visual_metrics.BuildComparisonTable(datatable, 'avg',
-                                                 'codec1', ['codec2'])
-    self.assertEquals(2, len(result))
-    self.assertEquals('OVERALL avg', result[1]['file'])
-
-  def test_CrossPerformanceGvizTable(self):
-    datatable = {
-      'codec1': { 'dummyfile' : [
-        {'result':{'bitrate': 100, 'psnr': 30.0 }},
-        {'result':{'bitrate': 200, 'psnr': 40.0 }}
-      ]},
-      'codec2': { 'dummyfile' : [
-        {'result':{'bitrate': 100, 'psnr': 31.0 }},
-        {'result':{'bitrate': 200, 'psnr': 42.0 }}
+      'codec2': {'dummyfile' : [
+        {'result': {'bitrate': 100, 'psnr': 31.0}},
+        {'result': {'bitrate': 200, 'psnr': 42.0}}
       ]},
     }
     result = visual_metrics.CrossPerformanceGvizTable(datatable, 'avg',

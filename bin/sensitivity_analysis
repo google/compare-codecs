@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Copyright 2014 Google.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#!/usr/bin/python
 #
 # Analyze the sensitivity of a set of encodings to their variable parameters.
 #
@@ -20,45 +20,57 @@ import sys
 
 import encoder
 import mpeg_settings
+import optimizer
 import pick_codec
 
 def AnalyzeVariants(encoding, score=False):
-  codec = encoding.encoder.codec
-  for option in codec.options:
+  # pylint: disable=too-many-branches
+  context = encoding.encoder.context
+  codec = context.codec
+  for option in codec.option_set.AllChangeableOptions():
     # Get sensitivity on integer-valued options.
     param_here = encoding.encoder.parameters
     try:
-      value = int(option.GetValue(param_here))
+      # Probe that it's an integer and that min and max exist.
+      _ = option.min
+      _ = option.max
+      value = int(encoding.encoder.parameters.GetValue(option.name))
     except ValueError:
+      continue
+    except AttributeError:
       continue
     # Hackish!
     if value > option.min:
-      param_low = option.SetValue(param_here, str(value-1))
-      encoding_low = encoder.Encoding(encoder.Encoder(codec, param_low),
+      param_low = param_here.ChangeValue(option.name, str(value-1))
+      encoding_low = encoder.Encoding(encoder.Encoder(context, param_low),
                                       encoding.bitrate, encoding.videofile)
       encoding_low.Recover()
-      if score and not encoding_low.Score():
+      if score and not encoding_low.Result():
         encoding_low.Execute()
         encoding_low.Store()
-      if encoding_low.Score():
-        print option.name, value, '-1', encoding_low.result,
+      if encoding_low.Result():
+        print option.name, value, '-1',
         print encoding_low.result['bitrate'] - encoding.result['bitrate'],
         print encoding_low.result['psnr'] - encoding.result['psnr']
+      else:
+        print option.name, value, '-1: No result'
     else:
       print option.name, value, 'at lower limit'
 
     if value < option.max:
-      param_high = option.SetValue(param_here, str(value+1))
-      encoding_high = encoder.Encoding(encoder.Encoder(codec, param_high),
-                                       encoding.bitrate, encoding.videofile)
+      param_high = param_here.ChangeValue(option.name, str(value+1))
+      encoding_high = encoder.Encoding(encoder.Encoder(context, param_high),
+                                      encoding.bitrate, encoding.videofile)
       encoding_high.Recover()
-      if score and not encoding_high.Score():
+      if score and not encoding_high.Result():
         encoding_high.Execute()
         encoding_high.Store()
-      if encoding_high.Score():
-        print option.name, value, '+1', encoding_high.result,
+      if encoding_high.Result():
+        print option.name, value, '+1',
         print -encoding_high.result['bitrate'] + encoding.result['bitrate'],
         print -encoding_high.result['psnr'] + encoding.result['psnr']
+      else:
+        print option.name, value, '+1 No result'
     else:
       print option.name, value, 'at upper limit'
 
@@ -69,13 +81,12 @@ def main():
   args = parser.parse_args()
 
   codec = pick_codec.PickCodec(args.codec)
-  for classname in mpeg_settings.files.keys():
-    for filename in mpeg_settings.files[classname]:
-      for rate in mpeg_settings.rates[classname]:
-        videofile = encoder.Videofile('../mpeg_video/%s' % filename)
-        encoding = codec.BestEncoding(rate, videofile)
-        print rate, filename, encoding.Score(), encoding.result
-        AnalyzeVariants(encoding, args.score)
+  my_optimizer = optimizer.Optimizer(codec)
+  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+    videofile = encoder.Videofile(filename)
+    encoding = my_optimizer.BestEncoding(rate, videofile)
+    print rate, filename, my_optimizer.Score(encoding)
+    AnalyzeVariants(encoding, args.score)
   return 0
 
 if __name__ == '__main__':

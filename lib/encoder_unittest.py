@@ -28,7 +28,7 @@ class DummyCodec(encoder.Codec):
     super(DummyCodec, self).__init__('dummy')
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
-      encoder.Option('score',  ['0', '5', '10']),
+      encoder.Option('score', ['0', '5', '10']),
     )
 
   def StartEncoder(self, context):
@@ -39,9 +39,9 @@ class DummyCodec(encoder.Codec):
   def Execute(self, parameters, rate, videofile, workdir):
     # rate is unused. This is known.
     # pylint: disable=W0613
-    m = re.search(r'--score=(\d+)', parameters.ToString())
-    if m:
-      return {'psnr': int(m.group(1)), 'bitrate': 100}
+    match = re.search(r'--score=(\d+)', parameters.ToString())
+    if match:
+      return {'psnr': int(match.group(1)), 'bitrate': 100}
     else:
       return {'psnr': -100, 'bitrate': 100}
 
