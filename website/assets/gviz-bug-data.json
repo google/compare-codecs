@@ -1,0 +1,1358 @@
+{
+  "detailed": {
+    "x264": {
+      "PartyScene_832x480_50": [
+        {
+          "score": 27.68298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/PartyScene_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.8899999999999864, 
+            "encode_cputime": 16.790000000000077, 
+            "psnr": 27.683, 
+            "bitrate": 495, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 28.919980000000002, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 768 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/PartyScene_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 1.0199999999999818, 
+            "encode_cputime": 18.720000000000027, 
+            "psnr": 28.92, 
+            "bitrate": 733, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 30.35498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1200 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/PartyScene_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 1.2100000000000364, 
+            "encode_cputime": 20.829999999999927, 
+            "psnr": 30.355, 
+            "bitrate": 1131, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 32.13798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2000 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/PartyScene_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.4699999999998, 
+            "encode_cputime": 22.200000000000045, 
+            "psnr": 32.138, 
+            "bitrate": 1858, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "Kimono1_1920x1080_24": [
+        {
+          "score": 37.28298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1600 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Kimono1_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1600, 
+          "result": {
+            "decode_cputime": 2.810000000000059, 
+            "encode_cputime": 41.75999999999999, 
+            "psnr": 37.283, 
+            "bitrate": 1332, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 38.90298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2500 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Kimono1_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2500, 
+          "result": {
+            "decode_cputime": 3.1100000000001273, 
+            "encode_cputime": 48.5, 
+            "psnr": 38.903, 
+            "bitrate": 2097, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 40.403980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 4000 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Kimono1_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 4000, 
+          "result": {
+            "decode_cputime": 3.490000000000009, 
+            "encode_cputime": 55.75, 
+            "psnr": 40.404, 
+            "bitrate": 3415, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 41.45398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 6000 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Kimono1_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 6000, 
+          "result": {
+            "decode_cputime": 3.980000000000018, 
+            "encode_cputime": 62.50999999999999, 
+            "psnr": 41.454, 
+            "bitrate": 5269, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "Johnny_1280x720_60": [
+        {
+          "score": 38.153980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 384 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Johnny_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.5899999999999181, 
+            "encode_cputime": 19.90000000000009, 
+            "psnr": 38.154, 
+            "bitrate": 336, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 39.53598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Johnny_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.7699999999999818, 
+            "encode_cputime": 21.690000000000055, 
+            "psnr": 39.536, 
+            "bitrate": 457, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 41.46098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 850 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Johnny_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 1.9500000000000455, 
+            "encode_cputime": 26.169999999999845, 
+            "psnr": 41.461, 
+            "bitrate": 787, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 42.90798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1500 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Johnny_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 2.1900000000000546, 
+            "encode_cputime": 37.879999999999995, 
+            "psnr": 42.908, 
+            "bitrate": 1422, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "RaceHorses_832x480_30": [
+        {
+          "score": 30.01398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 30 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/RaceHorses_832x480_30.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.6599999999999682, 
+            "encode_cputime": 13.129999999999995, 
+            "psnr": 30.014, 
+            "bitrate": 492, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 31.54398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 768 --fps 30 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/RaceHorses_832x480_30.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 0.7599999999999909, 
+            "encode_cputime": 14.720000000000027, 
+            "psnr": 31.544, 
+            "bitrate": 729, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 33.24098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1200 --fps 30 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/RaceHorses_832x480_30.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 0.8999999999998636, 
+            "encode_cputime": 16.529999999999973, 
+            "psnr": 33.241, 
+            "bitrate": 1123, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 35.10398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2000 --fps 30 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/RaceHorses_832x480_30.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.1400000000001, 
+            "encode_cputime": 18.439999999999827, 
+            "psnr": 35.104, 
+            "bitrate": 1836, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "BasketballDrive_1920x1080_50": [
+        {
+          "score": 31.584979999999998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 3000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrive_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 3000, 
+          "result": {
+            "decode_cputime": 5.719999999999999, 
+            "encode_cputime": 109.69999999999999, 
+            "psnr": 34.785, 
+            "bitrate": 3032, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 32.73598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 4500 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrive_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 4500, 
+          "result": {
+            "decode_cputime": 6.309999999999945, 
+            "encode_cputime": 105.99000000000001, 
+            "psnr": 36.236, 
+            "bitrate": 4535, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 29.777980000000003, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 7000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrive_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 7000, 
+          "result": {
+            "decode_cputime": 7.169999999999959, 
+            "encode_cputime": 118.0, 
+            "psnr": 37.578, 
+            "bitrate": 7078, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 27.251979999999996, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 10000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrive_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 10000, 
+          "result": {
+            "decode_cputime": 7.900000000000091, 
+            "encode_cputime": 129.62999999999988, 
+            "psnr": 38.452, 
+            "bitrate": 10112, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "BasketballDrill_832x480_50": [
+        {
+          "score": 30.46198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrill_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.9299999999998363, 
+            "encode_cputime": 14.690000000000055, 
+            "psnr": 31.962, 
+            "bitrate": 527, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 31.101979999999998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 768 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrill_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 0.9400000000000546, 
+            "encode_cputime": 16.9699999999998, 
+            "psnr": 33.602, 
+            "bitrate": 793, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 32.59298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1200 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrill_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 1.0899999999999181, 
+            "encode_cputime": 19.24000000000001, 
+            "psnr": 35.293, 
+            "bitrate": 1227, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 34.04698, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2000 --fps 50 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BasketballDrill_832x480_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.370000000000001, 
+            "encode_cputime": 28.31, 
+            "psnr": 37.247, 
+            "bitrate": 2032, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "BQMall_832x480_60": [
+        {
+          "score": 29.35798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 60 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BQMall_832x480_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.1099999999999, 
+            "encode_cputime": 17.220000000000027, 
+            "psnr": 31.558, 
+            "bitrate": 534, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 30.50898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 768 --fps 60 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BQMall_832x480_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 1.2000000000000455, 
+            "encode_cputime": 19.149999999999864, 
+            "psnr": 33.409, 
+            "bitrate": 797, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 31.26598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1200 --fps 60 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BQMall_832x480_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 1.3899999999998727, 
+            "encode_cputime": 32.13000000000011, 
+            "psnr": 35.366, 
+            "bitrate": 1241, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 32.15998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2000 --fps 60 --threads 1 --input-res 832x480 --quiet --preset slow --tune psnr -o $ video/mpeg_video/BQMall_832x480_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.5900000000001455, 
+            "encode_cputime": 24.059999999999945, 
+            "psnr": 37.46, 
+            "bitrate": 2053, 
+            "cliptime": 10.016666666666667
+          }
+        }
+      ], 
+      "FourPeople_1280x720_60": [
+        {
+          "score": 35.16098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 384 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/FourPeople_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.5899999999999181, 
+            "encode_cputime": 18.529999999999973, 
+            "psnr": 35.161, 
+            "bitrate": 345, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 36.80598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/FourPeople_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.6399999999998727, 
+            "encode_cputime": 20.329999999999927, 
+            "psnr": 36.806, 
+            "bitrate": 462, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 39.33798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 850 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/FourPeople_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 1.8400000000000318, 
+            "encode_cputime": 23.870000000000005, 
+            "psnr": 39.338, 
+            "bitrate": 770, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 41.54898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1500 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/FourPeople_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 2.1499999999999773, 
+            "encode_cputime": 28.100000000000023, 
+            "psnr": 41.549, 
+            "bitrate": 1384, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "ParkScene_1920x1080_24": [
+        {
+          "score": 34.92398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1600 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/ParkScene_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1600, 
+          "result": {
+            "decode_cputime": 2.8200000000001637, 
+            "encode_cputime": 41.149999999999864, 
+            "psnr": 34.924, 
+            "bitrate": 1509, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 36.41998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 2500 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/ParkScene_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 2500, 
+          "result": {
+            "decode_cputime": 3.240000000000009, 
+            "encode_cputime": 44.97999999999999, 
+            "psnr": 36.42, 
+            "bitrate": 2370, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 37.91698, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 4000 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/ParkScene_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 4000, 
+          "result": {
+            "decode_cputime": 3.839999999999918, 
+            "encode_cputime": 50.200000000000045, 
+            "psnr": 37.917, 
+            "bitrate": 3817, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 39.12598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 6000 --fps 24 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/ParkScene_1920x1080_24.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 6000, 
+          "result": {
+            "decode_cputime": 4.210000000000036, 
+            "encode_cputime": 55.559999999999974, 
+            "psnr": 39.126, 
+            "bitrate": 5756, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "KristenAndSara_1280x720_60": [
+        {
+          "score": 36.84498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 384 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/KristenAndSara_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.790000000000191, 
+            "encode_cputime": 20.029999999999973, 
+            "psnr": 36.845, 
+            "bitrate": 365, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 38.74698, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 512 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/KristenAndSara_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.8200000000001637, 
+            "encode_cputime": 22.279999999999973, 
+            "psnr": 38.747, 
+            "bitrate": 494, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 40.93698, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 850 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/KristenAndSara_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 2.0, 
+            "encode_cputime": 26.660000000000082, 
+            "psnr": 40.937, 
+            "bitrate": 827, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 42.71898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 1500 --fps 60 --threads 1 --input-res 1280x720 --quiet --preset slow --tune psnr -o $ video/mpeg_video/KristenAndSara_1280x720_60.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 2.2200000000000273, 
+            "encode_cputime": 31.5, 
+            "psnr": 42.719, 
+            "bitrate": 1479, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "Cactus_1920x1080_50": [
+        {
+          "score": 35.08198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 3000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Cactus_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 3000, 
+          "result": {
+            "decode_cputime": 4.7900000000000205, 
+            "encode_cputime": 81.51999999999998, 
+            "psnr": 35.082, 
+            "bitrate": 2967, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 36.28598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 4500 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Cactus_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 4500, 
+          "result": {
+            "decode_cputime": 5.2999999999999545, 
+            "encode_cputime": 108.11000000000001, 
+            "psnr": 36.286, 
+            "bitrate": 4456, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 37.34498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 7000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Cactus_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 7000, 
+          "result": {
+            "decode_cputime": 6.150000000000091, 
+            "encode_cputime": 135.70000000000005, 
+            "psnr": 37.345, 
+            "bitrate": 6926, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 37.955980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/x264 --bitrate 10000 --fps 50 --threads 1 --input-res 1920x1080 --quiet --preset slow --tune psnr -o $ video/mpeg_video/Cactus_1920x1080_50.yuv", 
+          "config_id": "d78288930a00", 
+          "target_bitrate": 10000, 
+          "result": {
+            "decode_cputime": 7.2700000000000955, 
+            "encode_cputime": 105.8599999999999, 
+            "psnr": 37.956, 
+            "bitrate": 9891, 
+            "cliptime": 10.0
+          }
+        }
+      ]
+    }, 
+    "vp9": {
+      "PartyScene_832x480_50": [
+        {
+          "score": 14.22098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=50/1 -w 832 -h 480 video/mpeg_video/PartyScene_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.8400000000001455, 
+            "encode_cputime": 1213.4000000000015, 
+            "psnr": 29.521, 
+            "bitrate": 665, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 9.34198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=768 --fps=50/1 -w 832 -h 480 video/mpeg_video/PartyScene_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 0.9799999999813735, 
+            "encode_cputime": 1238.960000000021, 
+            "psnr": 30.842, 
+            "bitrate": 983, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 7.74398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1200 --fps=50/1 -w 832 -h 480 video/mpeg_video/PartyScene_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 1.3999999999650754, 
+            "encode_cputime": 1347.600000000035, 
+            "psnr": 32.344, 
+            "bitrate": 1446, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 18.09498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2000 --fps=50/1 -w 832 -h 480 video/mpeg_video/PartyScene_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.5500000000465661, 
+            "encode_cputime": 1572.579999999958, 
+            "psnr": 34.095, 
+            "bitrate": 2160, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "Kimono1_1920x1080_24": [
+        {
+          "score": 38.76498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1600 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/Kimono1_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1600, 
+          "result": {
+            "decode_cputime": 2.2600000000093132, 
+            "encode_cputime": 1981.0200000000186, 
+            "psnr": 38.765, 
+            "bitrate": 1403, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 39.702980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2500 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/Kimono1_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2500, 
+          "result": {
+            "decode_cputime": 2.679999999993015, 
+            "encode_cputime": 2318.1300000000047, 
+            "psnr": 39.703, 
+            "bitrate": 1881, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 40.45798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=4000 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/Kimono1_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 4000, 
+          "result": {
+            "decode_cputime": 2.8699999999953434, 
+            "encode_cputime": 2600.2999999999884, 
+            "psnr": 40.458, 
+            "bitrate": 2478, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 40.73798, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=6000 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/Kimono1_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 6000, 
+          "result": {
+            "decode_cputime": 3.429999999993015, 
+            "encode_cputime": 2891.5999999999767, 
+            "psnr": 40.738, 
+            "bitrate": 2808, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "Johnny_1280x720_60": [
+        {
+          "score": 41.68198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=384 --fps=60/1 -w 1280 -h 720 video/mpeg_video/Johnny_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.3099999999976717, 
+            "encode_cputime": 1388.25, 
+            "psnr": 41.682, 
+            "bitrate": 355, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 42.31898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=60/1 -w 1280 -h 720 video/mpeg_video/Johnny_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.389999999999418, 
+            "encode_cputime": 1291.4500000000007, 
+            "psnr": 42.319, 
+            "bitrate": 434, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 43.17898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=850 --fps=60/1 -w 1280 -h 720 video/mpeg_video/Johnny_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 1.3099999999976717, 
+            "encode_cputime": 1379.1900000000023, 
+            "psnr": 43.179, 
+            "bitrate": 612, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 43.92598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1500 --fps=60/1 -w 1280 -h 720 video/mpeg_video/Johnny_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 1.6900000000023283, 
+            "encode_cputime": 1850.8499999999767, 
+            "psnr": 43.926, 
+            "bitrate": 947, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "RaceHorses_832x480_30": [
+        {
+          "score": 20.11398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=30/1 -w 832 -h 480 video/mpeg_video/RaceHorses_832x480_30.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.680000000000291, 
+            "encode_cputime": 631.2700000000004, 
+            "psnr": 31.614, 
+            "bitrate": 627, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 20.587979999999998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=768 --fps=30/1 -w 832 -h 480 video/mpeg_video/RaceHorses_832x480_30.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 0.6999999999970896, 
+            "encode_cputime": 764.75, 
+            "psnr": 32.888, 
+            "bitrate": 891, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 30.214980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1200 --fps=30/1 -w 832 -h 480 video/mpeg_video/RaceHorses_832x480_30.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 0.8699999999953434, 
+            "encode_cputime": 756.679999999993, 
+            "psnr": 34.215, 
+            "bitrate": 1240, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 35.467980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2000 --fps=30/1 -w 832 -h 480 video/mpeg_video/RaceHorses_832x480_30.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.2000000000116415, 
+            "encode_cputime": 943.3499999999767, 
+            "psnr": 35.468, 
+            "bitrate": 1717, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "BasketballDrive_1920x1080_50": [
+        {
+          "score": 22.646980000000003, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=3000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/BasketballDrive_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 3000, 
+          "result": {
+            "decode_cputime": 5.619999999995343, 
+            "encode_cputime": 4760.0, 
+            "psnr": 36.447, 
+            "bitrate": 3138, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 37.33298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=4500 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/BasketballDrive_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 4500, 
+          "result": {
+            "decode_cputime": 6.289999999979045, 
+            "encode_cputime": 5634.549999999988, 
+            "psnr": 37.333, 
+            "bitrate": 4352, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 38.06898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=7000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/BasketballDrive_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 7000, 
+          "result": {
+            "decode_cputime": 7.03000000002794, 
+            "encode_cputime": 6551.520000000019, 
+            "psnr": 38.069, 
+            "bitrate": 5904, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 38.37298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=10000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/BasketballDrive_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 10000, 
+          "result": {
+            "decode_cputime": 6.71999999997206, 
+            "encode_cputime": 6667.830000000016, 
+            "psnr": 38.373, 
+            "bitrate": 6776, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "BasketballDrill_832x480_50": [
+        {
+          "score": 25.019979999999997, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=50/1 -w 832 -h 480 video/mpeg_video/BasketballDrill_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.6599999999998545, 
+            "encode_cputime": 673.8299999999999, 
+            "psnr": 34.22, 
+            "bitrate": 604, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 28.541980000000002, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=768 --fps=50/1 -w 832 -h 480 video/mpeg_video/BasketballDrill_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 0.7700000000186265, 
+            "encode_cputime": 735.3300000000163, 
+            "psnr": 35.642, 
+            "bitrate": 839, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 37.04298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1200 --fps=50/1 -w 832 -h 480 video/mpeg_video/BasketballDrill_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 0.9299999999930151, 
+            "encode_cputime": 851.210000000021, 
+            "psnr": 37.043, 
+            "bitrate": 1160, 
+            "cliptime": 10.02
+          }
+        }, 
+        {
+          "score": 38.36998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2000 --fps=50/1 -w 832 -h 480 video/mpeg_video/BasketballDrill_832x480_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.0699999999487773, 
+            "encode_cputime": 961.75, 
+            "psnr": 38.37, 
+            "bitrate": 1597, 
+            "cliptime": 10.02
+          }
+        }
+      ], 
+      "BQMall_832x480_60": [
+        {
+          "score": 25.84198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=60/1 -w 832 -h 480 video/mpeg_video/BQMall_832x480_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 0.9400000000000546, 
+            "encode_cputime": 1012.5499999999997, 
+            "psnr": 33.342, 
+            "bitrate": 587, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 26.16998, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=768 --fps=60/1 -w 832 -h 480 video/mpeg_video/BQMall_832x480_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 768, 
+          "result": {
+            "decode_cputime": 1.0300000000279397, 
+            "encode_cputime": 1027.2799999999697, 
+            "psnr": 34.97, 
+            "bitrate": 856, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 29.275980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1200 --fps=60/1 -w 832 -h 480 video/mpeg_video/BQMall_832x480_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1200, 
+          "result": {
+            "decode_cputime": 1.1900000000023283, 
+            "encode_cputime": 1079.6199999999953, 
+            "psnr": 36.676, 
+            "bitrate": 1274, 
+            "cliptime": 10.016666666666667
+          }
+        }, 
+        {
+          "score": 38.14298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2000 --fps=60/1 -w 832 -h 480 video/mpeg_video/BQMall_832x480_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2000, 
+          "result": {
+            "decode_cputime": 1.3399999999674037, 
+            "encode_cputime": 1154.5800000000163, 
+            "psnr": 38.143, 
+            "bitrate": 1762, 
+            "cliptime": 10.016666666666667
+          }
+        }
+      ], 
+      "FourPeople_1280x720_60": [
+        {
+          "score": 36.06898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=384 --fps=60/1 -w 1280 -h 720 video/mpeg_video/FourPeople_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.040000000008149, 
+            "encode_cputime": 1431.1599999999744, 
+            "psnr": 37.869, 
+            "bitrate": 402, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 38.55198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=60/1 -w 1280 -h 720 video/mpeg_video/FourPeople_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.4099999999998545, 
+            "encode_cputime": 1425.5699999999997, 
+            "psnr": 39.152, 
+            "bitrate": 518, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 41.09098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=850 --fps=60/1 -w 1280 -h 720 video/mpeg_video/FourPeople_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 1.3300000000162981, 
+            "encode_cputime": 1395.0599999999977, 
+            "psnr": 41.091, 
+            "bitrate": 782, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 42.16398, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1500 --fps=60/1 -w 1280 -h 720 video/mpeg_video/FourPeople_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 1.4099999999962165, 
+            "encode_cputime": 1420.8199999999997, 
+            "psnr": 42.164, 
+            "bitrate": 1011, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "ParkScene_1920x1080_24": [
+        {
+          "score": 22.485980000000005, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1600 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/ParkScene_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1600, 
+          "result": {
+            "decode_cputime": 2.9400000000023283, 
+            "encode_cputime": 2841.0599999999977, 
+            "psnr": 36.386, 
+            "bitrate": 1739, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 26.91098, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=2500 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/ParkScene_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 2500, 
+          "result": {
+            "decode_cputime": 3.150000000023283, 
+            "encode_cputime": 2909.609999999986, 
+            "psnr": 37.711, 
+            "bitrate": 2608, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 38.51198, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=4000 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/ParkScene_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 4000, 
+          "result": {
+            "decode_cputime": 4.009999999951106, 
+            "encode_cputime": 3392.1199999999953, 
+            "psnr": 38.512, 
+            "bitrate": 3362, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 38.84898, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=6000 --fps=24/1 -w 1920 -h 1080 video/mpeg_video/ParkScene_1920x1080_24.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 6000, 
+          "result": {
+            "decode_cputime": 3.4600000000209548, 
+            "encode_cputime": 2970.5999999999767, 
+            "psnr": 38.849, 
+            "bitrate": 3752, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "KristenAndSara_1280x720_60": [
+        {
+          "score": 39.94298, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=384 --fps=60/1 -w 1280 -h 720 video/mpeg_video/KristenAndSara_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 384, 
+          "result": {
+            "decode_cputime": 1.209999999962747, 
+            "encode_cputime": 1242.5500000000466, 
+            "psnr": 39.943, 
+            "bitrate": 382, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 40.967980000000004, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=512 --fps=60/1 -w 1280 -h 720 video/mpeg_video/KristenAndSara_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 512, 
+          "result": {
+            "decode_cputime": 1.2900000000008731, 
+            "encode_cputime": 1270.5, 
+            "psnr": 40.968, 
+            "bitrate": 487, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 42.43498, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=850 --fps=60/1 -w 1280 -h 720 video/mpeg_video/KristenAndSara_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 850, 
+          "result": {
+            "decode_cputime": 1.5, 
+            "encode_cputime": 1252.4799999999814, 
+            "psnr": 42.435, 
+            "bitrate": 713, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 43.26598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=1500 --fps=60/1 -w 1280 -h 720 video/mpeg_video/KristenAndSara_1280x720_60.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 1500, 
+          "result": {
+            "decode_cputime": 1.5800000000162981, 
+            "encode_cputime": 1478.0999999999767, 
+            "psnr": 43.266, 
+            "bitrate": 926, 
+            "cliptime": 10.0
+          }
+        }
+      ], 
+      "Cactus_1920x1080_50": [
+        {
+          "score": 26.376980000000003, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=3000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/Cactus_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 3000, 
+          "result": {
+            "decode_cputime": 4.240000000048894, 
+            "encode_cputime": 4654.229999999981, 
+            "psnr": 36.277, 
+            "bitrate": 3099, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 36.31598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=4500 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/Cactus_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 4500, 
+          "result": {
+            "decode_cputime": 4.7700000000186265, 
+            "encode_cputime": 5224.090000000026, 
+            "psnr": 37.216, 
+            "bitrate": 4509, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 37.74698, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=7000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/Cactus_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 7000, 
+          "result": {
+            "decode_cputime": 6.139999999955762, 
+            "encode_cputime": 6111.670000000042, 
+            "psnr": 37.747, 
+            "bitrate": 5768, 
+            "cliptime": 10.0
+          }
+        }, 
+        {
+          "score": 37.87598, 
+          "encode_command": "/home/hta/code/compare-codecs/tools/vpxenc --cpu-used=0 --good --noise-sensitivity=0 --passes=1 --target-bitrate=10000 --fps=50/1 -w 1920 -h 1080 video/mpeg_video/Cactus_1920x1080_50.yuv --codec=vp9  -o $", 
+          "config_id": "7731e6100995", 
+          "target_bitrate": 10000, 
+          "result": {
+            "decode_cputime": 6.14000000001397, 
+            "encode_cputime": 6566.2699999999895, 
+            "psnr": 37.876, 
+            "bitrate": 6073, 
+            "cliptime": 10.0
+          }
+        }
+      ]
+    }
+  }, 
+  "overall": {
+    "avg": [
+      {
+        "x264": -25.298788668239713, 
+        "file": "PartyScene_832x480_50"
+      }, 
+      {
+        "x264": -29.98856659896112, 
+        "file": "Kimono1_1920x1080_24"
+      }, 
+      {
+        "x264": -61.08835781078263, 
+        "file": "Johnny_1280x720_60"
+      }, 
+      {
+        "x264": -14.501764460033431, 
+        "file": "RaceHorses_832x480_30"
+      }, 
+      {
+        "x264": -32.42060092218695, 
+        "file": "BasketballDrive_1920x1080_50"
+      }, 
+      {
+        "x264": -38.277934615514, 
+        "file": "BasketballDrill_832x480_50"
+      }, 
+      {
+        "x264": -25.277005125291673, 
+        "file": "BQMall_832x480_60"
+      }, 
+      {
+        "x264": -33.2156796662896, 
+        "file": "FourPeople_1280x720_60"
+      }, 
+      {
+        "x264": -27.17283283242391, 
+        "file": "ParkScene_1920x1080_24"
+      }, 
+      {
+        "x264": -44.34778976200603, 
+        "file": "KristenAndSara_1280x720_60"
+      }, 
+      {
+        "x264": -31.82460469651018, 
+        "file": "Cactus_1920x1080_50"
+      }, 
+      {
+        "x264": -33.03762955983993, 
+        "file": "OVERALL avg"
+      }
+    ], 
+    "drate": [
+      {
+        "x264": -24.753325067242837, 
+        "file": "PartyScene_832x480_50"
+      }, 
+      {
+        "x264": -29.544812930595178, 
+        "file": "Kimono1_1920x1080_24"
+      }, 
+      {
+        "x264": -60.12493336820085, 
+        "file": "Johnny_1280x720_60"
+      }, 
+      {
+        "x264": -14.013372224916198, 
+        "file": "RaceHorses_832x480_30"
+      }, 
+      {
+        "x264": -32.68803237591206, 
+        "file": "BasketballDrive_1920x1080_50"
+      }, 
+      {
+        "x264": -37.68226257425658, 
+        "file": "BasketballDrill_832x480_50"
+      }, 
+      {
+        "x264": -24.735460730184922, 
+        "file": "BQMall_832x480_60"
+      }, 
+      {
+        "x264": -31.657816562094286, 
+        "file": "FourPeople_1280x720_60"
+      }, 
+      {
+        "x264": -26.886720782353258, 
+        "file": "ParkScene_1920x1080_24"
+      }, 
+      {
+        "x264": -43.10892096219897, 
+        "file": "KristenAndSara_1280x720_60"
+      }, 
+      {
+        "x264": -31.452443472221468, 
+        "file": "Cactus_1920x1080_50"
+      }, 
+      {
+        "x264": -32.42255464092515, 
+        "file": "OVERALL drate"
+      }
+    ], 
+    "dsnr": [
+      {
+        "x264": -1.0344855340643275, 
+        "file": "PartyScene_832x480_50"
+      }, 
+      {
+        "x264": -1.1287184980900262, 
+        "file": "Kimono1_1920x1080_24"
+      }, 
+      {
+        "x264": -2.6051166205943805, 
+        "file": "Johnny_1280x720_60"
+      }, 
+      {
+        "x264": -0.58724359165616702, 
+        "file": "RaceHorses_832x480_30"
+      }, 
+      {
+        "x264": -1.1993134296979371, 
+        "file": "BasketballDrive_1920x1080_50"
+      }, 
+      {
+        "x264": -1.888390246408238, 
+        "file": "BasketballDrill_832x480_50"
+      }, 
+      {
+        "x264": -1.2438905694119164, 
+        "file": "BQMall_832x480_60"
+      }, 
+      {
+        "x264": -1.7194844215246325, 
+        "file": "FourPeople_1280x720_60"
+      }, 
+      {
+        "x264": -0.9834595767561547, 
+        "file": "ParkScene_1920x1080_24"
+      }, 
+      {
+        "x264": -2.194609524738945, 
+        "file": "KristenAndSara_1280x720_60"
+      }, 
+      {
+        "x264": -0.92775664198610264, 
+        "file": "Cactus_1920x1080_50"
+      }, 
+      {
+        "x264": -1.410224423175348, 
+        "file": "OVERALL dsnr"
+      }
+    ]
+  }, 
+  "codecs": [
+    [
+      "vp9", 
+      "VP9"
+    ], 
+    [
+      "x264", 
+      "H.264 - x264 implementation"
+    ]
+  ]
+}
