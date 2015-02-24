@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2014 Google.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,8 +99,8 @@ build_ffmpeg() {
   # A Feb 2015 version
   # git checkout 60bb893
   # Checking out a named version.
-  git pull origin release/2.5
-  git checkout n2.5.3
+  git pull origin release/2.4
+  git checkout n2.4.3
   ./configure
   make clean
   make ffmpeg
@@ -169,7 +169,7 @@ done
 }
 
 # The default is to build everything.
-if [ "x$@" == "x" ]; then
+if [ "$#" -eq 0 ]; then
   echo "Building everything"
   build_func vpxenc x264 ffmpeg x265 hevc
 else
