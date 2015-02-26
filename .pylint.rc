@@ -45,7 +45,7 @@ load-plugins=
 # that would be nice to have but not universally done are suppressed.
 # TODO(hta): Split this list into permanent and should-be-fixed categories.
 disable=similarities, missing-docstring, locally-disabled, fixme,
-  too-few-public-methods
+  too-few-public-methods, bad-continuation
 
 [REPORTS]
 

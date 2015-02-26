@@ -28,6 +28,7 @@ def InitWorkDir():
   if not os.path.isdir(dirname):
     os.mkdir(dirname)
   os.environ['CODEC_WORKDIR'] = dirname
+  os.environ['WORKDIR'] = dirname
   return dirname
 
 def MakeYuvFileWithBlankFrames(name, count):
