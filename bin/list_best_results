@@ -22,6 +22,7 @@ import argparse
 import sys
 
 import encoder
+import fileset_picker
 import mpeg_settings
 import optimizer
 import pick_codec
@@ -32,6 +33,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('videofile', nargs='?')
   parser.add_argument('--codec')
+  parser.add_argument('--fileset', default='mpeg_video')
   parser.add_argument('--component')
   parser.add_argument('--single_config', action='store_true')
   parser.add_argument('--criterion', default='psnr')
@@ -41,7 +43,7 @@ def main():
   codec = pick_codec.PickCodec(args.codec)
   my_optimizer = optimizer.Optimizer(codec,
       score_function=score_tools.PickScorer(args.criterion),
-      file_set=mpeg_settings.MpegFiles())
+      file_set=fileset_picker.PickFileset(args.fileset))
   if args.videofile:
     videofiles = [args.videofile]
   else:
