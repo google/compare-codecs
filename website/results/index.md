@@ -45,6 +45,11 @@ tune the parameters at each data point.
 This will show how far it's possible to squeeze the performance of each
 codec - "you can't do better than this".
 
+In the graphs linked below, each codec is represented by a dotted line
+showing "this is the best we
+can do at this target bitrate", and by a solid line showing the result
+of running with the single "best" configuration for all bitrates.
+
 <!--Note: This table will be overwritten on page load.
     It is present to show what the tables will look like. -->
 <div id="tuned-results">
