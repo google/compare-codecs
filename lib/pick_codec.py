@@ -14,15 +14,16 @@
 """A codec picker."""
 
 import encoder
+import ffmpeg
 import h261
 import h263
 import hevc_jm
 import mjpeg
+import openh264
 import vp8
 import vp8_mpeg
 import vp8_mpeg_1d
 import vp9
-import ffmpeg
 import x264
 import x264_baseline
 import x264_realtime
@@ -52,6 +53,8 @@ CODEC_MAP = {
                        'H264 - x264 implementation, realtime settings'),
   'x265': CodecInfo(x265.X265Codec, 'H265', 'HEVC - x265 implementation'),
   'hevc': CodecInfo(hevc_jm.HevcCodec, 'HEVC', 'HEVC - JM implementation'),
+  'openh264': CodecInfo(openh264.OpenH264Codec, 'OpenH264',
+                        'H.264 - OpenH264 implementation'),
 }
 
 

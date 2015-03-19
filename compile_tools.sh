@@ -140,6 +140,23 @@ build_hevc_hm() {
   cp $HM_VERSION/cfg/encoder_randomaccess_main.cfg $TOOLDIR/hevc_ra_main.cfg
 }
 
+build_openh264() {
+  # Build the Open H264 implementation.
+  if [ ! -d openh264 ]; then
+    git clone git@github.com:cisco/openh264.git
+  fi
+  cd openh264
+  git checkout v1.4.0
+  make
+  cp h264enc $TOOLDIR
+  cp h264dec $TOOLDIR
+  # We have to modify a variable in the config, so can't do this.
+  # cp testbin/welsenc.cfg $TOOLDIR/openh264.cfg
+  sed -e 's/EnableFrameSkip[[:space:]]*1/EnableFrameSkip 0/' \
+      < testbin/welsenc.cfg > $TOOLDIR/openh264.cfg
+  cp testbin/layer2.cfg $TOOLDIR/layer2.cfg
+}
+
 # Selecting which components to build.
 build_func () {
 while [ "$1" != "" ]; do
@@ -160,6 +177,9 @@ while [ "$1" != "" ]; do
     hevc)
       build_hevc_hm
       ;;
+    openh264)
+      build_openh264
+      ;;
     *)
       echo "Can't do $1"
       exit 1
@@ -171,7 +191,7 @@ done
 # The default is to build everything.
 if [ "$#" -eq 0 ]; then
   echo "Building everything"
-  build_func vpxenc x264 ffmpeg x265 hevc
+  build_func vpxenc x264 ffmpeg x265 hevc openh264
 else
   build_func $@
 fi

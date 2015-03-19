@@ -16,6 +16,7 @@
 
 import encoder
 import filecmp
+import json
 import os
 import re
 import subprocess
@@ -131,6 +132,22 @@ def MatroskaFrameInfo(encodedfile):
       # The mkvinfo tool gives frame size in bytes. We want bits.
       frameinfo.append({'size': int(match.group(1))*8})
 
+  return frameinfo
+
+
+def FfmpegFrameInfo(encodedfile):
+  # Uses the ffprobe tool to give frame info.
+  commandline = '%s -loglevel warning -show_frames -of json %s' % (
+      encoder.Tool('ffprobe'), encodedfile)
+  ffprobeinfo = subprocess.check_output(commandline, shell=True)
+  probeinfo = json.loads(ffprobeinfo)
+  pos = 0
+  frameinfo = []
+  for frame in probeinfo['frames']:
+    if pos != 0:
+      frameinfo.append({'size': 8*(int(frame['pkt_pos']) - pos)})
+    pos = int(frame['pkt_pos'])
+  frameinfo.append({'size': 8*(os.path.getsize(encodedfile) - pos)})
   return frameinfo
 
 
