@@ -27,14 +27,13 @@ class Error(Exception):
   pass
 
 
-def ReadAndPossiblyRewriteEncodingResult(filename):
+def ReadAndMaybeRewriteResult(filename):
   if os.path.isfile(filename):
     rewrite = False
     with open(filename, 'r') as resultfile:
       stringbuffer = resultfile.read()
       try:
         result = json.loads(stringbuffer)
-        print 'Json finished'
         if result:
           return 'OK'
       except exceptions.ValueError:
@@ -65,11 +64,11 @@ def main():
   counter = collections.Counter()
   overall_counter = 0
   for filename in resultfiles:
-    print filename
-    outcome = ReadAndPossiblyRewriteEncodingResult(filename)
+    outcome = ReadAndMaybeRewriteResult(filename)
     counter[outcome] += 1
     overall_counter += 1
   print counter
+  print 'Total: ', overall_counter
   return 0
 
 

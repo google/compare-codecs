@@ -30,6 +30,7 @@ class Vp9Codec(file_codec.FileCodec):
       encoder.IntegerOption('cpu-used', 0, 16),
       # The "best" option gives encodes that are too slow to be useful.
       encoder.ChoiceOption(['good', 'rt']).Mandatory(),
+      encoder.IntegerOption('passes', 1, 2),
     )
 
   def StartEncoder(self, context):
