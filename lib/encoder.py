@@ -234,6 +234,9 @@ class OptionValueSet(object):
       self._HandleFlag(match)
       unparsed = unparsed[match.end():]
       match = re.match(matcher, unparsed)
+    # React to leftover junk at the end of the string.
+    if not re.match(r'\s*$', unparsed):
+      raise Error('Leftover text at end of option string: %s' % unparsed)
 
   def _HandleFlag(self, match):
     if self._HandleNameValueFlag(match):

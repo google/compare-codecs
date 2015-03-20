@@ -244,6 +244,25 @@ class TestOptionValueSet(unittest.TestCase):
     newconfig = config.RandomlyRemoveParameter()
     self.assertFalse(newconfig)
 
+  def test_LotsOfUnknownParameters(self):
+    option_set = encoder.OptionSet(
+      encoder.IntegerOption('cpu-used', 0, 16),
+      # The "best" option gives encodes that are too slow to be useful.
+      encoder.ChoiceOption(['good', 'rt']).Mandatory(),
+      encoder.IntegerOption('passes', 1, 2),
+    )
+    config_string = ('--end-usage=0 --cpu-used=0 '
+                     '--kf-max-dist=9999 --overshoot-pct=20 '
+                     '--undershoot-pct=20')
+    config = encoder.OptionValueSet(option_set, config_string)
+    # The parse / to-string conversion sorts the options, so we're taking
+    # an easy out to see if they are preserved.
+    self.assertEqual(len(config_string), len(config.ToString()))
+
+  def test_BrokenStringCausesErrors(self):
+    with self.assertRaises(encoder.Error):
+      encoder.OptionValueSet(encoder.OptionSet(), 'NotAnOption')
+
 
 class TestCodec(unittest.TestCase):
   def setUp(self):

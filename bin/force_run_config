@@ -30,6 +30,7 @@ def ExecuteConfig(codec_name, config_string=None, config_id=None):
   if config_string is not None and config_id is not None:
     raise encoder.Error('Cannot have both an ID and a configuration string')
   if config_string is not None:
+    print 'Config string is', config_string
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(codec.option_set,
@@ -37,6 +38,8 @@ def ExecuteConfig(codec_name, config_string=None, config_id=None):
                                formatter=codec.option_formatter))
   else:
     my_encoder = encoder.Encoder(context, filename=config_id)
+  print 'Context ID is', my_encoder.Hashname()
+  print 'Parameter set is "%s"' % my_encoder.parameters.ToString()
 
   executed_count = 0
   not_executed_count = 0
