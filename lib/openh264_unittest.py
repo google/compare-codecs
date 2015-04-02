@@ -19,6 +19,7 @@ import unittest
 import test_tools
 import openh264
 
+
 class TestOpenH264(test_tools.FileUsingCodecTest):
   def test_Init(self):
     codec = openh264.OpenH264Codec()

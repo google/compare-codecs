@@ -141,13 +141,15 @@ def FfmpegFrameInfo(encodedfile):
       encoder.Tool('ffprobe'), encodedfile)
   ffprobeinfo = subprocess.check_output(commandline, shell=True)
   probeinfo = json.loads(ffprobeinfo)
-  pos = 0
+  previous_position = 0
   frameinfo = []
   for frame in probeinfo['frames']:
-    if pos != 0:
-      frameinfo.append({'size': 8*(int(frame['pkt_pos']) - pos)})
-    pos = int(frame['pkt_pos'])
-  frameinfo.append({'size': 8*(os.path.getsize(encodedfile) - pos)})
+    current_position = int(frame['pkt_pos'])
+    if previous_position != 0:
+      frameinfo.append({'size': 8 * (current_position - previous_position)})
+    previous_position = current_position
+  frameinfo.append({'size': 8 *
+                    (os.path.getsize(encodedfile) - previous_position)})
   return frameinfo
 
 
