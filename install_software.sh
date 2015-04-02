@@ -22,11 +22,10 @@ set -e
 
 # Requirements for compiling various packages and scripts.
 sudo apt-get install yasm mkvtoolnix mercurial cmake cmake-curses-gui \
-  build-essential yasm
+  build-essential yasm nasm
 
 # Install prerequisites for running Jekyll as a web server
-sudo apt-get install ruby1.9.1-dev
-sudo apt-get install nodejs
+sudo apt-get install ruby1.9.1-dev nodejs
 # Jekyll 2.4.0 depends on redcarpet.
 # Redcarpet 3.1.2 depends on ruby 1.9.2 or later.
 # redcarpet 3.0.0 is installable under 1.9.1.

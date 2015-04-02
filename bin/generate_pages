@@ -45,8 +45,8 @@ function list_one_criterion {
 
 }
 
-list_one_criterion psnr x264 x264_base vp8 vp9 x265
-list_one_criterion rt x264_rt x264_base vp8 vp9
+list_one_criterion psnr x264 x264_base vp8 vp9 x265 openh264
+list_one_criterion rt x264_rt x264_base vp8 vp9 openh264
 
 if [ ! -d website/_data ]; then
   mkdir website/_data

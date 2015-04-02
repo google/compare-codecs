@@ -32,7 +32,8 @@ def InitWorkDir():
   return dirname
 
 def MakeYuvFileWithBlankFrames(name, count):
-  """ Make an YUV file with one or more blank frames (all zeroes).
+  """Make an YUV file with one or more blank frames (all zeroes).
+
   The size of the frame is encoded in the filename."""
   videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
                                            name))
@@ -42,9 +43,20 @@ def MakeYuvFileWithBlankFrames(name, count):
     real_file.write('\0' * framesize * count)
   return videofile
 
+def MakeYuvFileWithNoisyFrames(name, count):
+  """Make an YUV file with one or more frames containing noise."""
+  videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
+                                           name))
+  # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
+  framesize = videofile.width * videofile.height * 3 / 2
+  with open(videofile.filename, 'w') as real_file:
+    for frameno in xrange(count):
+      for videobyte in xrange(framesize):
+        real_file.write(str(chr((frameno + videobyte) % 256)))
+  return videofile
+
 def MakeYuvFileWithOneBlankFrame(name):
-  """ Make an YUV file with one black frame.
-  The size of the frame is encoded in the filename."""
+  """Make an YUV file with one black frame."""
   return MakeYuvFileWithBlankFrames(name, 1)
 
 def FinishWorkDir(dirname):

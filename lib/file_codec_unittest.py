@@ -16,6 +16,7 @@
 
 import encoder
 import optimizer
+import os
 import test_tools
 import time
 import unittest
@@ -98,6 +99,35 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     # clock second. So wait a bit.
     time.sleep(1)
     self.assertTrue(encoding.VerifyEncode())
+
+  def test_MatroskaFrameInfo(self):
+    codec = vp8.Vp8Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # This line comes from file_codec.Execute()
+    encodedfile = '%s/%s.%s' % (encoding.Workdir(), videofile.basename,
+                                codec.extension)
+    frameinfo = file_codec.MatroskaFrameInfo(encodedfile)
+    self.assertEquals(len(frameinfo), 1)
+    self.assertGreater(os.path.getsize(encodedfile) * 8, frameinfo[0]['size'])
+    print frameinfo
+
+  def test_FfmpegFrameInfo(self):
+    codec = vp8.Vp8Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # This line comes from file_codec.Execute()
+    encodedfile = '%s/%s.%s' % (encoding.Workdir(), videofile.basename,
+                                codec.extension)
+    frameinfo = file_codec.FfmpegFrameInfo(encodedfile)
+    self.assertEquals(len(frameinfo), 1)
+    self.assertGreater(os.path.getsize(encodedfile) * 8, frameinfo[0]['size'])
 
 
 if __name__ == '__main__':

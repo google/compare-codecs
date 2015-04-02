@@ -391,10 +391,11 @@ def BuildComparisonTable(datatable, metric, baseline_codec, other_codecs):
                                              filename)
         overall = DataSetBetter(
           baseline_dataset, this_dataset, metric)
-        row[this_codec] = overall
-
-        sumoverall[this_codec] += overall
-        countoverall[this_codec] += 1
+        if not math.isnan(overall):
+          # TODO(hta): figure out when DataSetBetter generates NaN
+          row[this_codec] = overall
+          sumoverall[this_codec] += overall
+          countoverall[this_codec] += 1
 
     data.append(row)
 
