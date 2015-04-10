@@ -28,7 +28,7 @@ import optimizer
 import score_tools
 import sys
 
-def TryToImprove(my_optimizer, filename, bitrate):
+def TryToImprove(my_optimizer, filename, bitrate, dry_run):
   """Try to improve an encoding. Return true if improved."""
   videofile = encoder.Videofile(filename)
   bestsofar = my_optimizer.BestEncoding(bitrate, videofile)
@@ -38,6 +38,9 @@ def TryToImprove(my_optimizer, filename, bitrate):
     previous_score = -10000
   next_encoding = my_optimizer.BestUntriedEncoding(bitrate, videofile)
   if next_encoding:
+    if dry_run:
+      print next_encoding.EncodeCommandLine()
+      return 'Dry run'
     print "Trying encoder", next_encoding.encoder.Hashname()
     next_encoding.Execute()
     print "Score is", my_optimizer.Score(next_encoding), ' from', previous_score
@@ -52,12 +55,15 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--iterations', type=int, default=sys.maxint)
   parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--codecs', nargs='*', default=pick_codec.AllCodecNames())
+  parser.add_argument('--dry-run', action='store_true', default=False)
   args = parser.parse_args()
+  print 'Codecs are ', args.codecs
   tries = 0
   results = collections.Counter()
   while tries < args.iterations:
     tries += 1
-    codec = pick_codec.PickCodec(random.choice(pick_codec.AllCodecNames()))
+    codec = pick_codec.PickCodec(random.choice(args.codecs))
     my_optimizer = optimizer.Optimizer(codec,
         score_function=score_tools.PickScorer(args.criterion),
         file_set=mpeg_settings.MpegFiles())
@@ -66,7 +72,7 @@ def main():
 
     print "Trying codec %s on file %s rate %s" % (codec.name, filename,
                                                   bitrate)
-    result = TryToImprove(my_optimizer, filename, bitrate)
+    result = TryToImprove(my_optimizer, filename, bitrate, dry_run=args.dry_run)
     results[result] += 1
     print 'So far:', dict(results)
 
