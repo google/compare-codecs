@@ -99,7 +99,7 @@ build_ffmpeg() {
   # A Feb 2015 version
   # git checkout 60bb893
   # Checking out a named version.
-  git pull origin release/2.4
+  git fetch origin release/2.4
   git checkout n2.4.3
   ./configure
   make clean
