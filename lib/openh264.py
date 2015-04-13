@@ -41,9 +41,10 @@ class OpenH264Codec(file_codec.FileCodec):
         '-bf %s '
         '-sw %d -sh %d '
         '-dw 0 %d -dh 0 %d '
-        '-rc 0 -maxbrTotal %d -tarb %d '
+        '-rc 0 -maxbrTotal 0 -tarb %d '
         '-ltarb 0 %d '
-        '-lmaxb 0 %d '
+        '-lmaxb 0 0 '
+        '-fs 0' #disable FrameSkip with this option
         '%s ' % (
             encoder.Tool('.'),
             encoder.Tool('h264enc'),
@@ -52,8 +53,6 @@ class OpenH264Codec(file_codec.FileCodec):
             encodedfile,
             videofile.width, videofile.height,
             videofile.width, videofile.height,
-            bitrate,
-            bitrate,
             bitrate,
             bitrate,
             parameters.ToString()))
