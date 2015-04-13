@@ -39,11 +39,32 @@ class TestMotionJpegCodec(test_tools.FileUsingCodecTest):
     videofile = test_tools.MakeYuvFileWithOneBlankFrame(
         'one_black_frame_1024_768_30.yuv')
     my_encoder = encoder.Encoder(my_optimizer.context,
-        encoder.OptionValueSet(codec.option_set, '-qmin 1 -qmax 1',
+        encoder.OptionValueSet(codec.option_set, '-qmin 1 -qmax 2',
                                formatter=codec.option_formatter))
     encoding = my_encoder.Encoding(5000, videofile)
     encoding.Execute()
     self.assertLess(50.0, my_optimizer.Score(encoding))
+
+  def test_ParametersAdjusted(self):
+    codec = mjpeg.MotionJpegCodec()
+    my_optimizer = optimizer.Optimizer(codec)
+    my_encoder = encoder.Encoder(my_optimizer.context,
+        encoder.OptionValueSet(codec.option_set, '-qmin 1 -qmax 1',
+                               formatter=codec.option_formatter))
+    self.assertEquals('1', my_encoder.parameters.GetValue('qmin'))
+    self.assertEquals('1', my_encoder.parameters.GetValue('qmax'))
+    # qmax is less than qmin. Should be adjusted to be above.
+    my_encoder = encoder.Encoder(my_optimizer.context,
+        encoder.OptionValueSet(codec.option_set, '-qmin 2 -qmax 1',
+                               formatter=codec.option_formatter))
+    self.assertEquals('2', my_encoder.parameters.GetValue('qmin'))
+    self.assertEquals('2', my_encoder.parameters.GetValue('qmax'))
+    # qmin is not given, qmax set below default for qmin.
+    my_encoder = encoder.Encoder(my_optimizer.context,
+        encoder.OptionValueSet(codec.option_set, '-qmax 0',
+                               formatter=codec.option_formatter))
+    self.assertEquals('1', my_encoder.parameters.GetValue('qmax'))
+
 
 if __name__ == '__main__':
   unittest.main()

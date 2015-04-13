@@ -32,3 +32,22 @@ class MotionJpegCodec(ffmpeg.FfmpegCodec):
     return encoder.Encoder(
       context, encoder.OptionValueSet(self.option_set, '',
                                       formatter=self.option_formatter))
+
+  def ConfigurationFixups(self, config):
+    """Ensure that qmin is less than qmax."""
+    if config.HasValue('qmin'):
+      qmin = int(config.GetValue('qmin'))
+    else:
+      qmin = self.option_set.Option('qmin').min
+
+    if config.HasValue('qmax'):
+      qmax = int(config.GetValue('qmax'))
+    else:
+      # It seems that the default for qmax is rather low - at least, there's
+      # an error saying "qmax is too low" when only -qmin 39 is given.
+      # From manual probing: qmin 31 succeeds, qmin 32 fails.
+      qmax = 31
+
+    if qmax < qmin:
+      return config.ChangeValue('qmax', str(qmin))
+    return config
