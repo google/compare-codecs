@@ -44,7 +44,9 @@ class OpenH264Codec(file_codec.FileCodec):
         '-rc 0 -maxbrTotal 0 -tarb %d '
         '-ltarb 0 %d '
         '-lmaxb 0 0 '
-        '-fs 0' #disable FrameSkip with this option
+        '-frout 0 %d ' #this is to set the output frame rate, TODO: add option of input frame rate after the codec supports it
+        '-fs 0 ' #disable FrameSkip with this option
+        '-aq 0 ' #disable AdaptiveQuantizaion with this option
         '%s ' % (
             encoder.Tool('.'),
             encoder.Tool('h264enc'),
@@ -55,6 +57,7 @@ class OpenH264Codec(file_codec.FileCodec):
             videofile.width, videofile.height,
             bitrate,
             bitrate,
+            videofile.framerate,
             parameters.ToString()))
     return commandline
 
