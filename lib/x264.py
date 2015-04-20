@@ -35,6 +35,7 @@ class X264Codec(file_codec.FileCodec):
       encoder.ChoiceOption(['use-vbv-maxrate']),
       encoder.Option('profile', ['baseline', 'main', 'high']),
       encoder.Option('tune', ['psnr', 'ssim']),
+      encoder.IntegerOption('threads', 1, 64).Mandatory(),
       encoder.DummyOption('vbv-maxrate'),
       encoder.DummyOption('vbv-bufsize'),
     )
@@ -56,7 +57,6 @@ class X264Codec(file_codec.FileCodec):
       parameters = parameters.ChangeValue('vbv-bufsize', str(bitrate))
     commandline = ('%(x264)s '
       '--bitrate %(bitrate)d --fps %(framerate)d '
-      '--threads 1 '
       '--input-res %(width)dx%(height)d '
       '--quiet '
       '%(parameters)s '
