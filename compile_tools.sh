@@ -146,14 +146,12 @@ build_openh264() {
     git clone git@github.com:cisco/openh264.git
   fi
   cd openh264
-  git checkout v1.4.0
+  # 7e3c064 is the version that enables the -frin option which will be used in scripts
+  git checkout 7e3c064
   make
   cp h264enc $TOOLDIR
   cp h264dec $TOOLDIR
-  # We have to modify a variable in the config, so can't do this.
-  # cp testbin/welsenc.cfg $TOOLDIR/openh264.cfg
-  sed -e 's/EnableFrameSkip[[:space:]]*1/EnableFrameSkip 0/' \
-      < testbin/welsenc.cfg > $TOOLDIR/openh264.cfg
+  cp testbin/welsenc.cfg $TOOLDIR/openh264.cfg
   cp testbin/layer2.cfg $TOOLDIR/layer2.cfg
 }
 
