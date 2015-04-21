@@ -35,7 +35,11 @@ class X264Codec(file_codec.FileCodec):
       encoder.ChoiceOption(['use-vbv-maxrate']),
       encoder.Option('profile', ['baseline', 'main', 'high']),
       encoder.Option('tune', ['psnr', 'ssim']),
-      encoder.IntegerOption('threads', 1, 64).Mandatory(),
+      # Experimentation on a 6-core, 12-thread system shows some gains on
+      # large videos for thread values up to the thread count, and up to the
+      # core count on smaller videos.
+      # There is some damage to PSNR with more threads.
+      encoder.IntegerOption('threads', 1, 6).Mandatory(),
       encoder.DummyOption('vbv-maxrate'),
       encoder.DummyOption('vbv-bufsize'),
     )
