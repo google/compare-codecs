@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright 2014 Google.
+# Copyright 2015 Google.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tweaker for the VP8 codec.
+"""Parameter variation probing tool.
 
-Usage: vp8tweaker [--loop] <rate> <videofile>
+Usage: vary_parameter [--codec codec] [--criterion criterion]
+       --parameter name rate videofile
 
-This script consults the run database for the VP8 codec,
-picks the best encoding so far, generates the tweak set for it,
-finds the encoding with the highest likely score that hasn't been
-encoded, executes the encoding, and reports whether or not there
-was improvement.
+This script consults the run database for the codec,
+picks the best encoding so far, and runs the encodings for all the
+possible values of the parameter.
 """
 
 import argparse

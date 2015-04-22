@@ -51,7 +51,7 @@ class FileCodec(encoder.Codec):
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     encodedfile = '%s/%s.%s' % (workdir, videofile.basename, self.extension)
-    (subprocess_cpu, elapsed_clock) = self._EncodeFile(parameters, bitrate,
+    subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
                                                        videofile, encodedfile)
     result = {}
 
