@@ -69,6 +69,8 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.Result())
+    self.assertIn('encode_cputime', encoding.Result())
+    self.assertIn('encode_clocktime', encoding.Result())
 
   def test_VerifyOneBlackFrame(self):
     codec = CopyingCodec()

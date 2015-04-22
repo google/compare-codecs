@@ -549,6 +549,10 @@ class Encoder(object):
                                                          videofile).encodings)
     return encodings
 
+  def ChangeValue(self, name, new_value):
+    """Return a new encoder with a changed value for this parameter."""
+    return Encoder(self.context, self.parameters.ChangeValue(name, new_value))
+
   def RandomlyRemoveParameter(self):
     parameters = self.parameters.RandomlyRemoveParameter()
     if parameters:
@@ -663,6 +667,11 @@ class Encoding(object):
 
   def Recover(self):
     self.result = self.context.cache.ReadEncodingResult(self)
+
+  def ChangeValue(self, name, value):
+    new_encoder = self.encoder.ChangeValue(name, value)
+    new_encoding = new_encoder.Encoding(self.bitrate, self.videofile)
+    return new_encoding
 
 
 # Utility functions for EncodingDiskCache.

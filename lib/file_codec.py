@@ -38,21 +38,25 @@ class FileCodec(encoder.Codec):
 
     print commandline
     with open('/dev/null', 'r') as nullinput:
-      subprocess_cpu_start = os.times()[2]
+      times_start = os.times()
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      subprocess_cpu = os.times()[2] - subprocess_cpu_start
-      print "Encode took %f seconds" % subprocess_cpu
+      times_end = os.times()
+      subprocess_cpu = times_end[2] - times_start[2]
+      elapsed_clock = times_end[4] - times_start[4]
+      print "Encode took %f CPU seconds %f clock seconds" % (
+          subprocess_cpu, elapsed_clock)
       if returncode:
         raise Exception("Encode failed with returncode %d" % returncode)
-      return subprocess_cpu
+      return (subprocess_cpu, elapsed_clock)
 
   def Execute(self, parameters, bitrate, videofile, workdir):
     encodedfile = '%s/%s.%s' % (workdir, videofile.basename, self.extension)
-    subprocess_cpu = self._EncodeFile(parameters, bitrate, videofile,
-                                      encodedfile)
+    subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
+                                                       videofile, encodedfile)
     result = {}
 
     result['encode_cputime'] = subprocess_cpu
+    result['encode_clocktime'] = elapsed_clock
     bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
 
     tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)

@@ -322,6 +322,16 @@ class TestEncoder(unittest.TestCase):
       # pylint: disable=W0612
       new_encoder = encoder.Encoder(context, filename=old_filename)
 
+  def test_Changevalue(self):
+    config = encoder.OptionValueSet(
+        encoder.OptionSet(encoder.Option('foo', ['foo', 'bar'])),
+        '--foo=foo')
+    context = encoder.Context(DummyCodec())
+    my_encoder = encoder.Encoder(context, config)
+    next_encoder = my_encoder.ChangeValue('foo', 'bar')
+    self.assertEquals(next_encoder.parameters, '--foo=bar')
+
+
 class TestEncoding(unittest.TestCase):
 
   def testGenerateSomeUntriedVariants(self):
