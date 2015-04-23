@@ -27,7 +27,7 @@ class DummyCodec(encoder.Codec):
     super(DummyCodec, self).__init__('dummy')
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
-      encoder.Option('score', ['0', '5', '10']),
+      encoder.IntegerOption('score', 0, 10),
       encoder.Option('another_parameter', ['yes']),
     )
 

@@ -13,11 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This script verifies that hashes for all encoders are correct.
+# This script verifies that stored parameters for all encoders are correct.
 #
 # The encoder is stored in a directory that is named by a hash over
 # its string representation. If the string representation changes,
 # the hash will change, and therefore the old directory becomes invalid.
+#
+# Also, the legal parameters for a codec may change. This will result in
+# an error when trying to retrieve the parameter set.
+#
+# The script has an option to delete offending encoders.
 #
 import argparse
 import sys
@@ -35,25 +40,29 @@ def VerifyHashnames(codecs, remove_offending_encoders):
     context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
     filenames = context.cache.AllEncoderFilenames()
     for filename in filenames:
+      something_changed = False
       try:
         my_encoder = encoder.Encoder(context, filename=filename)
-        if (codec.ConfigurationFixups(my_encoder.parameters)
-            != my_encoder.parameters):
-          print 'Error: Parameter change for codec %s encoder %s' % (
+        new_parameters = codec.ConfigurationFixups(my_encoder.parameters)
+        if (new_parameters != my_encoder.parameters):
+          print 'Error: Parameters change at fixup for codec %s encoder %s' % (
               codec.name, filename)
           print 'Old:', my_encoder.parameters.ToString()
           print ('New: %s'
-                 % codec.ConfigurationFixups(my_encoder.parameters).ToString())
-          if remove_offending_encoders:
-            print 'Deleting encoder %s' % filename
-            context.cache.RemoveEncoder(filename)
-          change_count += 1
+                 % new_parameters.ToString())
+          something_changed = True
+      except (encoder.ParseError) as error:
+        print 'Parse error in codec %s encoder %s: %s' % (
+            codec.name, filename, error)
+        something_changed = True
       except (encoder.Error, IOError) as error:
         # encoder.Error is raised if there's a checksum change.
         # IOError is raised if the encoder directory is corrupted,
         # for instance if the parameter file is missing.
         print 'Error in codec %s encoder %s: %s' % (
             codec.name, filename, error)
+        something_changed = True
+      if something_changed:
         if remove_offending_encoders:
           print 'Deleting encoder %s' % filename
           context.cache.RemoveEncoder(filename)
@@ -68,7 +77,7 @@ def main():
   args = parser.parse_args()
   change_count = VerifyHashnames(args.codecs, args.remove)
   print 'Number of changes: %d' % change_count
-  if change_count > 0:
+  if change_count > 0 and not args.remove:
     return 1
   return 0
 

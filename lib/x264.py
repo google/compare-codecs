@@ -47,7 +47,7 @@ class X264Codec(file_codec.FileCodec):
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--preset slow --tune psnr',
+      '--preset slow --tune psnr --threads 1',
       formatter=self.option_formatter))
 
 
