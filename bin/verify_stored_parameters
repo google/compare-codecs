@@ -44,7 +44,7 @@ def VerifyHashnames(codecs, remove_offending_encoders):
       try:
         my_encoder = encoder.Encoder(context, filename=filename)
         new_parameters = codec.ConfigurationFixups(my_encoder.parameters)
-        if (new_parameters != my_encoder.parameters):
+        if new_parameters != my_encoder.parameters:
           print 'Error: Parameters change at fixup for codec %s encoder %s' % (
               codec.name, filename)
           print 'Old:', my_encoder.parameters.ToString()

@@ -111,6 +111,8 @@ class FileCodec(encoder.Codec):
     """Returns true if a new encode of the file gives exactly the same file."""
     old_encoded_file = '%s/%s.%s' % (workdir, videofile.basename,
                                      self.extension)
+    if not os.path.isfile(old_encoded_file):
+      raise encoder.Error('Old encoded file missing: %s' % old_encoded_file)
     new_encoded_file = '%s/%s_verify.%s' % (workdir, videofile.basename,
                                             self.extension)
     self._EncodeFile(parameters, bitrate, videofile,
