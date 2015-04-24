@@ -17,28 +17,41 @@
 #
 set -e
 
+MODE=full
+if [ "$1" = "travis" ]; then
+  MODE=travis
+fi
+
 LIBDIR=$WORKDIR/lib
 
 $LIBDIR/encoder_unittest.py
 $LIBDIR/score_tools_unittest.py
 $LIBDIR/optimizer_unittest.py
 $LIBDIR/pick_codec_unittest.py
-$LIBDIR/file_codec_unittest.py
 $LIBDIR/visual_metrics_unittest.py
-$LIBDIR/vp8_unittest.py
-$LIBDIR/vp8_mpeg_unittest.py
-$LIBDIR/vp8_mpeg_1d_unittest.py
-$LIBDIR/x264_unittest.py
-$LIBDIR/h261_unittest.py
-$LIBDIR/mjpeg_unittest.py
-$LIBDIR/vp9_unittest.py
+if [ "$MODE" = "full" ]; then
+  $LIBDIR/file_codec_unittest.py
+  $LIBDIR/vp8_unittest.py
+  $LIBDIR/vp8_mpeg_unittest.py
+  $LIBDIR/vp8_mpeg_1d_unittest.py
+  $LIBDIR/x264_unittest.py
+  $LIBDIR/h261_unittest.py
+  $LIBDIR/mjpeg_unittest.py
+  $LIBDIR/vp9_unittest.py
+  # Large tests
+  $LIBDIR/optimizer_largetest.py
+else
+  echo "Skipping some tests in mode $MODE"
+fi
 
-# Large tests
-$LIBDIR/optimizer_largetest.py
 
 run_pylint
 
 echo "Checking license statements"
 # List files that do not have an Apache-license blurb in them.
 grep -L 'Licensed under the Apache' lib/*.py
-grep -L 'Licensed under the Apache' bin/*[a-z] | grep -v '\.pyc$'
+# Because the second grep returns 1 when there are no files found, we must
+# invert the exit status.
+! grep -L 'Licensed under the Apache' bin/*[a-z] | grep -v '\.pyc$'
+
+echo "All good"
