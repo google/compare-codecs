@@ -20,9 +20,14 @@
 #
 set -e
 
+MODE=full
+if [ "$1" = "travis" ]; then
+  MODE=nocompile
+fi
+
 # Requirements for compiling various packages and scripts.
 sudo apt-get install yasm mkvtoolnix mercurial cmake cmake-curses-gui \
-  build-essential yasm nasm
+  build-essential yasm nasm python-numpy
 
 # Install prerequisites for running Jekyll as a web server
 sudo apt-get install ruby1.9.1-dev nodejs
@@ -33,7 +38,16 @@ sudo apt-get install ruby1.9.1-dev nodejs
 # So we limit to a jekyll version that builds under 1.9.1.
 sudo gem install jekyll -v 1.5.1
 
+# Install travis linter
+sudo gem install travis-lint
+
+# Install depot_tools - we use the pylint from there
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
+   third_party/depot_tools
+
 # Compile from source everything that needs compiling.
-./compile_tools.sh
+if [ "$MODE" != "nocompile" ]; then
+  ./compile_tools.sh
+fi
 
 echo "All software installed"
