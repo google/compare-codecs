@@ -52,6 +52,6 @@ echo "Checking license statements"
 grep -L 'Licensed under the Apache' lib/*.py
 # Because the second grep returns 1 when there are no files found, we must
 # invert the exit status.
-! grep -L 'Licensed under the Apache' bin/*[a-z] | grep -v '\.pyc$'
+grep -L 'Licensed under the Apache' bin/*[a-z] | grep -v '\.pyc$' && exit 1
 
 echo "All good"

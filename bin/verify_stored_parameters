@@ -37,7 +37,7 @@ def IssuesOnOneParameterSet(context, filename):
     new_parameters = context.codec.ConfigurationFixups(my_encoder.parameters)
     if new_parameters != my_encoder.parameters:
       print 'Error: Parameters change at fixup for codec %s encoder %s' % (
-          codec.name, filename)
+          context.codec.name, filename)
       print 'Old:', my_encoder.parameters.ToString()
       print ('New: %s'
              % new_parameters.ToString())
