@@ -49,21 +49,16 @@ class TestMotionJpegCodec(test_tools.FileUsingCodecTest):
     codec = mjpeg.MotionJpegCodec()
     my_optimizer = optimizer.Optimizer(codec)
     my_encoder = encoder.Encoder(my_optimizer.context,
-        encoder.OptionValueSet(codec.option_set, '-qmin 1 -qmax 1',
-                               formatter=codec.option_formatter))
-    self.assertEquals('1', my_encoder.parameters.GetValue('qmin'))
-    self.assertEquals('1', my_encoder.parameters.GetValue('qmax'))
-    # qmax is less than qmin. Should be adjusted to be above.
-    my_encoder = encoder.Encoder(my_optimizer.context,
-        encoder.OptionValueSet(codec.option_set, '-qmin 2 -qmax 1',
+        encoder.OptionValueSet(codec.option_set, '-qmin 2 -qmax 2',
                                formatter=codec.option_formatter))
     self.assertEquals('2', my_encoder.parameters.GetValue('qmin'))
     self.assertEquals('2', my_encoder.parameters.GetValue('qmax'))
-    # qmin is not given, qmax set below default for qmin.
+    # qmax is less than qmin. Should be adjusted to be above.
     my_encoder = encoder.Encoder(my_optimizer.context,
-        encoder.OptionValueSet(codec.option_set, '-qmax 0',
+        encoder.OptionValueSet(codec.option_set, '-qmin 3 -qmax 2',
                                formatter=codec.option_formatter))
-    self.assertEquals('1', my_encoder.parameters.GetValue('qmax'))
+    self.assertEquals('3', my_encoder.parameters.GetValue('qmin'))
+    self.assertEquals('3', my_encoder.parameters.GetValue('qmax'))
 
 
 if __name__ == '__main__':

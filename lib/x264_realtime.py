@@ -28,5 +28,5 @@ class X264RealtimeCodec(x264.X264Codec):
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--rc-lookahead 0 --preset faster --tune psnr',
+      '--rc-lookahead 0 --preset faster --tune psnr --threads 4',
       formatter=self.option_formatter))

@@ -28,5 +28,5 @@ class X264BaselineCodec(x264.X264Codec):
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--profile baseline --preset slow --tune psnr',
+      '--profile baseline --preset slow --tune psnr --threads 1',
       formatter=self.option_formatter))

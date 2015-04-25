@@ -45,7 +45,14 @@ import sys
 
 
 class Error(Exception):
+  """Generic errors in all Encoder-related problems."""
   pass
+
+
+class ParseError(Error):
+  """Errors in parsing a configuration string."""
+  pass
+
 
 def Tool(name):
   return os.path.join(os.getenv('CODEC_TOOLPATH'), name)
@@ -81,6 +88,9 @@ class Option(object):
     assert self.CanChange
     rest = list(self.values - set([not_this]))
     return rest[random.randint(0, len(rest) - 1)]
+
+  def LegalValue(self, value):
+    return value in self.values
 
   def OptionString(self, value):
     return '--%s=%s' % (self.name, value)
@@ -140,6 +150,10 @@ class DummyOption(Option):
 
   def CanChange(self):
     return False
+
+  def LegalValue(self, value):
+    # This class does not have an opinion of legal values.
+    return True
 
 
 class OptionSet(object):
@@ -234,6 +248,10 @@ class OptionValueSet(object):
       self._HandleFlag(match)
       unparsed = unparsed[match.end():]
       match = re.match(matcher, unparsed)
+    if option_set:
+      for option in option_set.options.values():
+        if option.mandatory and not option.name in self.values:
+          raise ParseError('Mandatory option %s is missing' % option.name)
 
   def _HandleFlag(self, match):
     if self._HandleNameValueFlag(match):
@@ -250,6 +268,8 @@ class OptionValueSet(object):
       # Known name=value option.
       name = match.group(1)
       value = match.group(3)
+      if not self.option_set.options[name].LegalValue(value):
+        raise ParseError('Illegal value %s for option %s' % (value, name))
       self.values[name] = value
       return True
     return False
@@ -276,6 +296,9 @@ class OptionValueSet(object):
       # accept it. (This may reorder options.)
       return self == OptionValueSet(self.option_set, other)
 
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   def GetValue(self, name):
     try:
       return self.values[name]
@@ -289,7 +312,10 @@ class OptionValueSet(object):
     """Return a clone of this OptionValueSet.
 
     Used by internal functions that modify the copy."""
-    new_set = OptionValueSet(self.option_set, "", self.formatter)
+    new_set = OptionValueSet(None, "", self.formatter)
+    # Note that setting option_set after creation is needed to bypass
+    # the test for "" being a valid configuration.
+    new_set.option_set = self.option_set
     new_set.values = self.values.copy()
     new_set.other_parts = self.other_parts
     return new_set

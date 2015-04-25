@@ -244,6 +244,18 @@ class TestOptionValueSet(unittest.TestCase):
     newconfig = config.RandomlyRemoveParameter()
     self.assertFalse(newconfig)
 
+  def test_MissingMandatoryFailsToParse(self):
+    options = encoder.OptionSet(
+        encoder.Option('foo', ['foo', 'bar']).Mandatory())
+    with self.assertRaises(encoder.ParseError):
+      encoder.OptionValueSet(options, '')
+
+  def test_UnlistedValueFailsToParse(self):
+    options = encoder.OptionSet(
+        encoder.Option('foo', ['foo', 'bar']).Mandatory())
+    with self.assertRaises(encoder.ParseError):
+      encoder.OptionValueSet(options, '--foo=nonsense')
+
 
 class TestCodec(unittest.TestCase):
   def setUp(self):
