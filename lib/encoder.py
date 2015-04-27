@@ -777,7 +777,7 @@ class EncodingDiskCache(object):
   def AllScoredEncodingsForEncoder(self, encoder):
     return self._QueryScoredEncodings(encoder=encoder)
 
-  def StoreEncoder(self, encoder):
+  def StoreEncoder(self, encoder, workdir=None):
     """Stores an encoder object on disk.
 
     An encoder object consists of a parameter set.
@@ -785,9 +785,13 @@ class EncodingDiskCache(object):
     representation."""
     if encoder.stored:
       return
-    dirname = os.path.join(self.workdir, encoder.Hashname())
+    if workdir:
+      dirname = os.path.join(workdir, self.context.codec.name,
+                             encoder.Hashname())
+    else:
+      dirname = os.path.join(self.workdir, encoder.Hashname())
     if not os.path.isdir(dirname):
-      os.mkdir(dirname)
+      os.makedirs(dirname)
     with open(os.path.join(dirname, 'parameters'), 'w') as parameterfile:
       parameterfile.write(encoder.parameters.ToString())
     encoder.stored = True
@@ -805,15 +809,22 @@ class EncodingDiskCache(object):
   def RemoveEncoder(self, hashname):
     shutil.rmtree(os.path.join(self.workdir, hashname))
 
-  def StoreEncoding(self, encoding):
+  def StoreEncoding(self, encoding, workdir=None):
     """Stores an encoding object on disk.
 
     An encoding object consists of its result (if executed).
     The bitrate is encoded as a directory, the videofilename
     is encoded as part of the output filename.
     """
-    dirname = '%s/%s/%s' % (self.workdir, encoding.encoder.Hashname(),
-                            self.context.codec.SpeedGroup(encoding.bitrate))
+    if workdir:
+      dirname = os.path.join(workdir,
+                             self.context.codec.name,
+                             encoding.encoder.Hashname(),
+                             self.context.codec.SpeedGroup(encoding.bitrate))
+    else:
+      dirname = os.path.join(self.workdir,
+                             encoding.encoder.Hashname(),
+                             self.context.codec.SpeedGroup(encoding.bitrate))
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
     if not encoding.result:
