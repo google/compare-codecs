@@ -18,7 +18,7 @@
 set -e
 
 if [ ! $WORKDIR ]; then
-  echo "init.sh not run"
+  echo "Please source init.sh first"
   exit 1
 fi
 cd $WORKDIR
@@ -30,6 +30,3 @@ else
   cd score_storage
 fi
 git pull
-
-
-  
