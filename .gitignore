@@ -10,6 +10,7 @@ _site
 _config-local.yml
 workdir/
 snapshot/
+score_storage/
 video/*/
 third_party/*/
 tools/

@@ -51,6 +51,11 @@ def ScoreCpuPsnr(target_bitrate, result):
   - Encode time needs to stay below clip length
   - Decode time needs to stay below clip length
   Otherwise, PSNR rules."""
+
+  # There are cases where we don't know a target bitrate.
+  # Return a negative score for these.
+  if target_bitrate == 0.0:
+    return -1.0
   score = result['psnr']
   # We penalize bitrates that exceed the target bitrate.
   # Score reduction is 0.1 dB per percentage point over target.
