@@ -21,21 +21,26 @@ import sys
 import encoder
 import optimizer
 import pick_codec
+import score_tools
 
 def ImprovementsInOneParameterSet(my_optimizer, filename):
   my_encoder = encoder.Encoder(my_optimizer.context, filename=filename)
+  cache = my_optimizer.context.cache
   results = []
-  for encoding in my_optimizer.context.cache.AllScoredEncodingsForEncoder(my_encoder):
+  for encoding in cache.AllScoredEncodingsForEncoder(my_encoder):
     new_score = my_optimizer.Score(encoding)
     try:
       old_score = my_optimizer.Score(encoding, scoredir='score_storage')
-    except encoder.Error:
+    except (encoder.Error, KeyError):
+      # encoder.Error can happen if old score is broken.
+      # KeyError can happen if old score is missing some now-mandatory
+      # field.
+      # In both cases, the new score should be used.
       if new_score > 0.0:
         results.append(encoding)
       continue
     if new_score > old_score:
       results.append(encoding)
-  # Not quite ready yet.
   return results
 
 def FindImprovedScores(codecs, criterion):
@@ -45,7 +50,8 @@ def FindImprovedScores(codecs, criterion):
     # but pylint picks up EncodingMemoryCache as the likely cache type.
     # pylint: disable=maybe-no-member
     codec = pick_codec.PickCodec(codec_name)
-    my_optimizer = optimizer.Optimizer(codec)
+    my_optimizer = optimizer.Optimizer(codec,
+        score_function=score_tools.PickScorer(criterion))
     filenames = my_optimizer.context.cache.AllEncoderFilenames()
     for filename in filenames:
       improvement_list.extend(ImprovementsInOneParameterSet(my_optimizer,
