@@ -21,6 +21,7 @@ import json
 import glob
 import os
 import sys
+import encoder_configuration
 
 
 class Error(Exception):
@@ -59,7 +60,8 @@ def ReadAndMaybeRewriteResult(filename):
   return 'No file'
 
 def main():
-  resultfiles = glob.glob(os.environ['CODEC_WORKDIR'] + '/*/*/*/*.result')
+  resultfiles = glob.glob(encoder_configuration.conf.workdir()
+                          + '/*/*/*/*.result')
   print len(resultfiles), 'files found'
   counter = collections.Counter()
   overall_counter = 0

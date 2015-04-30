@@ -26,13 +26,11 @@ An encoding is an encoder applied to a given filename and target bitrate.
 
 A variant is an encoder with at least one option changed.
 
-This module uses two external variables:
-
-os.getenv(CODEC_WORKDIR) gives the place where data is stored.
-os.getenv(CODEC_TOOLPATH) gives the directory of encoder/decoder tools.
+Configuration of the module is through the encoder_configuration module.
 """
 
 import ast
+import encoder_configuration
 import exceptions
 import glob
 import json
@@ -55,7 +53,7 @@ class ParseError(Error):
 
 
 def Tool(name):
-  return os.path.join(os.getenv('CODEC_TOOLPATH'), name)
+  return os.path.join(encoder_configuration.conf.tooldir(), name)
 
 
 class Option(object):
@@ -723,7 +721,7 @@ class EncodingDiskCache(object):
   def __init__(self, context):
     self.context = context
     # Default work directory is current directory.
-    self.workdir = '%s/%s' % (os.getenv('CODEC_WORKDIR'),
+    self.workdir = '%s/%s' % (encoder_configuration.conf.workdir(),
                               context.codec.name)
     if not os.path.isdir(self.workdir):
       os.mkdir(self.workdir)

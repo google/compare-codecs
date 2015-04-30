@@ -14,11 +14,11 @@
 # limitations under the License.
 
 """ Unit tests for the optimizer. """
-import os
 import re
 import unittest
 
 import encoder
+import encoder_configuration
 import optimizer
 import test_tools
 
@@ -276,7 +276,7 @@ class TestFileAndRateSetWithRealFiles(test_tools.FileUsingCodecTest):
     file_name = 'file_1024_768_30.yuv'
     test_tools.MakeYuvFileWithOneBlankFrame(file_name)
     the_set.AddFilesAndRates([file_name], [100],
-                             basedir=os.getenv('CODEC_WORKDIR'))
+                             basedir=encoder_configuration.conf.workdir())
     self.assertTrue(the_set.AllFilesAndRates())
     self.assertTrue(the_set.set_is_complete)
 

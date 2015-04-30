@@ -11,9 +11,10 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License.te
 """Unit tests for encoder module."""
 
+import encoder_configuration
 import os
 import re
 import shutil
@@ -490,7 +491,7 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
 
   def testReadResultFromAlternateDir(self):
     context = StorageOnlyContext()
-    otherdir = os.path.join(os.environ['CODEC_WORKDIR'], 'otherdir')
+    otherdir = os.path.join(encoder_configuration.conf.workdir(), 'otherdir')
     cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
         context,
@@ -505,7 +506,7 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     my_encoding.result = None
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertIsNone(result)
-    shutil.copytree(os.environ['CODEC_WORKDIR'], otherdir)
+    shutil.copytree(encoder_configuration.conf.workdir(), otherdir)
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertEquals(result, testresult)
 

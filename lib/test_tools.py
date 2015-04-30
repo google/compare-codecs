@@ -21,21 +21,22 @@ import tempfile
 import unittest
 
 import encoder
+import encoder_configuration
 import optimizer
 
 def InitWorkDir():
   dirname = tempfile.mkdtemp(prefix='codec-unittest-workdir')
   if not os.path.isdir(dirname):
     os.mkdir(dirname)
-  os.environ['CODEC_WORKDIR'] = dirname
-  os.environ['WORKDIR'] = dirname
+  encoder_configuration.conf.override_workdir_for_test(dirname)
+  encoder_configuration.conf.override_sysdir_for_test(dirname)
   return dirname
 
 def MakeYuvFileWithBlankFrames(name, count):
   """Make an YUV file with one or more blank frames (all zeroes).
 
   The size of the frame is encoded in the filename."""
-  videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
+  videofile = encoder.Videofile('%s/%s' % (encoder_configuration.conf.workdir(),
                                            name))
   # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
   framesize = videofile.width * videofile.height * 3 / 2
@@ -45,7 +46,7 @@ def MakeYuvFileWithBlankFrames(name, count):
 
 def MakeYuvFileWithNoisyFrames(name, count):
   """Make an YUV file with one or more frames containing noise."""
-  videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
+  videofile = encoder.Videofile('%s/%s' % (encoder_configuration.conf.workdir(),
                                            name))
   # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
   framesize = videofile.width * videofile.height * 3 / 2
@@ -61,7 +62,7 @@ def MakeYuvFileWithOneBlankFrame(name):
 
 def FinishWorkDir(dirname):
   # Verification of validity
-  if os.environ['CODEC_WORKDIR'] != dirname:
+  if encoder_configuration.conf.workdir() != dirname:
     raise encoder.Error('Dirname was wrong in FinishWorkDir')
   shutil.rmtree(dirname)
 
@@ -73,7 +74,7 @@ def TestFileSet():
   the_set = optimizer.FileAndRateSet()
   filename = 'one_black_frame_1024_768_30.yuv'
   MakeYuvFileWithOneBlankFrame(filename)
-  my_directory = os.environ['CODEC_WORKDIR']
+  my_directory = encoder_configuration.conf.workdir()
   the_set.AddFilesAndRates([filename],
                            [300, 1000, 3000],
                            my_directory)
