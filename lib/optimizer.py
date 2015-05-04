@@ -162,22 +162,24 @@ class Optimizer(object):
     all_scored_encodings = self.context.cache.AllScoredEncodings(
         files_and_rates[0][0],
         encoder.Videofile(files_and_rates[0][1]))
-    candidate_encoders = set([x.encoder.Hashname()
+    candidate_encoder_ids = set([x.encoder.Hashname()
+                                for x in all_scored_encodings])
+    candidate_encoders = dict([(x.encoder.Hashname(), x.encoder)
                               for x in all_scored_encodings])
     for rate, filename in files_and_rates[1:]:
       these_encoders = set([x.encoder.Hashname()
                             for x in self.context.cache.AllScoredEncodings(
                               rate, encoder.Videofile(filename))])
-      candidate_encoders.intersection_update(these_encoders)
-    if len(candidate_encoders) == 0:
+      candidate_encoder_ids.intersection_update(these_encoders)
+    if len(candidate_encoder_ids) == 0:
       return None
-    if len(candidate_encoders) == 1:
-      return encoder.Encoder(self.context, filename=candidate_encoders.pop())
+    if len(candidate_encoder_ids) == 1:
+      return candidate_encoders[candidate_encoder_ids.pop()]
     best_score = -10000
     best_encoder = None
-    for hashname in candidate_encoders:
+    for hashname in candidate_encoder_ids:
       this_total = 0
-      this_encoder = encoder.Encoder(self.context, filename=hashname)
+      this_encoder = candidate_encoders[hashname]
       for rate, filename in files_and_rates:
         this_encoding = this_encoder.Encoding(rate, encoder.Videofile(filename))
         this_encoding.Recover()

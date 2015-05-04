@@ -507,7 +507,7 @@ class Encoder(object):
         raise Error("Encoder with neither parameters nor filename")
       else:
         self.parameters = self.context.cache.ReadEncoderParameters(filename)
-        if self.Hashname() != filename:
+        if self.Hashname() != os.path.basename(filename):
           raise Error("Filename %s for codec %s contains wrong arguments"
                       % (filename, context.codec.name))
     else:
@@ -738,7 +738,6 @@ class EncodingDiskCache(object):
   def _FileNameToEncoder(self, full_filename):
     filename = os.path.dirname(full_filename)  # Cut off resultfile
     filename = os.path.dirname(filename)  # Cut off bitrate dir
-    filename = os.path.basename(filename)  # Cut off leading codec name
     return Encoder(self.context, filename=filename)
 
   def _FilesToEncodings(self, files, videofile, bitrate=None,
@@ -802,17 +801,22 @@ class EncodingDiskCache(object):
       parameterfile.write(encoder.parameters.ToString())
     encoder.stored = True
 
-  def ReadEncoderParameters(self, hashname):
-    dirname = os.path.join(self.workdir, hashname)
-    with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
-      return OptionValueSet(self.context.codec.option_set, parameterfile.read(),
-                            formatter=self.context.codec.option_formatter)
+  def ReadEncoderParameters(self, dirname):
+    if dirname[0:0] == '/':
+      with open(os.path.join(dirname, 'parameters'), 'r') as parameterfile:
+        return OptionValueSet(self.context.codec.option_set,
+                              parameterfile.read(),
+                              formatter=self.context.codec.option_formatter)
+    else:
+      for repository in self.SearchPath():
+        filename = os.path.join(repository, dirname, 'parameters')
+        if os.path.isfile(filename):
+          with open(filename, 'r') as parameterfile:
+            return OptionValueSet(self.context.codec.option_set,
+                                  parameterfile.read(),
+                                  formatter=self.context.codec.option_formatter)
 
-  def AllEncoderFilenames(self, only_workdir=True):
-    # Note: Filenames are returned as basenames, which means that
-    # they lose track of which path element they belong to.
-    # Issue #63 filed.
-    # Until that is fixed, only_workdir defaults to True.
+  def AllEncoderFilenames(self, only_workdir=False):
     filenames = []
     if only_workdir:
       path_list = [self.WorkDir()]
@@ -820,8 +824,7 @@ class EncodingDiskCache(object):
       path_list = self.SearchPath()
     for path in path_list:
       pattern = os.path.join(path, '*')
-      filenames.extend([os.path.basename(this_file)
-                        for this_file in glob.glob(pattern)])
+      filenames.extend([this_file for this_file in glob.glob(pattern)])
     return filenames
 
   def RemoveEncoder(self, hashname):
@@ -854,29 +857,33 @@ class EncodingDiskCache(object):
   def ReadEncodingResult(self, encoding, scoredir=None):
     """Reads an encoding result back from storage, if present.
 
-    None is returned file does not exist."""
+    None is returned if file does not exist.
+    If scoredir is given, only that directory is searched.
+    If it is not given, all directories in the search path are searched."""
 
     if scoredir:
-      workdir = os.path.join(scoredir, self.context.codec.name)
+      searchpath = [os.path.join(scoredir, self.context.codec.name)]
     else:
-      workdir = self.workdir
-    dirname = ('%s/%s/%s' % (workdir, encoding.encoder.Hashname(),
-                             self.context.codec.SpeedGroup(encoding.bitrate)))
-    filename = '%s/%s.result' % (dirname, encoding.videofile.basename)
-    if os.path.isfile(filename):
-      with open(filename, 'r') as resultfile:
-        stringbuffer = resultfile.read()
-        try:
-          return json.loads(stringbuffer)
-        except exceptions.ValueError:
+      searchpath = self.SearchPath()
+
+    for workdir in searchpath:
+      dirname = ('%s/%s/%s' % (workdir, encoding.encoder.Hashname(),
+                              self.context.codec.SpeedGroup(encoding.bitrate)))
+      filename = '%s/%s.result' % (dirname, encoding.videofile.basename)
+      if os.path.isfile(filename):
+        with open(filename, 'r') as resultfile:
+          stringbuffer = resultfile.read()
           try:
-            return ast.literal_eval(stringbuffer)
+            return json.loads(stringbuffer)
+          except exceptions.ValueError:
+            try:
+              return ast.literal_eval(stringbuffer)
+            except:
+              raise Error('Unexpected AST error: %s, filename was %s' %
+                          (sys.exc_info()[0], filename))
           except:
-            raise Error('Unexpected AST error: %s, filename was %s' %
+            raise Error('Unexpected JSON error: %s, filename was %s' %
                         (sys.exc_info()[0], filename))
-        except:
-          raise Error('Unexpected JSON error: %s, filename was %s' %
-                      (sys.exc_info()[0], filename))
     return None
 
 
