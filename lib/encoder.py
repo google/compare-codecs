@@ -729,6 +729,12 @@ class EncodingDiskCache(object):
   def WorkDir(self):
     return self.workdir
 
+  def SearchPath(self):
+    path = [self.workdir]
+    path.extend(['%s/%s' % (this_path, self.context.codec.name)
+                 for this_path in encoder_configuration.conf.scorepath()])
+    return path
+
   def _FileNameToEncoder(self, full_filename):
     filename = os.path.dirname(full_filename)  # Cut off resultfile
     filename = os.path.dirname(filename)  # Cut off bitrate dir
@@ -761,9 +767,11 @@ class EncodingDiskCache(object):
           os.path.basename(videofile.filename))[0] + '.result'
     else:
       videofile_part = '*' + '.result'
-    pattern = os.path.join(self.workdir, encoder_part,
-                           bitrate_part, videofile_part)
-    files = glob.glob(pattern)
+    files = []
+    for path in self.SearchPath():
+      pattern = os.path.join(path, encoder_part,
+                             bitrate_part, videofile_part)
+      files.extend(glob.glob(pattern))
     return self._FilesToEncodings(files, videofile, bitrate)
 
   def AllScoredEncodings(self, bitrate, videofile):
@@ -800,9 +808,21 @@ class EncodingDiskCache(object):
       return OptionValueSet(self.context.codec.option_set, parameterfile.read(),
                             formatter=self.context.codec.option_formatter)
 
-  def AllEncoderFilenames(self):
-    pattern = os.path.join(self.workdir, '*')
-    return [os.path.basename(this_file) for this_file in glob.glob(pattern)]
+  def AllEncoderFilenames(self, only_workdir=True):
+    # Note: Filenames are returned as basenames, which means that
+    # they lose track of which path element they belong to.
+    # Issue #63 filed.
+    # Until that is fixed, only_workdir defaults to True.
+    filenames = []
+    if only_workdir:
+      path_list = [self.WorkDir()]
+    else:
+      path_list = self.SearchPath()
+    for path in path_list:
+      pattern = os.path.join(path, '*')
+      filenames.extend([os.path.basename(this_file)
+                        for this_file in glob.glob(pattern)])
+    return filenames
 
   def RemoveEncoder(self, hashname):
     shutil.rmtree(os.path.join(self.workdir, hashname))

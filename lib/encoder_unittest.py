@@ -413,6 +413,12 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     cache = encoder.EncodingDiskCache(StorageOnlyContext())
     self.assertTrue(cache)
 
+  def testSearchPath(self):
+    cache = encoder.EncodingDiskCache(StorageOnlyContext())
+    path = cache.SearchPath()
+    self.assertEquals(1 + len(encoder_configuration.conf.scorepath()),
+                      len(path))
+
   def testStoreFetchEncoder(self):
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)

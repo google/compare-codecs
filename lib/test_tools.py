@@ -30,6 +30,7 @@ def InitWorkDir():
     os.mkdir(dirname)
   encoder_configuration.conf.override_workdir_for_test(dirname)
   encoder_configuration.conf.override_sysdir_for_test(dirname)
+  encoder_configuration.conf.override_scorepath_for_test([])
   return dirname
 
 def MakeYuvFileWithBlankFrames(name, count):

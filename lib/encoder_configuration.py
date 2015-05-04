@@ -19,11 +19,19 @@ variables, and setters for overriding that configuration in tests.
 import os
 
 
+class Error(Exception):
+  pass
+
+
 class Configuration(object):
   def __init__(self):
     self.work_directory = os.environ['CODEC_WORKDIR']
     self.sys_directory = os.environ['WORKDIR']
     self.tool_directory = os.environ['CODEC_TOOLPATH']
+    self.score_path = os.getenv('CODEC_SCOREPATH', '').split(':')
+    # Splitting an empty string gives an 1-element result. Remove that.
+    if self.score_path == ['']:
+      self.score_path = []
 
   def workdir(self):
     return self.work_directory
@@ -34,11 +42,18 @@ class Configuration(object):
   def tooldir(self):
     return self.tool_directory
 
+  def scorepath(self):
+    """Additional directories to search for scores after workdir."""
+    return self.score_path
+
   def override_workdir_for_test(self, test_workdir):
     self.work_directory = test_workdir
 
   def override_sysdir_for_test(self, test_sysdir):
     self.sys_directory = test_sysdir
+
+  def override_scorepath_for_test(self, test_scorepath):
+    self.score_path = test_scorepath
 
 # A static variable for holding the current configuration.
 # pylint: disable=invalid-name
