@@ -28,9 +28,9 @@ def InitWorkDir():
   dirname = tempfile.mkdtemp(prefix='codec-unittest-workdir')
   if not os.path.isdir(dirname):
     os.mkdir(dirname)
-  os.mkdir(dirname + '/workdir')
-  encoder_configuration.conf.override_workdir_for_test(dirname +
-                                                       '/workdir')
+  os.mkdir(os.path.join(dirname, 'workdir'))
+  encoder_configuration.conf.override_workdir_for_test(
+      os.path.join(dirname, 'workdir'))
   encoder_configuration.conf.override_sysdir_for_test(dirname)
   encoder_configuration.conf.override_scorepath_for_test([])
   return dirname
@@ -65,7 +65,7 @@ def MakeYuvFileWithOneBlankFrame(name):
 
 def EmptyWorkDirectory():
   dirname = encoder_configuration.conf.workdir()
-  if dirname[0:4] != '/tmp':
+  if not dirname.startswith(tempfile.gettempdir()):
     raise encoder.Error('Workdir is %s, not a tempfile' % dirname)
   shutil.rmtree(dirname)
   os.mkdir(dirname)
@@ -73,7 +73,8 @@ def EmptyWorkDirectory():
 def FinishWorkDir(dirname):
   # Verification of validity
   if encoder_configuration.conf.sysdir() != dirname:
-    raise encoder.Error('Dirname was wrong in FinishWorkDir')
+    raise encoder.Error('FinishWorkDir got dirname %s but expected %s'
+                        % (dirname, encoder_configuration.conf.sysdir()))
   shutil.rmtree(dirname)
 
 def TestFileSet():

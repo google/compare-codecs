@@ -44,7 +44,7 @@ class TestConfiguration(unittest.TestCase):
     self.assertEquals(0, len(my_conf.scorepath()))
     os.environ['CODEC_SCOREPATH'] = 'a:b'
     my_conf = encoder_configuration.Configuration()
-    self.assertEquals('a and b', ' and '.join(my_conf.scorepath()))
+    self.assertEquals(['a', 'b'], my_conf.scorepath())
 
   def test_override(self):
     encoder_configuration.conf.override_workdir_for_test('new_value')
