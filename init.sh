@@ -20,6 +20,11 @@ PATH=$(dedup "$PATH:$WORKDIR/bin")
 export PYTHONPATH=$(dedup "$PYTHONPATH:$WORKDIR/lib")
 export CODEC_WORKDIR=$WORKDIR/workdir
 export CODEC_TOOLPATH=$WORKDIR/tools
+if [ -d $WORKDIR/score_storage ]; then
+  export CODEC_SCOREPATH=$WORKDIR/score_storage
+else
+  export CODEC_SCOREPATH=''
+fi
 
 if [ ! -d $CODEC_WORKDIR ]; then
   mkdir $CODEC_WORKDIR

@@ -63,7 +63,7 @@ def VerifyHashnames(codecs, remove_offending_encoders):
     # pylint: disable=maybe-no-member
     codec = pick_codec.PickCodec(codec_name)
     context = encoder.Context(codec, cache_class=encoder.EncodingDiskCache)
-    filenames = context.cache.AllEncoderFilenames()
+    filenames = context.cache.AllEncoderFilenames(only_workdir=True)
     for filename in filenames:
       if IssuesOnOneParameterSet(context, filename):
         if remove_offending_encoders:

@@ -12,8 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Unit tests for encoder module."""
 
+import encoder_configuration
 import os
 import re
 import shutil
@@ -412,6 +414,17 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     cache = encoder.EncodingDiskCache(StorageOnlyContext())
     self.assertTrue(cache)
 
+  def testSearchPathForScores(self):
+    # The score path starts out empty from setUp.
+    cache = encoder.EncodingDiskCache(StorageOnlyContext())
+    path = cache.SearchPathForScores()
+    self.assertEquals(1, len(path),
+                      msg='Not just one element when scorepath is empty')
+    encoder_configuration.conf.override_scorepath_for_test(['foo'])
+    path = cache.SearchPathForScores()
+    self.assertEquals(2, len(path),
+                      msg='Not just 2 elements when scorepath has 1 element')
+
   def testStoreFetchEncoder(self):
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)
@@ -419,6 +432,10 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
     cache.StoreEncoder(my_encoder)
+    new_encoder_data = cache.ReadEncoderParameters(
+        os.path.join(cache.WorkDir(), my_encoder.Hashname()))
+    self.assertEquals(new_encoder_data, my_encoder.parameters)
+    # Using only the hashname should work too.
     new_encoder_data = cache.ReadEncoderParameters(my_encoder.Hashname())
     self.assertEquals(new_encoder_data, my_encoder.parameters)
 
@@ -472,7 +489,7 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     cache.StoreEncoder(my_encoder)
     files = cache.AllEncoderFilenames()
     self.assertEquals(1, len(files))
-    self.assertEquals(my_encoder.Hashname(), files[0])
+    self.assertEquals(my_encoder.Hashname(), os.path.basename(files[0]))
 
   def testRemoveEncoder(self):
     context = StorageOnlyContext()
@@ -483,14 +500,14 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     cache.StoreEncoder(my_encoder)
     files = cache.AllEncoderFilenames()
     self.assertEquals(1, len(files))
-    self.assertEquals(my_encoder.Hashname(), files[0])
+    self.assertEquals(my_encoder.Hashname(), os.path.basename(files[0]))
     cache.RemoveEncoder(my_encoder.Hashname())
     files = cache.AllEncoderFilenames()
     self.assertEquals(0, len(files))
 
   def testReadResultFromAlternateDir(self):
     context = StorageOnlyContext()
-    otherdir = os.path.join(os.environ['CODEC_WORKDIR'], 'otherdir')
+    otherdir = os.path.join(encoder_configuration.conf.sysdir(), 'otherdir')
     cache = encoder.EncodingDiskCache(context)
     my_encoder = encoder.Encoder(
         context,
@@ -505,7 +522,7 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     my_encoding.result = None
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertIsNone(result)
-    shutil.copytree(os.environ['CODEC_WORKDIR'], otherdir)
+    shutil.copytree(encoder_configuration.conf.workdir(), otherdir)
     result = cache.ReadEncodingResult(my_encoding, scoredir=otherdir)
     self.assertEquals(result, testresult)
 
@@ -557,30 +574,37 @@ class TestEncodingDiskCache(test_tools.FileUsingCodecTest):
     result = cache.AllScoredEncodings(123, videofile)
     self.assertEquals(1, len(result))
 
-  def testReadResultEncodedInAst(self):
-    # We've changed the storage format for results from AST to JSON.
-    # This test verifies that AST formatted results are still readable.
+  def testEncodersInMultipleRepos(self):
+    test_tools.EmptyWorkDirectory()
     context = StorageOnlyContext()
     cache = encoder.EncodingDiskCache(context)
+    context.cache = cache
     my_encoder = encoder.Encoder(
         context,
         encoder.OptionValueSet(encoder.OptionSet(), '--parameters'))
-    cache.StoreEncoder(my_encoder)
+    other_dir = os.path.join(encoder_configuration.conf.sysdir(),
+                             'multirepo_test')
+    encoder_configuration.conf.override_scorepath_for_test([other_dir])
+    os.mkdir(other_dir)
+    cache.StoreEncoder(my_encoder, workdir=other_dir)
+    encoders = cache.AllEncoderFilenames(only_workdir=True)
+    self.assertEquals(0, len(encoders))
+    encoders = cache.AllEncoderFilenames(only_workdir=False)
+    self.assertEquals(1, len(encoders))
+    fetched_encoder = encoder.Encoder(context, filename=encoders[0])
+    self.assertEquals(my_encoder.parameters.ToString(),
+                      fetched_encoder.parameters.ToString())
     my_encoding = encoder.Encoding(my_encoder, 123,
                                    encoder.Videofile('x/foo_640_480_20.yuv'))
     testresult = {'foo': 'bar'}
     my_encoding.result = testresult
-    # The following code is a copy of cache.StoreEncoding, with the
-    # encoding step changed.
-    dirname = '%s/%s/%s' % (cache.workdir, my_encoding.encoder.Hashname(),
-                            cache.context.codec.SpeedGroup(my_encoding.bitrate))
-    videoname = my_encoding.videofile.basename
-    with open('%s/%s.result' % (dirname, videoname), 'w') as resultfile:
-      resultfile.write(str(my_encoding.result))
-
-    my_encoding.result = None
-    result = cache.ReadEncodingResult(my_encoding)
-    self.assertEquals(result, testresult)
+    cache.StoreEncoding(my_encoding, workdir=other_dir)
+    # With a specified directory, we should find it in only one place.
+    self.assertFalse(cache.ReadEncodingResult(my_encoding,
+        scoredir=encoder_configuration.conf.workdir()))
+    self.assertTrue(cache.ReadEncodingResult(my_encoding, scoredir=other_dir))
+    # Without a specified directory, we should find it everywhere.
+    self.assertTrue(cache.ReadEncodingResult(my_encoding))
 
 
 class TestEncodingMemoryCache(unittest.TestCase):
