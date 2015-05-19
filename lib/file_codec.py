@@ -37,7 +37,7 @@ class FileCodec(encoder.Codec):
       parameters, bitrate, videofile, encodedfile)
 
     print commandline
-    with open('/dev/null', 'r') as nullinput:
+    with open(os.path.devnull, 'r') as nullinput:
       times_start = os.times()
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
       times_end = os.times()
@@ -49,23 +49,15 @@ class FileCodec(encoder.Codec):
         raise Exception("Encode failed with returncode %d" % returncode)
       return (subprocess_cpu, elapsed_clock)
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
-    encodedfile = '%s/%s.%s' % (workdir, videofile.basename, self.extension)
-    subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
-                                                       videofile, encodedfile)
-    result = {}
-
-    result['encode_cputime'] = subprocess_cpu
-    result['encode_clocktime'] = elapsed_clock
-    bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
-
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
+  def _DecodeFile(self, videofile, encodedfile, workdir):
+    tempyuvfile = os.path.join(workdir,
+                               videofile.basename + 'tempyuvfile.yuv')
     if os.path.isfile(tempyuvfile):
       print "Removing tempfile before decode:", tempyuvfile
       os.unlink(tempyuvfile)
     commandline = self.DecodeCommandLine(videofile, encodedfile, tempyuvfile)
     print commandline
-    with open('/dev/null', 'r') as nullinput:
+    with open(os.path.devnull, 'r') as nullinput:
       subprocess_cpu_start = os.times()[2]
       returncode = subprocess.call(commandline, shell=True,
                                 stdin=nullinput)
@@ -73,13 +65,33 @@ class FileCodec(encoder.Codec):
         raise Exception('Decode failed with returncode %d' % returncode)
       subprocess_cpu = os.times()[2] - subprocess_cpu_start
       print "Decode took %f seconds" % subprocess_cpu
-      result['decode_cputime'] = subprocess_cpu
       commandline = encoder.Tool("psnr") + " %s %s %d %d 9999" % (
         videofile.filename, tempyuvfile, videofile.width,
         videofile.height)
       print commandline
       psnr = subprocess.check_output(commandline, shell=True, stdin=nullinput)
+      commandline = ['md5sum', tempyuvfile]
+      md5 = subprocess.check_output(commandline, shell=False)
+      yuv_md5 = md5.split(' ')[0]
     os.unlink(tempyuvfile)
+    return psnr, subprocess_cpu, yuv_md5
+
+  def Execute(self, parameters, bitrate, videofile, workdir):
+    encodedfile = os.path.join(workdir,
+                               '%s.%s' % (videofile.basename, self.extension))
+    subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
+                                                     videofile, encodedfile)
+    result = {}
+
+    result['encode_cputime'] = subprocess_cpu
+    result['encode_clocktime'] = elapsed_clock
+    bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
+
+    psnr, decode_cputime, yuv_md5 = self._DecodeFile(
+        videofile, encodedfile, workdir)
+
+    result['decode_cputime'] = decode_cputime
+    result['yuv_md5'] = yuv_md5
     print "Bitrate", bitrate, "PSNR", psnr
     result['bitrate'] = int(bitrate)
     result['psnr'] = float(psnr)
