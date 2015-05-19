@@ -37,7 +37,7 @@ class FileCodec(encoder.Codec):
       parameters, bitrate, videofile, encodedfile)
 
     print commandline
-    with open('/dev/null', 'r') as nullinput:
+    with open(os.path.devnull, 'r') as nullinput:
       times_start = os.times()
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
       times_end = os.times()
@@ -50,13 +50,14 @@ class FileCodec(encoder.Codec):
       return (subprocess_cpu, elapsed_clock)
 
   def _DecodeFile(self, videofile, encodedfile, workdir):
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
+    tempyuvfile = os.path.join(workdir,
+                               videofile.basename + 'tempyuvfile.yuv')
     if os.path.isfile(tempyuvfile):
       print "Removing tempfile before decode:", tempyuvfile
       os.unlink(tempyuvfile)
     commandline = self.DecodeCommandLine(videofile, encodedfile, tempyuvfile)
     print commandline
-    with open('/dev/null', 'r') as nullinput:
+    with open(os.path.devnull, 'r') as nullinput:
       subprocess_cpu_start = os.times()[2]
       returncode = subprocess.call(commandline, shell=True,
                                 stdin=nullinput)
@@ -76,9 +77,10 @@ class FileCodec(encoder.Codec):
     return psnr, subprocess_cpu, yuv_md5
 
   def Execute(self, parameters, bitrate, videofile, workdir):
-    encodedfile = '%s/%s.%s' % (workdir, videofile.basename, self.extension)
+    encodedfile = os.path.join(workdir,
+                               '%s.%s' % (videofile.basename, self.extension))
     subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
-                                                       videofile, encodedfile)
+                                                     videofile, encodedfile)
     result = {}
 
     result['encode_cputime'] = subprocess_cpu
