@@ -31,7 +31,9 @@ class OpenH264Codec(file_codec.FileCodec):
     self.option_set = encoder.OptionSet(
       # Rate control. -1 = off, 0 = quality, 1 = bitrate, 2 = buffer based
       # Default is set in config file by RCMode parameter to 0.
-      encoder.Option('rc', ['-1', '0', '1', '2'])
+      # Only 0 and 1 really make sense when rate control is used to select
+      # the bitrate target.
+      encoder.Option('rc', ['0', '1'])
     )
 
   def StartEncoder(self, context):
