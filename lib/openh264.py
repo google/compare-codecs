@@ -28,6 +28,13 @@ class OpenH264Codec(file_codec.FileCodec):
       name,
       formatter=formatter or encoder.OptionFormatter(prefix='-', infix=' '))
     self.extension = '264'
+    self.option_set = encoder.OptionSet(
+      # Rate control. -1 = off, 0 = quality, 1 = bitrate, 2 = buffer based
+      # Default is set in config file by RCMode parameter to 0.
+      # Only 0 and 1 really make sense when rate control is used to select
+      # the bitrate target.
+      encoder.Option('rc', ['0', '1'])
+    )
 
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(self.option_set, ''))
@@ -41,7 +48,7 @@ class OpenH264Codec(file_codec.FileCodec):
         '-bf %s '
         '-sw %d -sh %d '
         '-dw 0 %d -dh 0 %d '
-        '-rc 0 -maxbrTotal 0 -tarb %d '
+        '-maxbrTotal 0 -tarb %d '
         '-ltarb 0 %d '
         '-lmaxb 0 0 '
         '-numtl 1 '
