@@ -21,6 +21,8 @@ It tells the generic codec the following:
 """
 import encoder
 import file_codec
+import re
+import subprocess
 
 class Vp8Codec(file_codec.FileCodec):
   def __init__(self, name='vp8'):
@@ -90,3 +92,17 @@ class Vp8Codec(file_codec.FileCodec):
     more_results = {}
     more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
     return more_results
+
+  def EncoderVersion(self):
+    # The vpxenc command line tool outputs the version number of the
+    # encoder as part of its error message on illegal arguments.
+    try:
+      subprocess.check_output([encoder.Tool('vpxenc')],
+                              stderr=subprocess.STDOUT)
+    except Exception, err:
+      version_output = str(err.output)
+      for line in version_output.split('\n'):
+        match = re.match(r'\s+vp8\s+- (.+)$', line)
+        if match:
+          return match.group(1)
+      raise encoder.Error('Did not find vp8 version string')

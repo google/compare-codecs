@@ -65,6 +65,11 @@ class TestVp9(test_tools.FileUsingCodecTest):
     self.assertTrue(encoding1.result)
     self.assertTrue(encoding2.result)
 
+  def test_EncoderVersion(self):
+    codec = vp9.Vp9Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(),
+                             r'WebM Project VP9 Encoder')
+
 
 if __name__ == '__main__':
   unittest.main()

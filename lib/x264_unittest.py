@@ -78,6 +78,10 @@ class TestX264(test_tools.FileUsingCodecTest):
     self.assertAlmostEquals(float(one_encoding.Result()['psnr']),
                             float(two_encoding.Result()['psnr']))
 
+  def test_EncoderVersion(self):
+    codec = x264.X264Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(), r'x264 \d')
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -39,6 +39,10 @@ class CopyingCodec(file_codec.FileCodec):
   def DecodeCommandLine(self, videofile, inputfile, outputfile):
     return 'cp %s %s' % (inputfile, outputfile)
 
+  def EncoderVersion(self):
+    return 'CopyingCodec'
+
+
 class CorruptingCodec(file_codec.FileCodec):
   """A "codec" that gives a different result every time."""
   def __init__(self, name='corrupt'):
@@ -58,6 +62,9 @@ class CorruptingCodec(file_codec.FileCodec):
     return 'cp %s %s; truncate -r %s %s' % (
         inputfile, outputfile,
         videofile.filename, outputfile)
+
+  def EncoderVersion(self):
+    return 'CorruptingCodec'
 
 
 class TestFileCodec(test_tools.FileUsingCodecTest):

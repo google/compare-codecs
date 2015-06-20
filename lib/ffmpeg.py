@@ -19,6 +19,8 @@ compatible with the vpxenc-produced qualities.
 """
 import encoder
 import file_codec
+import re
+import subprocess
 
 class FfmpegCodec(file_codec.FileCodec):
 
@@ -54,3 +56,11 @@ class FfmpegCodec(file_codec.FileCodec):
 
   def ResultData(self, encodedfile):
     return {'frame': file_codec.FfmpegFrameInfo(encodedfile)}
+
+  def EncoderVersion(self):
+    version_output = subprocess.check_output([encoder.Tool('ffmpeg'),
+                                              '-version'])
+    match = re.match('(ffmpeg .*) Copyright', version_output)
+    if match:
+      return match.group(0)
+    raise encoder.Error('ffmpeg did not find its version string')

@@ -85,6 +85,7 @@ class FileCodec(encoder.Codec):
 
     result['encode_cputime'] = subprocess_cpu
     result['encode_clocktime'] = elapsed_clock
+    result['encoder_version'] = self.EncoderVersion()
     bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
 
     psnr, decode_cputime, yuv_md5 = self._DecodeFile(
@@ -135,6 +136,9 @@ class FileCodec(encoder.Codec):
       return False
     os.unlink(new_encoded_file)
     return True
+
+  def EncoderVersion(self):
+    raise encoder.Error('File codecs must define their own version')
 
 
 # Tools that may be called upon by the codec implementation if needed.
