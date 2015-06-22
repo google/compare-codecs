@@ -106,3 +106,4 @@ class Vp8Codec(file_codec.FileCodec):
         if match:
           return match.group(1)
       raise encoder.Error('Did not find vp8 version string')
+    raise encoder.Error('Getting version from vp8 help message failed')

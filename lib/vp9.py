@@ -73,3 +73,4 @@ class Vp9Codec(file_codec.FileCodec):
         if match:
           return match.group(1)
       raise encoder.Error('Did not find vp9 version string')
+    raise encoder.Error('Getting vp9 version from help message failed')

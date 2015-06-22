@@ -19,6 +19,8 @@ compatible with the vpxenc-produced qualities.
 """
 import encoder
 import file_codec
+import re
+import subprocess
 
 
 class HevcCodec(file_codec.FileCodec):
@@ -59,3 +61,14 @@ class HevcCodec(file_codec.FileCodec):
         encoder.Tool('TAppDecoderStatic'),
         encodedfile, yuvfile)
     return commandline
+
+  def EncoderVersion(self):
+    try:
+      subprocess.check_output([encoder.Tool('TAppEncoderStatic')])
+    except subprocess.CalledProcessError, err:
+      helptext = str(err.output)
+      for line in helptext.split('\n'):
+        if re.match('HM software:', line):
+          return line
+      raise encoder.Error('HM version string not found')
+    raise encoder.Error('HM did not return help text as expected')

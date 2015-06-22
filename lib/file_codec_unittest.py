@@ -40,7 +40,7 @@ class CopyingCodec(file_codec.FileCodec):
     return 'cp %s %s' % (inputfile, outputfile)
 
   def EncoderVersion(self):
-    return 'CopyingCodec'
+    return 'CopyingCodec v1'
 
 
 class CorruptingCodec(file_codec.FileCodec):
@@ -64,7 +64,7 @@ class CorruptingCodec(file_codec.FileCodec):
         videofile.filename, outputfile)
 
   def EncoderVersion(self):
-    return 'CorruptingCodec'
+    return 'CorruptingCodec v1'
 
 
 class TestFileCodec(test_tools.FileUsingCodecTest):
