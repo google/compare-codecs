@@ -15,6 +15,7 @@
 import encoder
 import file_codec
 import os
+import subprocess
 
 
 class OpenH264Codec(file_codec.FileCodec):
@@ -78,3 +79,10 @@ class OpenH264Codec(file_codec.FileCodec):
     more_results = {}
     more_results['frame'] = file_codec.FfmpegFrameInfo(encodedfile)
     return more_results
+
+  def EncoderVersion(self):
+    # openh264 doesn't appear to have a built-in version string. Use the
+    # git checksum instead.
+    git_hash = subprocess.check_output(
+        'cd third_party/openh264; git log --format="%h %ad" -1', shell=True)
+    return 'openh264 %s' % git_hash

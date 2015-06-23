@@ -37,6 +37,7 @@ import os
 import random
 import re
 import shutil
+import subprocess
 import sys
 
 
@@ -467,6 +468,20 @@ class Codec(object):
     """A short string suitable for displaying on top of a column
     showing parameter values for a given encoder."""
     return ' '.join([option.name for option in self.AllOptions()])
+
+  def EncoderVersion(self):
+    """Return a string representing the version of the codec.
+
+    For internal functions, return the git hash of the software + a modification
+    marker."""
+    # pylint: disable=no-self-use
+    git_hash = subprocess.check_output(['git', 'log', '--format=%h %ad', '-1'],
+                                       shell=False).rstrip()
+    returncode = subprocess.call(['git', 'diff-index', '--quiet', 'HEAD'])
+    if returncode:
+      return 'compare-codecs %s (modified)' % git_hash
+    else:
+      return 'compare-codecs %s' % git_hash
 
 
 class Context(object):

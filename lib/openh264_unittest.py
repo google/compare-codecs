@@ -59,6 +59,11 @@ class TestOpenH264(test_tools.FileUsingCodecTest):
     self.assertNotEquals(encoding1.result['bitrate'],
                          encoding2.result['bitrate'])
 
+  def test_EncoderVersion(self):
+    codec = openh264.OpenH264Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(),
+                             r'openh264')
+
 
 if __name__ == '__main__':
   unittest.main()

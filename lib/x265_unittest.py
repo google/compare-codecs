@@ -19,7 +19,7 @@ import unittest
 import test_tools
 import x265
 
-class TestX264(test_tools.FileUsingCodecTest):
+class TestX265(test_tools.FileUsingCodecTest):
   def test_Init(self):
     codec = x265.X265Codec()
     self.assertEqual(codec.name, 'x265')
@@ -43,6 +43,10 @@ class TestX264(test_tools.FileUsingCodecTest):
     encoding.Execute()
     # Most codecs should be good at this.
     self.assertLess(40.0, my_optimizer.Score(encoding))
+
+  def test_EncoderVersion(self):
+    codec = x265.X265Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(), r'x265 HEVC')
 
 
 if __name__ == '__main__':

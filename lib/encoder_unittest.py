@@ -278,6 +278,9 @@ class TestCodec(unittest.TestCase):
     codec = DummyCodec()
     self.assertTrue(codec.option_formatter)
 
+  def test_EncoderVersionExists(self):
+    codec = DummyCodec()
+    self.assertRegexpMatches(codec.EncoderVersion(), r'^compare-codecs')
 
 
 class TestEncoder(unittest.TestCase):

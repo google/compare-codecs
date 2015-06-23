@@ -35,10 +35,14 @@ if [ "$MODE" = "full" ]; then
   $LIBDIR/vp8_mpeg_unittest.py
   $LIBDIR/vp8_mpeg_1d_unittest.py
   $LIBDIR/x264_unittest.py
+  $LIBDIR/x264_baseline_unittest.py
+  $LIBDIR/x265_unittest.py
   $LIBDIR/h261_unittest.py
   $LIBDIR/mjpeg_unittest.py
   $LIBDIR/vp9_unittest.py
+  $LIBDIR/openh264_unittest.py
   # Large tests
+  $LIBDIR/hevc_jm_unittest.py
   $LIBDIR/optimizer_largetest.py
 else
   echo "Skipping some tests in mode $MODE"

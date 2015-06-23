@@ -18,6 +18,7 @@ the HEVC codec.
 """
 import encoder
 import ffmpeg
+import subprocess
 
 
 class X265Codec(ffmpeg.FfmpegCodec):
@@ -63,3 +64,11 @@ class X265Codec(ffmpeg.FfmpegCodec):
                                       encodedfile,
                                       yuvfile)
     return commandline
+
+  def EncoderVersion(self):
+    version_output = subprocess.check_output([encoder.Tool('x265'),
+                                              '--version'],
+                                              stderr=subprocess.STDOUT)
+    # The version is the first line of output.
+    version = version_output.split('\n')[0]
+    return version.replace('[info]: ', '')

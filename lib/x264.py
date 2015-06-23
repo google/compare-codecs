@@ -18,6 +18,7 @@ of H.264.
 """
 import encoder
 import file_codec
+import subprocess
 
 class X264Codec(file_codec.FileCodec):
   def __init__(self, name='x264', formatter=None):
@@ -85,3 +86,9 @@ class X264Codec(file_codec.FileCodec):
     more_results = {}
     more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
     return more_results
+
+  def EncoderVersion(self):
+    version_output = subprocess.check_output([encoder.Tool('x264'),
+                                              '--version'])
+    # The version is the first line of output.
+    return version_output.split('\n')[0]
