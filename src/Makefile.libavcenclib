@@ -1,0 +1,70 @@
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Compiles the libavc encoder library.
+# Assumes that the current directory is "libavc".
+# TODO(hta): Figure out how to merge the two Makefiles together.
+#
+my-dir = ../libavc
+
+SOURCE=../libavc
+ARCH=x86
+include $(SOURCE)/encoder.mk
+include $(SOURCE)/encoder.x86_64.mk
+
+
+CFLAGS+= -O3 -DNDEBUG -D_MBCS
+CFLAGS +=-fPIC
+
+CFLAGS += $(LOCAL_CFLAGS)
+CFLAGS += $(libavce_cflags_$(ARCH))
+
+C_INCLUDES = -I$(SOURCE)/encoder
+C_INCLUDES += -I$(SOURCE)/common
+C_INCLUDES += -I$(SOURCE)/encoder/$(ARCH)/
+C_INCLUDES += -I$(SOURCE)/common/$(ARCH)/
+
+
+CFLAGS +=  $(C_INCLUDES) 
+
+OBJEXTN=gcc.o
+TARGET = avcenc.gcc.a
+
+
+SRC_C_FILES = $(libavce_srcs_c) $(libavce_srcs_c_$(ARCH))
+C_OBJS  = $(SRC_C_FILES:.c=.$(OBJEXTN))
+ASMOBJS  = $(libavce_srcs_asm_$(ARCH):.s=.$(OBJEXTN))
+
+
+all: $(TARGET)
+
+$(C_OBJS): %.$(OBJEXTN): %.c
+	$(CC) -c $(CFLAGS) $*.c -o $*.$(OBJEXTN)
+	
+	
+$(ASMOBJS): %.$(OBJEXTN): %.s
+	$(AS) $(ASMFLAGS) $*.s -o $*.$(OBJEXTN)
+	
+	
+$(TARGET): $(C_OBJS)  $(ASMOBJS) 
+	rm -f $(TARGET)
+	$(AR) $(ARFLAGS) $@ $(C_OBJS)  $(ASMOBJS) 	
+
+
+clean: 
+	rm -f $(TARGET) 
+	rm -f $(C_OBJS)
+	rm -f $(ASMOBJS)
+
+
