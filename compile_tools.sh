@@ -146,8 +146,13 @@ build_openh264() {
     git clone git@github.com:cisco/openh264.git
   fi
   cd openh264
+  git fetch --tags
   # 7e3c064 is the version that enables the -frin option which will be used in scripts
-  git checkout 7e3c064
+  # This was referenced per April 2015, but is gone from the repo
+  # as of Aug 9, 2016.
+  # git checkout 7e3c064
+  # Version 1.5.0 is from October 2015.
+  git checkout v1.5.0
   make
   cp h264enc $TOOLDIR
   cp h264dec $TOOLDIR

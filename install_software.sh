@@ -38,10 +38,8 @@ sudo apt-get install ruby1.9.1-dev nodejs
 # So we limit to a jekyll version that builds under 1.9.1.
 sudo gem install jekyll -v 1.5.1
 
-# Install travis linter
-sudo gem install travis-lint
-
 # Install depot_tools - we use the pylint from there
+rm -rf third_party/depot_tools
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
    third_party/depot_tools
 
