@@ -19,14 +19,14 @@
 # TODO(hta): Figure out how to compile from out-of-directory.
 # TODO(hta): Figure out how to merge the two makefiles together.
 my-dir = ../libavc
-ARCH=x86
+ARCH = x86
 
-SOURCE=../../libavc
+SOURCE = ../../libavc
 
 include $(SOURCE)/test/encoder.mk
 include $(SOURCE)/encoder.x86_64.mk
 
-CFLAGS+= -O3
+CFLAGS += -O3
 CFLAGS +=-fPIC
 
 CFLAGS += $(LOCAL_CFLAGS)
@@ -35,28 +35,25 @@ CFLAGS += $(LOCAL_CFLAGS)
 C_INCLUDES = -I$(SOURCE)/encoder
 C_INCLUDES += -I$(SOURCE)/common
 
-CFLAGS +=  $(C_INCLUDES) 
+CFLAGS +=  $(C_INCLUDES)
 
-OBJEXTN=gcc.o
+OBJEXTN = gcc.o
 LIBS = ../avcenc.gcc.a -lpthread -lm
 TARGET = avcenc
 
 
-C_OBJS  = $(LOCAL_SRC_FILES:.c=.$(OBJEXTN))
+C_OBJS = $(LOCAL_SRC_FILES:.c=.$(OBJEXTN))
 
 all: $(TARGET)
 
 $(C_OBJS): %.$(OBJEXTN): %.c
 	$(CC) -c $(CFLAGS) $*.c -o $*.$(OBJEXTN)
-		
-	
+
+
 $(TARGET): $(C_OBJS) $(LIBS)
 	$(CC)   $(LDFLAGS) -o $(TARGET) $(C_OBJS) $(LIBS)  $(LDLIBS)
 
 
-clean: 
-	rm -f $(TARGET) 
+clean:
+	rm -f $(TARGET)
 	rm -f $(C_OBJS)
-	
-
-

@@ -18,14 +18,14 @@
 #
 my-dir = ../libavc
 
-SOURCE=../libavc
-ARCH=x86
+SOURCE = ../libavc
+ARCH = x86
 include $(SOURCE)/encoder.mk
 include $(SOURCE)/encoder.x86_64.mk
 
 
-CFLAGS+= -O3 -DNDEBUG -D_MBCS
-CFLAGS +=-fPIC
+CFLAGS += -O3 -DNDEBUG -D_MBCS
+CFLAGS += -fPIC
 
 CFLAGS += $(LOCAL_CFLAGS)
 CFLAGS += $(libavce_cflags_$(ARCH))
@@ -36,9 +36,9 @@ C_INCLUDES += -I$(SOURCE)/encoder/$(ARCH)/
 C_INCLUDES += -I$(SOURCE)/common/$(ARCH)/
 
 
-CFLAGS +=  $(C_INCLUDES) 
+CFLAGS +=  $(C_INCLUDES)
 
-OBJEXTN=gcc.o
+OBJEXTN = gcc.o
 TARGET = avcenc.gcc.a
 
 
@@ -51,20 +51,18 @@ all: $(TARGET)
 
 $(C_OBJS): %.$(OBJEXTN): %.c
 	$(CC) -c $(CFLAGS) $*.c -o $*.$(OBJEXTN)
-	
-	
+
+
 $(ASMOBJS): %.$(OBJEXTN): %.s
 	$(AS) $(ASMFLAGS) $*.s -o $*.$(OBJEXTN)
-	
-	
-$(TARGET): $(C_OBJS)  $(ASMOBJS) 
+
+
+$(TARGET): $(C_OBJS)  $(ASMOBJS)
 	rm -f $(TARGET)
-	$(AR) $(ARFLAGS) $@ $(C_OBJS)  $(ASMOBJS) 	
+	$(AR) $(ARFLAGS) $@ $(C_OBJS)  $(ASMOBJS)
 
 
-clean: 
-	rm -f $(TARGET) 
+clean:
+	rm -f $(TARGET)
 	rm -f $(C_OBJS)
 	rm -f $(ASMOBJS)
-
-

@@ -165,7 +165,8 @@ build_libavc() {
   if [ ! -d libavc ]; then
     git clone https://android.googlesource.com/platform/external/libavc
   fi
-  # TODO(hta): Pick a version of libavc to compile. This compiles tip-of-tree.
+  (cd libavc; git fetch --tags)
+  (cd libavc; git checkout android-6.0.1_r63)
   (cd libavc; make -f ../../src/Makefile.libavcenclib)
   (cd libavc/test; make -f ../../../src/Makefile.libavcencoder)
   cp libavc/test/avcenc $TOOLDIR/avcenc
