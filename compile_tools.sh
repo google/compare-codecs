@@ -48,14 +48,15 @@ cd $WORKDIR/third_party
 build_vpxenc() {
   # Build the vpxenc and vpxdec binaries
   if [ ! -d libvpx ]; then
-    git clone http://git.chromium.org/webm/libvpx.git
+    git clone https://chromium.googlesource.com/webm/libvpx
   fi
   cd libvpx
   # Ensure we check out exactly a consistent version.
   git checkout -f master
   #git checkout v1.3.0
   # Check out the Oct 20 2014 version of libvpx.
-  git checkout 9c98fb2bab6125a0614576bf7635981163b1cc79
+  # git checkout 9c98fb2bab6125a0614576bf7635981163b1cc79
+  git checkout v1.6.0
   ./configure
   # Leftovers from previous compilations may be troublesome.
   make clean

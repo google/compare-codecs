@@ -31,7 +31,7 @@ import mpeg_settings
 import encoder
 import optimizer
 import pick_codec
-
+import score_tools
 
 def ClassifyScoreRelation(old_score, new_score):
   if not old_score:
@@ -45,12 +45,12 @@ def ClassifyScoreRelation(old_score, new_score):
     return 'improved'
   return 'worsened'
 
-def VerifyOneTarget(codec_names, rate, videofile, old_scores, score):
+def VerifyOneTarget(codec_names, rate, videofile, scorer_function, old_scores, score):
   change_counts = collections.Counter()
   for codec_name in codec_names:
     codec = pick_codec.PickCodec(codec_name)
-    old_optimizer = optimizer.Optimizer(codec, scoredir=old_scores)
-    new_optimizer = optimizer.Optimizer(codec)
+    old_optimizer = optimizer.Optimizer(codec, score_function=scorer_function, scoredir=old_scores)
+    new_optimizer = optimizer.Optimizer(codec, score_function=scorer_function)
     bestsofar = new_optimizer.RebaseEncoding(
         old_optimizer.BestEncoding(rate, videofile))
     bestsofar.Recover()
@@ -74,12 +74,12 @@ def VerifyOneTarget(codec_names, rate, videofile, old_scores, score):
 
   return change_counts
 
-def VerifyResults(codec_names, old_scores, score):
+def VerifyResults(codec_names, scorer_function, old_scores, score):
   change_counts = collections.Counter()
   for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
     videofile = encoder.Videofile(filename)
     change_counts.update(VerifyOneTarget(codec_names, rate,
-                                         videofile, old_scores, score))
+                                         videofile, scorer_function, old_scores, score))
     print 'Result so far:', dict(change_counts)
   return change_counts
 
@@ -88,9 +88,12 @@ def main():
   parser.add_argument('codec_names', nargs='*',
                       default=pick_codec.AllCodecNames())
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
   parser.add_argument('--old_scores', default='snapshot')
   args = parser.parse_args()
-  change_count = VerifyResults(args.codec_names, old_scores=args.old_scores,
+  scorer_function = score_tools.PickScorer(args.criterion)
+  change_count = VerifyResults(args.codec_names,
+                               scorer_function, old_scores=args.old_scores,
                                score=args.score)
   print 'Change evaluations: ', dict(change_count)
   return 0
