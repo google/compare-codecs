@@ -160,6 +160,18 @@ build_openh264() {
   cp testbin/layer2.cfg $TOOLDIR/layer2.cfg
 }
 
+build_libavc() {
+  # Build the Android M libavc
+  if [ ! -d libavc ]; then
+    git clone https://android.googlesource.com/platform/external/libavc
+  fi
+  (cd libavc; git fetch --tags)
+  (cd libavc; git checkout android-6.0.1_r63)
+  (cd libavc; make -f ../../src/Makefile.libavcenclib)
+  (cd libavc/test; make -f ../../../src/Makefile.libavcencoder)
+  cp libavc/test/avcenc $TOOLDIR/avcenc
+}
+
 # Selecting which components to build.
 build_func () {
 while [ "$1" != "" ]; do
@@ -183,6 +195,9 @@ while [ "$1" != "" ]; do
     openh264)
       build_openh264
       ;;
+    libavc)
+      build_libavc
+      ;;
     *)
       echo "Can't do $1"
       exit 1
@@ -194,7 +209,7 @@ done
 # The default is to build everything.
 if [ "$#" -eq 0 ]; then
   echo "Building everything"
-  build_func vpxenc x264 ffmpeg x265 hevc openh264
+  build_func vpxenc x264 ffmpeg x265 hevc openh264 libavc
 else
   build_func $@
 fi
