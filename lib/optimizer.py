@@ -30,28 +30,37 @@ class Optimizer(object):
   - A video file set, with associated target bitrates.
   - A set of pre-executed encodings (the cache).
   - A score function.
+  - A score directory, normally null, which means "take from context".
 
   One should be able ask an optimizer to find the parameters that give the
   best result on the score function for that codec."""
   def __init__(self, codec, file_set=None,
-               cache_class=None, score_function=None):
+               cache_class=None, score_function=None,
+               scoredir=None):
+    # pylint: disable=too-many-arguments
     self.context = encoder.Context(codec,
-                                   cache_class or encoder.EncodingDiskCache)
+                                   cache_class or encoder.EncodingDiskCache,
+                                   scoredir=scoredir)
     self.file_set = file_set
     self.score_function = score_function or score_tools.ScorePsnrBitrate
 
-  def Score(self, encoding, scoredir=None):
-    if scoredir is None:
-      result = encoding.result
-    else:
-      result = self.context.cache.ReadEncodingResult(encoding,
-          scoredir=scoredir)
+  def Score(self, encoding):
+    result = encoding.result
     if not result:
       raise encoder.Error('Trying to score an encoding without result')
     score = self.score_function(encoding.bitrate, result)
     # Weakly penalize long command lines.
     score -= len(encoding.encoder.parameters.values) * 0.00001
     return score
+
+  def RebaseEncoding(self, encoding):
+    """Take an encoding from another context and rebase it to
+    this context, using the same encoder arguments."""
+    return encoder.Encoding(self.RebaseEncoder(encoding.encoder),
+                            encoding.bitrate, encoding.videofile)
+
+  def RebaseEncoder(self, my_encoder):
+    return encoder.Encoder(self.context, my_encoder.parameters)
 
   def BestEncoding(self, bitrate, videofile):
     encodings = self.AllScoredEncodings(bitrate, videofile)

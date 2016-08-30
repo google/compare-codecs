@@ -14,6 +14,7 @@
 # limitations under the License.
 
 """ Unit tests for the optimizer. """
+import os
 import re
 import unittest
 
@@ -241,7 +242,9 @@ class TestOptimizerWithRealFiles(test_tools.FileUsingCodecTest):
                                parameter_string))
 
   def test_BestOverallConfigurationNotInWorkDirectory(self):
-    other_dir = encoder_configuration.conf.sysdir() + '/multirepo_test'
+    other_dir = os.path.join(encoder_configuration.conf.sysdir(),
+                             'multirepo_test')
+    os.mkdir(other_dir)
     encoder_configuration.conf.override_scorepath_for_test([other_dir])
 
     self.file_set = optimizer.FileAndRateSet(verify_files_present=False)
@@ -251,13 +254,15 @@ class TestOptimizerWithRealFiles(test_tools.FileUsingCodecTest):
     best_encoder = self.optimizer.BestOverallEncoder()
     self.assertIsNone(best_encoder)
     # Fill in the database with all the files and rates.
+    other_context = encoder.Context(self.codec, encoder.EncodingDiskCache,
+                                    scoredir='multirepo_test')
     my_encoder = self.EncoderFromParameterString('--score=7')
-    my_encoder.context.cache.StoreEncoder(my_encoder, workdir=other_dir)
+    other_context.cache.StoreEncoder(my_encoder)
     my_encoder.context.cache.StoreEncoder(my_encoder)
     for rate, filename in self.file_set.AllFilesAndRates():
       my_encoding = my_encoder.Encoding(rate, encoder.Videofile(filename))
       my_encoding.Execute()
-      my_encoding.context.cache.StoreEncoding(my_encoding, workdir=other_dir)
+      other_context.cache.StoreEncoding(my_encoding)
     # The best encoder should now be from the workdir, but the results are
     # all fetched from the searchpath.
     best_encoder = self.optimizer.BestOverallEncoder()
@@ -267,6 +272,26 @@ class TestOptimizerWithRealFiles(test_tools.FileUsingCodecTest):
     one_encoding = best_encoder.Encoding(100, self.videofile)
     one_encoding.Recover()
     self.assertTrue(one_encoding.Result())
+
+  def test_MultipleOptimizers(self):
+    # Make sure other score directories don't interfere with this test.
+    encoder_configuration.conf.override_scorepath_for_test([])
+
+    os.mkdir(os.path.join(encoder_configuration.conf.sysdir(), 'first_dir'))
+    os.mkdir(os.path.join(encoder_configuration.conf.sysdir(), 'second_dir'))
+    one_optimizer = optimizer.Optimizer(self.codec, scoredir='first_dir')
+    another_optimizer = optimizer.Optimizer(self.codec, scoredir='second_dir')
+    self.assertNotEqual(one_optimizer.context.cache.workdir,
+                        another_optimizer.context.cache.workdir)
+    # Storing one encoding's score should not affect the other's.
+    one_encoding = one_optimizer.BestEncoding(100,
+                                              self.videofile)
+    one_encoding.Execute().Store()
+    another_encoding = another_optimizer.BestEncoding(100, self.videofile)
+    self.assertFalse(another_encoding.Result())
+    another_encoding.Recover()
+    self.assertFalse(another_encoding.Result())
+
 
 
 class TestFileAndRateSet(unittest.TestCase):
