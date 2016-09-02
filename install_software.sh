@@ -39,7 +39,7 @@ sudo apt-get install ruby1.9.1-dev nodejs
 sudo gem install jekyll -v 1.5.1
 
 # Python packages
-sudo pip install y4m
+sudo -H pip install y4m
 
 # Install depot_tools - we use the pylint from there
 rm -rf third_party/depot_tools
