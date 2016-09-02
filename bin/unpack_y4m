@@ -28,11 +28,13 @@ import y4m
 class Error(Exception):
   pass
 
-writer = None
+# Global variables to work around lack of closures with r/w variables in Python
+yuvWriter = None  # pylint: disable=invalid-name
+args = None # pylint: disable=invalid-name
 
 def data_callback(frame):
-  global writer  # Work around lack of closures with r/w variables in Python
-  if not writer:
+  global yuvWriter  # pylint: disable=global-statement, invalid-name
+  if not yuvWriter:
     if frame.headers['C'] != '420jpeg':
       raise Error('Bad format %s' % frame.headers['C'])
     outfile_name = '%s_%dx%d_%s.yuv' % (
@@ -42,11 +44,11 @@ def data_callback(frame):
         round(float(frame.headers['F'][0]) /
               frame.headers['F'][1]))
     print 'Writing to %s' % outfile_name
-    writer = open(outfile_name, 'w')
-  writer.write(frame.buffer)
+    yuvWriter = open(outfile_name, 'w')
+  yuvWriter.write(frame.buffer)
 
 def main():
-  global args
+  global args  # pylint: disable=global-statement, invalid-name
 
   parser = argparse.ArgumentParser()
   parser.add_argument('filename')
@@ -54,7 +56,6 @@ def main():
 
   with open(args.filename) as y4mfile:
     reader = y4m.Reader(data_callback)
-                      
     while True:
       data = y4mfile.read(1024)
       if not data:

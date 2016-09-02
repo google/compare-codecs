@@ -52,3 +52,5 @@ sensitivity_analysis > /dev/null
 verify_encodings h261
 verify_scores h261
 write_cross_performance_tables h261 vp8 > /dev/null
+unpack_y4m /dev/null
+
