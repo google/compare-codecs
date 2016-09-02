@@ -41,6 +41,8 @@ def main():
   for codec in codecs[1:]:
     print '%10s ' % codec.name,
   print 'filename'
+  totals = [0.0] * (len(codecs) - 1)
+  count = 0
   for filename in args.files:
     try:
       score = graph_metrics.BdRateAnalysis(filename, codecs, score_function)
@@ -48,12 +50,18 @@ def main():
       print 'Skipping %s due to %s' % (filename, e)
       continue
     if score:
-      for result in score.score():
-        print '%10.2f ' % result[1]['difference'],
+      for index in xrange(len(score.score())):
+        this_result = score.score()[index][1]['difference']
+        print '%10.2f ' % this_result,
+        totals[index] += this_result
+      count += 1
       print os.path.basename(filename)
     else:
       print "Unable to compute metrics on %s" % filename
-
+  print "Average"
+  for result in totals:
+    print ('%10.2f ' % (result / count)),
+  print
 
 if __name__ == '__main__':
   sys.exit(main())
