@@ -34,6 +34,12 @@ def ChooseRates(width, framerate):
     return [512, 768, 1200, 2000]
   if width >= 416:
     return [384, 512, 850, 1500]
+  if width >= 352:
+    # CIF video. No standards activity is behind these chocies of rate.
+    return [256, 384, 512, 850]
+  if width >= 176:
+    # QCIF video.
+    return [128, 256, 384, 512]
   raise Error('Unhandled width/framerate combo: w=%d rate=%d' %
               (width, framerate))
 
