@@ -46,8 +46,8 @@ def main():
   for filename in args.files:
     try:
       score = graph_metrics.BdRateAnalysis(filename, codecs, score_function)
-    except graph_metrics.Error as e:
-      print 'Skipping %s due to %s' % (filename, e)
+    except graph_metrics.Error as error:
+      print 'Skipping %s due to %s' % (filename, error)
       continue
     if score:
       for index in xrange(len(score.score())):

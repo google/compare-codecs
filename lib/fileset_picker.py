@@ -26,6 +26,7 @@ class Error(Exception):
 
 
 def ChooseRates(width, framerate):
+  # pylint: disable=too-many-return-statements
   if width >= 1920 and framerate >= 50:
     return [3000, 4500, 7000, 10000]
   if width >= 1920 and framerate >= 24:
@@ -41,7 +42,7 @@ def ChooseRates(width, framerate):
     return [256, 384, 512, 850]
   if width >= 176:
     # QCIF video.
-    return [256, 384, 512, 850, 1500] # BasketballPass
+    return [256, 384, 512, 850, 1500]
   raise Error('Unhandled width/framerate combo: w=%d rate=%d' %
               (width, framerate))
 

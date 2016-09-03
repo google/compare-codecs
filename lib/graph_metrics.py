@@ -21,7 +21,6 @@ import fileset_picker
 import math
 import numpy
 import optimizer
-import visual_metrics
 
 class Error(Exception):
   pass
@@ -37,7 +36,7 @@ class ScoreGroup(object):
         fileset_picker.ChooseRates(self.videofile.width,
                                    self.videofile.framerate))
     self.my_optimizer = optimizer.Optimizer(codec,
-                                            file_set = self.fileset,
+                                            file_set=self.fileset,
                                             score_function=score_function)
     self.filename = filename
     self.encoder = self.my_optimizer.BestOverallEncoder()
@@ -60,12 +59,7 @@ def BdRate(group1, group2):
 
   The returned object also contains the range of PSNR values used
   to compute the result.
-  """
-  metric_set1 = group1.dataPoints()
-  metric_set2 = group2.dataPoints()
 
-  """
-  BJONTEGAARD    Bjontegaard metric calculation
   Bjontegaard's metric allows to compute the average % saving in bitrate
   between two rate-distortion curves [1].
 
@@ -74,7 +68,12 @@ def BdRate(group1, group2):
 
   adapted from code from: (c) 2010 Giuseppe Valenzise
   copied from code by jzern@google.com, jimbankoski@google.com
+
   """
+  # pylint: disable=too-many-locals
+  metric_set1 = group1.dataPoints()
+  metric_set2 = group2.dataPoints()
+
   # numpy plays games with its exported functions.
   # pylint: disable=no-member
   # pylint: disable=too-many-locals
@@ -121,22 +120,22 @@ class AnalysisResult(object):
   as well as a longer text description of the result."""
 
   def __init__(self, filename, codecs, score_function):
-    self.inputData = []
+    self.input_data = []
     for codec in codecs:
-      self.inputData.append(ScoreGroup(filename, codec, score_function))
+      self.input_data.append(ScoreGroup(filename, codec, score_function))
     self.scores = []
 
   def score(self):
     return self.scores
 
   def run(self):
-    self.scores = [(x.name, BdRate(self.inputData[0], x))
-                   for x in self.inputData[1:]]
+    self.scores = [(x.name, BdRate(self.input_data[0], x))
+                   for x in self.input_data[1:]]
 
   def analysis(self):
-    
-    return 'No analysis performed\n' + 'Base codec is ' + self.inputData[0].name
-  
+    return ('No analysis performed\n' +
+            'Base codec is ' + self.input_data[0].name)
+
 
 def BdRateAnalysis(filename, codecs, score_function):
   result = AnalysisResult(filename, codecs, score_function)
