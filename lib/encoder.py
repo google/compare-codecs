@@ -733,6 +733,7 @@ class EncodingDiskCache(object):
   """Encoder and encoding information, saved to disk."""
   def __init__(self, context, scoredir=None):
     self.context = context
+    self.bad_encodings = {}
     if scoredir:
       self.workdir = os.path.join(encoder_configuration.conf.sysdir(),
                                   scoredir, context.codec.name)
@@ -772,10 +773,11 @@ class EncodingDiskCache(object):
         videofile or _FileNameToVideofile(full_filename))
       try:
         candidate.Recover()
-      except Error:
-        print 'Ignoring error in file %s' % full_filename
+        candidates.append(candidate)
+      except Error as err:
+        # TODO(hta): Change this to a more specific catch once available.
+        self.bad_encodings[full_filename] = err
         continue
-      candidates.append(candidate)
     return candidates
 
   def _QueryScoredEncodings(self, encoder=None, bitrate=None, videofile=None):
