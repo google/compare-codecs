@@ -25,6 +25,9 @@ import optimizer
 class Error(Exception):
   pass
 
+class NotEnoughDataError(Error):
+  pass
+
 class ScoreGroup(object):
   """The scores describing a single codec's run results."""
 
@@ -41,7 +44,8 @@ class ScoreGroup(object):
     self.filename = filename
     self.encoder = self.my_optimizer.BestOverallEncoder()
     if not self.encoder:
-      raise Error('No overall encoder for %s on %s' % (codec.name, filename))
+      raise NotEnoughDataError('No overall encoder for %s on %s' %
+                               (codec.name, filename))
     self.points = None
 
   def dataPoints(self):
@@ -76,7 +80,6 @@ def BdRate(group1, group2):
 
   # numpy plays games with its exported functions.
   # pylint: disable=no-member
-  # pylint: disable=too-many-locals
   # pylint: disable=bad-builtin
   psnr1 = [x[1] for x in metric_set1]
   psnr2 = [x[1] for x in metric_set2]

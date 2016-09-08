@@ -29,6 +29,7 @@ $LIBDIR/score_tools_unittest.py
 $LIBDIR/optimizer_unittest.py
 $LIBDIR/pick_codec_unittest.py
 $LIBDIR/visual_metrics_unittest.py
+$LIBDIR/graph_metrics_unittest.py
 if [ "$MODE" = "full" ]; then
   $LIBDIR/file_codec_unittest.py
   $LIBDIR/vp8_unittest.py
