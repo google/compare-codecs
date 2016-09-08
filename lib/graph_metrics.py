@@ -49,7 +49,7 @@ class ScoreGroup(object):
     self.points = None
 
   def dataPoints(self):
-    if not self.points:
+    if self.points is None:
       self.points = []
       for rate in self.fileset.AllRatesForFile(self.filename):
         encoding = self.encoder.Encoding(rate, self.videofile)
