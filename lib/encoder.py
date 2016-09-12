@@ -494,12 +494,12 @@ class Context(object):
   is passed to the context constructor.
   """
 
-  def __init__(self, codec, cache_class=None):
+  def __init__(self, codec, cache_class=None, scoredir=None):
     self.codec = codec
     if cache_class:
-      self.cache = cache_class(self)
+      self.cache = cache_class(self, scoredir)
     else:
-      self.cache = EncodingMemoryCache(self)
+      self.cache = EncodingMemoryCache(self, scoredir)
 
 
 class Encoder(object):
@@ -731,11 +731,16 @@ def _FileNameToVideofile(full_filename):
 
 class EncodingDiskCache(object):
   """Encoder and encoding information, saved to disk."""
-  def __init__(self, context):
+  def __init__(self, context, scoredir=None):
     self.context = context
-    # Default work directory is current directory.
-    self.workdir = '%s/%s' % (encoder_configuration.conf.workdir(),
-                              context.codec.name)
+    self.bad_encodings = {}
+    if scoredir:
+      self.workdir = os.path.join(encoder_configuration.conf.sysdir(),
+                                  scoredir, context.codec.name)
+    else:
+      # Default work directory.
+      self.workdir = os.path.join(encoder_configuration.conf.workdir(),
+                                  context.codec.name)
     if not os.path.isdir(self.workdir):
       os.mkdir(self.workdir)
 
@@ -766,8 +771,13 @@ class EncodingDiskCache(object):
         encoder or self._FileNameToEncoder(full_filename),
         bitrate or _FileNameToBitrate(full_filename),
         videofile or _FileNameToVideofile(full_filename))
-      candidate.Recover()
-      candidates.append(candidate)
+      try:
+        candidate.Recover()
+        candidates.append(candidate)
+      except Error as err:
+        # TODO(hta): Change this to a more specific catch once available.
+        self.bad_encodings[full_filename] = err
+        continue
     return candidates
 
   def _QueryScoredEncodings(self, encoder=None, bitrate=None, videofile=None):
@@ -848,22 +858,16 @@ class EncodingDiskCache(object):
   def RemoveEncoder(self, hashname):
     shutil.rmtree(os.path.join(self.workdir, hashname))
 
-  def StoreEncoding(self, encoding, workdir=None):
+  def StoreEncoding(self, encoding):
     """Stores an encoding object on disk.
 
     An encoding object consists of its result (if executed).
     The bitrate is encoded as a directory, the videofilename
     is encoded as part of the output filename.
     """
-    if workdir:
-      dirname = os.path.join(workdir,
-                             self.context.codec.name,
-                             encoding.encoder.Hashname(),
-                             self.context.codec.SpeedGroup(encoding.bitrate))
-    else:
-      dirname = os.path.join(self.workdir,
-                             encoding.encoder.Hashname(),
-                             self.context.codec.SpeedGroup(encoding.bitrate))
+    dirname = os.path.join(self.workdir,
+                           encoding.encoder.Hashname(),
+                           self.context.codec.SpeedGroup(encoding.bitrate))
     if not os.path.isdir(dirname):
       os.mkdir(dirname)
     if not encoding.result:
@@ -872,17 +876,14 @@ class EncodingDiskCache(object):
     with open('%s/%s.result' % (dirname, videoname), 'w') as resultfile:
       json.dump(encoding.result, resultfile, indent=2)
 
-  def ReadEncodingResult(self, encoding, scoredir=None):
+  def ReadEncodingResult(self, encoding):
     """Reads an encoding result back from storage, if present.
 
     None is returned if file does not exist.
     If scoredir is given, only that directory is searched.
     If it is not given, all directories in the search path are searched."""
 
-    if scoredir:
-      searchpath = [os.path.join(scoredir, self.context.codec.name)]
-    else:
-      searchpath = self.SearchPathForScores()
+    searchpath = self.SearchPathForScores()
 
     for workdir in searchpath:
       dirname = os.path.join(workdir, encoding.encoder.Hashname(),
@@ -903,13 +904,16 @@ class EncodingDiskCache(object):
 
 class EncodingMemoryCache(object):
   """Encoder and encoding information, in-memory only. For testing."""
-  def __init__(self, context):
+  def __init__(self, context, scoredir=None):
+    if scoredir:
+      raise Error('Cannot have scoredir on a memory cache')
     self.context = context
     self.encoders = {}
     self.encodings = []
+    self.workdir = '/not-valid-file/' + self.context.codec.name
 
   def WorkDir(self):
-    return '/not-valid-file/' + self.context.codec.name
+    return self.workdir
 
   def AllScoredEncodings(self, bitrate, videofile):
     result = []

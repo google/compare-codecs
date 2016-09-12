@@ -45,20 +45,24 @@ def ClassifyScoreRelation(old_score, new_score):
     return 'improved'
   return 'worsened'
 
-def VerifyOneTarget(codec_names, rate, videofile, score):
+def VerifyOneTarget(codec_names, rate, videofile, old_scores, score):
   change_counts = collections.Counter()
   for codec_name in codec_names:
     codec = pick_codec.PickCodec(codec_name)
-    my_optimizer = optimizer.Optimizer(codec)
-    bestsofar = my_optimizer.BestEncoding(rate, videofile)
+    old_optimizer = optimizer.Optimizer(codec, scoredir=old_scores)
+    new_optimizer = optimizer.Optimizer(codec)
+    bestsofar = new_optimizer.RebaseEncoding(
+        old_optimizer.BestEncoding(rate, videofile))
+    bestsofar.Recover()
     if score:
       bestsofar.Execute().Store()
     try:
-      old_score = my_optimizer.Score(bestsofar, scoredir='snapshot')
+      old_score = old_optimizer.Score(bestsofar)
     except encoder.Error:
-      print 'No old score for %s, continuing' % (bestsofar.encoder.Hashname())
+      print 'No old score for %s %d %s, continuing' % \
+        (bestsofar.encoder.Hashname(), rate, videofile.filename)
       continue
-    new_score = my_optimizer.Score(bestsofar)
+    new_score = new_optimizer.Score(bestsofar)
     result = ClassifyScoreRelation(old_score, new_score)
     change_counts[result] += 1
     if result != 'no change':
@@ -70,12 +74,12 @@ def VerifyOneTarget(codec_names, rate, videofile, score):
 
   return change_counts
 
-def VerifyResults(codec_names, score):
+def VerifyResults(codec_names, old_scores, score):
   change_counts = collections.Counter()
   for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
     videofile = encoder.Videofile(filename)
     change_counts.update(VerifyOneTarget(codec_names, rate,
-                                         videofile, score))
+                                         videofile, old_scores, score))
     print 'Result so far:', dict(change_counts)
   return change_counts
 
@@ -84,8 +88,10 @@ def main():
   parser.add_argument('codec_names', nargs='*',
                       default=pick_codec.AllCodecNames())
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--old_scores', default='snapshot')
   args = parser.parse_args()
-  change_count = VerifyResults(args.codec_names, score=args.score)
+  change_count = VerifyResults(args.codec_names, old_scores=args.old_scores,
+                               score=args.score)
   print 'Change evaluations: ', dict(change_count)
   return 0
 

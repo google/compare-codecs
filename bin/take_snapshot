@@ -26,6 +26,9 @@ if [ -z $CODEC_WORKDIR -o ! -d $CODEC_WORKDIR ]; then
 fi
 
 DESTINATION=$WORKDIR/snapshot
+echo "Removing old snapshot"
+rm -r $DESTINATION
+echo "Creating new snapshot"
 for RESULT in $(find $CODEC_WORKDIR -name '*.result' -o -name 'parameters'); do
   DEST_FILE=$(echo $RESULT | sed -e "s!$CODEC_WORKDIR!$DESTINATION!")
   DEST_DIR=$(dirname $DEST_FILE)
