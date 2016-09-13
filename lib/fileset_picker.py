@@ -26,10 +26,13 @@ class Error(Exception):
 
 
 def ChooseRates(width, framerate):
+  # pylint: disable=too-many-return-statements
   if width >= 1920 and framerate >= 50:
     return [3000, 4500, 7000, 10000]
   if width >= 1920 and framerate >= 24:
     return [1600, 2500, 4000, 6000]
+  if width >= 1280 and framerate >= 60:
+    return [384, 512, 850, 1500] # To match MPEG rates for Johnny
   if width >= 832 and framerate >= 50:
     return [512, 768, 1200, 2000]
   if width >= 416:
@@ -39,7 +42,7 @@ def ChooseRates(width, framerate):
     return [256, 384, 512, 850]
   if width >= 176:
     # QCIF video.
-    return [128, 256, 384, 512]
+    return [256, 384, 512, 850, 1500]
   raise Error('Unhandled width/framerate combo: w=%d rate=%d' %
               (width, framerate))
 
