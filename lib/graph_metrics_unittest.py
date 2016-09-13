@@ -34,7 +34,6 @@ class FakeCodec1(encoder.Codec):
 class FakeCodec2(FakeCodec1):
   def __init__(self):
     super(FakeCodec2, self).__init__('mock2')
-    self.name = 'mock2'
     self.option_set = encoder.OptionSet()
 
 
