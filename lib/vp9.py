@@ -33,6 +33,8 @@ class Vp9Codec(file_codec.FileCodec):
       # The "best" option gives encodes that are too slow to be useful.
       encoder.ChoiceOption(['good', 'rt']).Mandatory(),
       encoder.IntegerOption('passes', 1, 2),
+      encoder.IntegerOption('aq-mode', 0, 4),
+      encoder.Option('end-usage', ['cbr', 'vbr', 'cq', 'q']),
     )
 
   def StartEncoder(self, context):

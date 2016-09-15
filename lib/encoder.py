@@ -772,8 +772,8 @@ class EncodingDiskCache(object):
           encoder or self._FileNameToEncoder(full_filename),
           bitrate or _FileNameToBitrate(full_filename),
           videofile or _FileNameToVideofile(full_filename))
-      except ParseError as e:
-        # print 'Ignoring parse error %s in file %s' % (e, full_filename)
+      except ParseError as err:
+        self.bad_encodings[full_filename] = err
         continue
       try:
         candidate.Recover()
