@@ -1,0 +1,67 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright 2014 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+"""Compare BD-Rate of two codecs.
+
+For one file, the BD-rate is the Bjøntegaard rate of the two files.
+For multiple files, the BD-rate is averaged.
+"""
+
+import argparse
+import graph_metrics
+import os
+import pick_codec
+import score_tools
+import sys
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('files', nargs='+')
+  parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--single_config', action='store_true', default=False)
+  parser.add_argument('--codecs', nargs='*', default=pick_codec.AllCodecNames())
+  args = parser.parse_args()
+
+  codecs = [pick_codec.PickCodec(x) for x in args.codecs]
+  score_function = score_tools.PickScorer(args.criterion)
+  for codec in codecs[1:]:
+    print '%10s ' % codec.name,
+  print 'filename'
+  totals = [0.0] * (len(codecs) - 1)
+  count = 0
+  for filename in args.files:
+    try:
+      score = graph_metrics.BdRateAnalysis(filename, codecs, score_function)
+    except graph_metrics.Error as error:
+      print 'Skipping %s due to %s' % (filename, error)
+      continue
+    if score:
+      for index in xrange(len(score.score())):
+        this_result = score.score()[index][1]['difference']
+        print '%10.2f ' % this_result,
+        totals[index] += this_result
+      count += 1
+      print os.path.basename(filename)
+    else:
+      print "Unable to compute metrics on %s" % filename
+  print "Average"
+  for result in totals:
+    print ('%10.2f ' % (result / count)),
+  print
+
+if __name__ == '__main__':
+  sys.exit(main())

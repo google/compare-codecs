@@ -19,6 +19,7 @@ import re
 import unittest
 
 import encoder
+import encoder_configuration
 import optimizer
 import test_tools
 
@@ -27,7 +28,7 @@ class DummyCodec(encoder.Codec):
     super(DummyCodec, self).__init__('dummy')
     self.extension = 'fake'
     self.option_set = encoder.OptionSet(
-      encoder.Option('score', ['0', '5', '10']),
+      encoder.IntegerOption('score', 0, 10),
       encoder.Option('another_parameter', ['yes']),
     )
 
@@ -227,6 +228,72 @@ class TestOptimizer(unittest.TestCase):
                       best_encoder.parameters.ToString())
 
 
+class TestOptimizerWithRealFiles(test_tools.FileUsingCodecTest):
+  def setUp(self):
+    self.codec = DummyCodec()
+    self.file_set = None
+    self.score_function = None
+    self.videofile = DummyVideofile('foofile_640_480_30.yuv', clip_time=1)
+    self.optimizer = None
+
+  def EncoderFromParameterString(self, parameter_string):
+    return encoder.Encoder(self.optimizer.context,
+        encoder.OptionValueSet(self.optimizer.context.codec.option_set,
+                               parameter_string))
+
+  def test_BestOverallConfigurationNotInWorkDirectory(self):
+    other_dir = os.path.join(encoder_configuration.conf.sysdir(),
+                             'multirepo_test')
+    os.mkdir(other_dir)
+    encoder_configuration.conf.override_scorepath_for_test([other_dir])
+
+    self.file_set = optimizer.FileAndRateSet(verify_files_present=False)
+    self.file_set.AddFilesAndRates([self.videofile.filename], [100, 200])
+    self.optimizer = optimizer.Optimizer(self.codec, self.file_set)
+    # When there is nothing in the database, None should be returned.
+    best_encoder = self.optimizer.BestOverallEncoder()
+    self.assertIsNone(best_encoder)
+    # Fill in the database with all the files and rates.
+    other_context = encoder.Context(self.codec, encoder.EncodingDiskCache,
+                                    scoredir='multirepo_test')
+    my_encoder = self.EncoderFromParameterString('--score=7')
+    other_context.cache.StoreEncoder(my_encoder)
+    my_encoder.context.cache.StoreEncoder(my_encoder)
+    for rate, filename in self.file_set.AllFilesAndRates():
+      my_encoding = my_encoder.Encoding(rate, encoder.Videofile(filename))
+      my_encoding.Execute()
+      other_context.cache.StoreEncoding(my_encoding)
+    # The best encoder should now be from the workdir, but the results are
+    # all fetched from the searchpath.
+    best_encoder = self.optimizer.BestOverallEncoder()
+    self.assertTrue(best_encoder)
+    self.assertEquals(my_encoder.parameters.ToString(),
+                      best_encoder.parameters.ToString())
+    one_encoding = best_encoder.Encoding(100, self.videofile)
+    one_encoding.Recover()
+    self.assertTrue(one_encoding.Result())
+
+  def test_MultipleOptimizers(self):
+    # Make sure other score directories don't interfere with this test.
+    encoder_configuration.conf.override_scorepath_for_test([])
+
+    os.mkdir(os.path.join(encoder_configuration.conf.sysdir(), 'first_dir'))
+    os.mkdir(os.path.join(encoder_configuration.conf.sysdir(), 'second_dir'))
+    one_optimizer = optimizer.Optimizer(self.codec, scoredir='first_dir')
+    another_optimizer = optimizer.Optimizer(self.codec, scoredir='second_dir')
+    self.assertNotEqual(one_optimizer.context.cache.workdir,
+                        another_optimizer.context.cache.workdir)
+    # Storing one encoding's score should not affect the other's.
+    one_encoding = one_optimizer.BestEncoding(100,
+                                              self.videofile)
+    one_encoding.Execute().Store()
+    another_encoding = another_optimizer.BestEncoding(100, self.videofile)
+    self.assertFalse(another_encoding.Result())
+    another_encoding.Recover()
+    self.assertFalse(another_encoding.Result())
+
+
+
 class TestFileAndRateSet(unittest.TestCase):
 
   def test_OneFileAddedAndReturned(self):
@@ -276,7 +343,7 @@ class TestFileAndRateSetWithRealFiles(test_tools.FileUsingCodecTest):
     file_name = 'file_1024_768_30.yuv'
     test_tools.MakeYuvFileWithOneBlankFrame(file_name)
     the_set.AddFilesAndRates([file_name], [100],
-                             basedir=os.getenv('CODEC_WORKDIR'))
+                             basedir=encoder_configuration.conf.workdir())
     self.assertTrue(the_set.AllFilesAndRates())
     self.assertTrue(the_set.set_is_complete)
 

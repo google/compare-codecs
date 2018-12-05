@@ -14,6 +14,7 @@
 # limitations under the License.
 """Unit tests for encoder module."""
 
+import encoder
 import optimizer
 import unittest
 import test_tools
@@ -46,7 +47,29 @@ class TestVp9(test_tools.FileUsingCodecTest):
     codec = vp9.Vp9Codec()
     self.assertEqual('5000', codec.SpeedGroup(5000))
 
+  def test_Passes(self):
+    """This test checks that both 1-pass and 2-pass encoding works."""
+    codec = vp9.Vp9Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
+    start_encoder = codec.StartEncoder(my_optimizer.context)
+    encoder1 = encoder.Encoder(my_optimizer.context,
+        start_encoder.parameters.ChangeValue('passes', 1))
+    encoding1 = encoder1.Encoding(1000, videofile)
+    encoder2 = encoder.Encoder(my_optimizer.context,
+        start_encoder.parameters.ChangeValue('passes', 2))
+    encoding2 = encoder2.Encoding(1000, videofile)
+    encoding1.Execute()
+    encoding2.Execute()
+    self.assertTrue(encoding1.result)
+    self.assertTrue(encoding2.result)
+
+  def test_EncoderVersion(self):
+    codec = vp9.Vp9Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(),
+                             r'WebM Project VP9 Encoder')
+
+
 if __name__ == '__main__':
   unittest.main()
-
-

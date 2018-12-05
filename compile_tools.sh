@@ -48,14 +48,15 @@ cd $WORKDIR/third_party
 build_vpxenc() {
   # Build the vpxenc and vpxdec binaries
   if [ ! -d libvpx ]; then
-    git clone http://git.chromium.org/webm/libvpx.git
+    git clone https://chromium.googlesource.com/webm/libvpx
   fi
   cd libvpx
   # Ensure we check out exactly a consistent version.
   git checkout -f master
   #git checkout v1.3.0
   # Check out the Oct 20 2014 version of libvpx.
-  git checkout 9c98fb2bab6125a0614576bf7635981163b1cc79
+  # git checkout 9c98fb2bab6125a0614576bf7635981163b1cc79
+  git checkout v1.6.0
   ./configure
   # Leftovers from previous compilations may be troublesome.
   make clean
@@ -99,7 +100,7 @@ build_ffmpeg() {
   # A Feb 2015 version
   # git checkout 60bb893
   # Checking out a named version.
-  git pull origin release/2.4
+  git fetch origin release/2.4
   git checkout n2.4.3
   ./configure
   make clean
@@ -140,6 +141,38 @@ build_hevc_hm() {
   cp $HM_VERSION/cfg/encoder_randomaccess_main.cfg $TOOLDIR/hevc_ra_main.cfg
 }
 
+build_openh264() {
+  # Build the Open H264 implementation.
+  if [ ! -d openh264 ]; then
+    git clone git@github.com:cisco/openh264.git
+  fi
+  cd openh264
+  git fetch --tags
+  # 7e3c064 is the version that enables the -frin option which will be used in scripts
+  # This was referenced per April 2015, but is gone from the repo
+  # as of Aug 9, 2016.
+  # git checkout 7e3c064
+  # Version 1.5.0 is from October 2015.
+  git checkout v1.5.0
+  make
+  cp h264enc $TOOLDIR
+  cp h264dec $TOOLDIR
+  cp testbin/welsenc.cfg $TOOLDIR/openh264.cfg
+  cp testbin/layer2.cfg $TOOLDIR/layer2.cfg
+}
+
+build_libavc() {
+  # Build the Android M libavc
+  if [ ! -d libavc ]; then
+    git clone https://android.googlesource.com/platform/external/libavc
+  fi
+  (cd libavc; git fetch --tags)
+  (cd libavc; git checkout android-6.0.1_r63)
+  (cd libavc; make -f ../../src/Makefile.libavcenclib)
+  (cd libavc/test; make -f ../../../src/Makefile.libavcencoder)
+  cp libavc/test/avcenc $TOOLDIR/avcenc
+}
+
 # Selecting which components to build.
 build_func () {
 while [ "$1" != "" ]; do
@@ -160,6 +193,12 @@ while [ "$1" != "" ]; do
     hevc)
       build_hevc_hm
       ;;
+    openh264)
+      build_openh264
+      ;;
+    libavc)
+      build_libavc
+      ;;
     *)
       echo "Can't do $1"
       exit 1
@@ -171,7 +210,7 @@ done
 # The default is to build everything.
 if [ "$#" -eq 0 ]; then
   echo "Building everything"
-  build_func vpxenc x264 ffmpeg x265 hevc
+  build_func vpxenc x264 ffmpeg x265 hevc openh264 libavc
 else
   build_func $@
 fi

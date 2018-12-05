@@ -30,28 +30,37 @@ class Optimizer(object):
   - A video file set, with associated target bitrates.
   - A set of pre-executed encodings (the cache).
   - A score function.
+  - A score directory, normally null, which means "take from context".
 
   One should be able ask an optimizer to find the parameters that give the
   best result on the score function for that codec."""
   def __init__(self, codec, file_set=None,
-               cache_class=None, score_function=None):
+               cache_class=None, score_function=None,
+               scoredir=None):
+    # pylint: disable=too-many-arguments
     self.context = encoder.Context(codec,
-                                   cache_class or encoder.EncodingDiskCache)
+                                   cache_class or encoder.EncodingDiskCache,
+                                   scoredir=scoredir)
     self.file_set = file_set
     self.score_function = score_function or score_tools.ScorePsnrBitrate
 
-  def Score(self, encoding, scoredir=None):
-    if scoredir is None:
-      result = encoding.result
-    else:
-      result = self.context.cache.ReadEncodingResult(encoding,
-          scoredir=scoredir)
+  def Score(self, encoding):
+    result = encoding.result
     if not result:
       raise encoder.Error('Trying to score an encoding without result')
     score = self.score_function(encoding.bitrate, result)
     # Weakly penalize long command lines.
     score -= len(encoding.encoder.parameters.values) * 0.00001
     return score
+
+  def RebaseEncoding(self, encoding):
+    """Take an encoding from another context and rebase it to
+    this context, using the same encoder arguments."""
+    return encoder.Encoding(self.RebaseEncoder(encoding.encoder),
+                            encoding.bitrate, encoding.videofile)
+
+  def RebaseEncoder(self, my_encoder):
+    return encoder.Encoder(self.context, my_encoder.parameters)
 
   def BestEncoding(self, bitrate, videofile):
     encodings = self.AllScoredEncodings(bitrate, videofile)
@@ -162,22 +171,24 @@ class Optimizer(object):
     all_scored_encodings = self.context.cache.AllScoredEncodings(
         files_and_rates[0][0],
         encoder.Videofile(files_and_rates[0][1]))
-    candidate_encoders = set([x.encoder.Hashname()
+    candidate_encoder_ids = set([x.encoder.Hashname()
+                                for x in all_scored_encodings])
+    candidate_encoders = dict([(x.encoder.Hashname(), x.encoder)
                               for x in all_scored_encodings])
     for rate, filename in files_and_rates[1:]:
       these_encoders = set([x.encoder.Hashname()
                             for x in self.context.cache.AllScoredEncodings(
                               rate, encoder.Videofile(filename))])
-      candidate_encoders.intersection_update(these_encoders)
-    if len(candidate_encoders) == 0:
+      candidate_encoder_ids.intersection_update(these_encoders)
+    if len(candidate_encoder_ids) == 0:
       return None
-    if len(candidate_encoders) == 1:
-      return encoder.Encoder(self.context, filename=candidate_encoders.pop())
+    if len(candidate_encoder_ids) == 1:
+      return candidate_encoders[candidate_encoder_ids.pop()]
     best_score = -10000
     best_encoder = None
-    for hashname in candidate_encoders:
+    for hashname in candidate_encoder_ids:
       this_total = 0
-      this_encoder = encoder.Encoder(self.context, filename=hashname)
+      this_encoder = candidate_encoders[hashname]
       for rate, filename in files_and_rates:
         this_encoding = this_encoder.Encoding(rate, encoder.Videofile(filename))
         this_encoding.Recover()

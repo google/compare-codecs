@@ -20,13 +20,17 @@
 #
 set -e
 
+MODE=full
+if [ "$1" = "travis" ]; then
+  MODE=nocompile
+fi
+
 # Requirements for compiling various packages and scripts.
 sudo apt-get install yasm mkvtoolnix mercurial cmake cmake-curses-gui \
-  build-essential yasm
+  build-essential yasm nasm python-numpy
 
 # Install prerequisites for running Jekyll as a web server
-sudo apt-get install ruby1.9.1-dev
-sudo apt-get install nodejs
+sudo apt-get install ruby1.9.1-dev nodejs
 # Jekyll 2.4.0 depends on redcarpet.
 # Redcarpet 3.1.2 depends on ruby 1.9.2 or later.
 # redcarpet 3.0.0 is installable under 1.9.1.
@@ -34,7 +38,17 @@ sudo apt-get install nodejs
 # So we limit to a jekyll version that builds under 1.9.1.
 sudo gem install jekyll -v 1.5.1
 
+# Python packages
+sudo -H pip install y4m
+
+# Install depot_tools - we use the pylint from there
+rm -rf third_party/depot_tools
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
+   third_party/depot_tools
+
 # Compile from source everything that needs compiling.
-./compile_tools.sh
+if [ "$MODE" != "nocompile" ]; then
+  ./compile_tools.sh
+fi
 
 echo "All software installed"

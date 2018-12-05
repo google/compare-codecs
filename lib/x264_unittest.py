@@ -64,6 +64,24 @@ class TestX264(test_tools.FileUsingCodecTest):
     self.assertRegexpMatches(commandline, '--vbv-maxrate 1000 ')
     self.assertNotRegexpMatches(commandline, 'use-vbv-maxrate')
 
+  def test_Threading(self):
+    codec = x264.X264Codec()
+    context = encoder.Context(codec, encoder.EncodingDiskCache)
+    one_thread_encoder = codec.StartEncoder(context).ChangeValue('threads', 1)
+    two_thread_encoder = codec.StartEncoder(context).ChangeValue('threads', 2)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    one_encoding = one_thread_encoder.Encoding(1000, videofile)
+    one_encoding.Execute()
+    two_encoding = two_thread_encoder.Encoding(1000, videofile)
+    two_encoding.Execute()
+    self.assertAlmostEquals(float(one_encoding.Result()['psnr']),
+                            float(two_encoding.Result()['psnr']))
+
+  def test_EncoderVersion(self):
+    codec = x264.X264Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(), r'x264 \d')
+
 
 if __name__ == '__main__':
   unittest.main()

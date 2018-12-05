@@ -14,15 +14,17 @@
 """A codec picker."""
 
 import encoder
+import ffmpeg
 import h261
 import h263
 import hevc_jm
+import libavc
 import mjpeg
+import openh264
 import vp8
 import vp8_mpeg
 import vp8_mpeg_1d
 import vp9
-import ffmpeg
 import x264
 import x264_baseline
 import x264_realtime
@@ -45,13 +47,17 @@ CODEC_MAP = {
   'mjpeg' : CodecInfo(mjpeg.MotionJpegCodec, 'MJPEG', 'Motion JPEG'),
   'h261': CodecInfo(h261.H261Codec, 'H261', 'H.261'),
   'h263': CodecInfo(h263.H263Codec, 'H263', 'H.263'),
-  'x264': CodecInfo(x264.X264Codec, 'H264', 'H.264 - x264 implementation'),
+  'x264': CodecInfo(x264.X264Codec, 'X264', 'H.264 - x264 implementation'),
   'x264_base': CodecInfo(x264_baseline.X264BaselineCodec, 'H264-BL',
                          'H264 Baseline - x264 implementation'),
   'x264_rt': CodecInfo(x264_realtime.X264RealtimeCodec, 'H264-RT',
                        'H264 - x264 implementation, realtime settings'),
   'x265': CodecInfo(x265.X265Codec, 'H265', 'HEVC - x265 implementation'),
   'hevc': CodecInfo(hevc_jm.HevcCodec, 'HEVC', 'HEVC - JM implementation'),
+  'openh264': CodecInfo(openh264.OpenH264Codec, 'OpenH264',
+                        'H.264 - OpenH264 implementation'),
+  'libavc' : CodecInfo(libavc.LibavcCodec, 'LibAVC',
+                       'H.264 - Android LibAVC implementation'),
 }
 
 

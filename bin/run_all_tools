@@ -16,8 +16,8 @@
 # Test tool for tools.
 #
 # This script will run all the tools except those commented out because they
-# have too interesting side effects.
-# This is not a test suite, just a sanity check.
+# have too interesting side effects or take too much time.
+# This is not a comprehensive test suite, just a sanity check.
 #
 set -e
 # Show commands as they are executed
@@ -34,6 +34,13 @@ else
   parameter_tweaker $RATE $VIDEOFILE
 fi
 
+# Note: verify_stored_parameters actually verifies the result storage,
+# which is important to do before checking in new code.
+# Run verify_stored_parameters --remove to get rid of bad configurations.
+verify_stored_parameters
+
+# Other tools are just run to verify that they can be started.
+# Tools that take too long are skipped.
 compare_codecs vp8 vp9 > /dev/null
 compare_json vp8 vp9 > /dev/null
 force_run_config --codec h261 -- ''
@@ -43,6 +50,7 @@ randomly_improve_encoding --iterations 1
 sensitivity_analysis > /dev/null
 # take_snapshot
 verify_encodings h261
-verify_hashnames h261
 verify_scores h261
 write_cross_performance_tables h261 vp8 > /dev/null
+unpack_y4m /dev/null
+

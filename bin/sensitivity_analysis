@@ -36,8 +36,12 @@ def AnalyzeVariants(encoding, score=False):
       _ = option.max
       value = int(encoding.encoder.parameters.GetValue(option.name))
     except ValueError:
+      # This will happen if the value can't be parsed as an int.
       continue
     except AttributeError:
+      continue
+    except encoder.Error:
+      # This will happen for "no value for this option".
       continue
     # Hackish!
     if value > option.min:

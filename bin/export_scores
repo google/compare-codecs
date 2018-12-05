@@ -1,0 +1,44 @@
+#!/bin/sh
+# Copyright 2015 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Export all improved scores to the central repository.
+#
+set -e
+
+# First, export all the new scores.
+#
+if [ -z $WORKDIR -o ! -d $WORKDIR ]; then
+  echo "Workdir not set correctly: $WORKDIR"
+  exit 1
+fi
+if [ -z $CODEC_WORKDIR -o ! -d $CODEC_WORKDIR ]; then
+  echo "Codec Workdir not set correctly: $CODEC_WORKDIR"
+  exit 1
+fi
+if [ ! -d $WORKDIR/score_storage ]; then
+  echo "No score storage directory - did you run check_out_scores?"
+  exit 1
+fi
+
+echo "Exporting new and improved scores"
+# Then, we export all the scores that are improved under any criterion.
+export_improved_scores
+export_improved_scores --criterion rt
+
+# Add all changes to the git repository, but do not commit.
+(cd $WORKDIR/score_storage && git add . && git status)
+
+echo "To commit, do cd score_storage; git commit; git push"
+

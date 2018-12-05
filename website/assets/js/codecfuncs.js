@@ -15,6 +15,15 @@ var metric_units = {
   'encode_cputime': 'Encode CPU time in seconds'
 };
 
+// The GraphLine object is used to get a line and its associated
+// formats together in one piece.
+function GraphLine(title, data, options) {
+  this.title = title;
+  this.data = data;
+  this.options = options;
+}
+
+
 function FillInOneTable(url, id) {
   $.ajax({
     url: url,
@@ -85,6 +94,12 @@ function fetchEncodingInfo(parameters) {
     heading.innerHTML = 'Baseline: ' + codec_names[1][1] + '<br>' +
       'Compared to: ' + codec_names[0][1] + '<br>' +
       'Criterion: ' + criterion;
+    if (encoding_info.baseline) {
+      heading.innerHTML += '<p>The solid lines show the best found ' +
+          'single configuration. Dashed lines show the best configuration ' +
+          'found for each file. Hover over to see the command lines used.<p>' +
+          'Size differences are computed on the tuned results.';
+    }
     var bettertable = document.getElementById("bettertable");
     // Construct a table with the codecs across, and the file names
     // down. Show relative performance of all codecs but the first one.
@@ -135,59 +150,50 @@ function displayGraph(filename) {
   // Note all the encodings used for each codec (for linking).
   for (var i = 0; i < detailed_1.length; i++) {
     codec_to_encodings[codec1][detailed_1[i]['config_id']] = 1;
+    detailed_1[i]['codec'] = codec1;
   }
   for (var i = 0; i < detailed_2.length; i++) {
     codec_to_encodings[codec2][detailed_2[i]['config_id']] = 1;
+    detailed_2[i]['codec'] = codec2;
   }
-  // TODO(hta): Call displayGraphLines instead of code below.
-  metricdata.addColumn('number', 'bitrate');
-  metricdata.addColumn('number', codec1);
-  metricdata.addColumn('number', codec2);
-  // Store a global mapping of row number to result.
-  row_to_details = [];
-  for (var i = 0; i < detailed_1.length; i++) {
-    var result = detailed_1[i]['result'];
-    metricdata.addRow([result['bitrate'], result['psnr'], null]);
-    detailed_1[i]['codec'] = codec1
-    row_to_details.push(detailed_1[i]);
+  lines = [];
+  others_format = {};
+  others_suffix = '';
+  if (encoding_info['baseline']) {
+    // Draw the baseline as a solid line.
+    lines.push(new GraphLine(codec1 + ' uniform',
+                             encoding_info['baseline'][codec1][filename],
+                             {color: 'blue'}));
+    lines.push(new GraphLine(codec2 + ' uniform',
+                             encoding_info['baseline'][codec2][filename],
+                             {color: 'red'}));
+    others_format = {pointShape: 'triangle', lineDashStyle: [5, 10]};
+    others_suffix = ' tuned';
   }
-  for (var i = 0; i < detailed_2.length; i++) {
-    var result = detailed_2[i]['result'];
-    metricdata.addRow([result['bitrate'], null, result['psnr']]);
-    detailed_2[i]['codec'] = codec2
-    row_to_details.push(detailed_2[i]);
-  }
-  chart.draw(metricdata, {curveType:'function',
-      chartArea:{left:60, top:6, width:"100%", height:"80%"},
-      hAxis:{title:"datarate in kbps"},
-      vAxis:{title: metric_units['psnr']},
-      legend:{position:"in"},
-      title:"chart-title",
-      pointSize:2,
-      lineWidth:1,
-      width:"100%",
-      height:"800px" });
-
-  google.visualization.events.addListener(chart, 'onmouseover', chartMouseOver);
-
+  lines.push(new GraphLine(codec1 + others_suffix, detailed_1,
+                           jQuery.extend({color: 'blue'}, others_format)));
+  lines.push(new GraphLine(codec2 + others_suffix, detailed_2,
+                           jQuery.extend({color: 'red'}, others_format)));
+  displayGraphLines(lines, 'psnr');
 }
 
-function displayGraphLines(result_array, metric) {
+function displayGraphLines(lines_array, metric) {
   var graph_area = document.getElementById('metricgraph');
   var chart = new google.visualization.ScatterChart(graph_area);
   var metricdata = new google.visualization.DataTable();
   var metricview = new google.visualization.DataView(metricdata);
   metricdata.addColumn('number', 'bitrate');
-  var number_of_lines = result_array.length
-  for (var i = 0; i < result_array.length; i++) {
-    metricdata.addColumn('number', i);
+  var number_of_lines = lines_array.length
+  for (var i = 0; i < number_of_lines; i++) {
+    metricdata.addColumn('number', lines_array[i].title);
   }
   // Populate rows.
   // Also store a global mapping of row number to result,
   // which is used by the mouseover function.
   row_to_details = [];
-  for (var i = 0; i < result_array.length; i++) {
-    detailed = result_array[i];
+  series_format = [];
+  for (var i = 0; i < lines_array.length; i++) {
+    detailed = lines_array[i].data;
     for (var j = 0; j < detailed.length; j++) {
       var result = detailed[j]['result'];
       var row = new Array(number_of_lines + 1);
@@ -200,14 +206,16 @@ function displayGraphLines(result_array, metric) {
       metricdata.addRow(row);
       row_to_details.push(detailed[j]);
     }
+    series_format.push(lines_array[i].options);
   }
   chart.draw(metricdata, {curveType:'function',
       chartArea:{left:60, top:6, width:"100%", height:"80%"},
       hAxis:{title:"datarate in kbps"},
       vAxis:{title: metric_units[metric]},
-      legend:{position:"in"},
+      legend:{position: "bottom", orientation: "vertical"},
       title:"chart-title",
-      pointSize:2,
+      pointSize:4,
+      series: series_format,
       lineWidth:1,
       width:"100%",
       height:"800px" });
@@ -237,11 +245,13 @@ function displayDetailsOnEncoding(row_number) {
   sweeplink = document.getElementById('sweepdatalink');
   if (sweeplink) {
     var filename = encoding_info['overall']['avg'][selected_file]['file'];
-    sweeplink.href = '/results/sweepdata.html?codec=' + details['codec']
-      + '&filename=' + filename
-      + '&criterion=' + evaluation_criterion
-      + '&configs=' + Object.keys(codec_to_encodings[details['codec']]).join(',');
-    sweeplink.style.visibility = "visible";
+    if (details['codec']) {
+      sweeplink.href = '/results/sweepdata.html?codec=' + details['codec']
+        + '&filename=' + filename
+        + '&criterion=' + evaluation_criterion
+        + '&configs=' + Object.keys(codec_to_encodings[details['codec']]).join(',');
+      sweeplink.style.visibility = "visible";
+    }
   }
 }
 
@@ -253,9 +263,10 @@ function showSweepData(parameters, metric) {
   var configs = param_list['configs'].split(',');
   // We assume that sweep data is the global variable "sweepdata".
   var config_data_list = sweepdata['sweepdata'][codec][filename]
+  var labels = [];
   var list_to_show = [];
   for (var i = 0; i < configs.length; i++) {
-    list_to_show.push(config_data_list[configs[i]]);
+    list_to_show.push(new GraphLine(configs[i], config_data_list[configs[i]]));
   }
   displayGraphLines(list_to_show, metric);
 

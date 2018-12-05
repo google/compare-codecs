@@ -45,6 +45,11 @@ class TestHevc(test_tools.FileUsingCodecTest):
     # Most codecs should be good at this.
     self.assertLess(40.0, my_optimizer.Score(encoding))
 
+  def test_EncoderVersion(self):
+    codec = hevc_jm.HevcCodec()
+    self.assertRegexpMatches(codec.EncoderVersion(),
+                             r'HM software')
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -70,6 +70,10 @@ class TestVp8(test_tools.FileUsingCodecTest):
     value_set_out = codec.ConfigurationFixups(value_set)
     self.assertEqual('-5', value_set_out.GetValue('cpu-used'))
 
+  def test_EncoderVersion(self):
+    codec = vp8.Vp8Codec()
+    self.assertRegexpMatches(codec.EncoderVersion(),
+                             r'WebM Project VP8 Encoder')
 
 if __name__ == '__main__':
   unittest.main()

@@ -31,7 +31,7 @@ import mpeg_settings
 import encoder
 import optimizer
 import pick_codec
-
+import score_tools
 
 def ClassifyScoreRelation(old_score, new_score):
   if not old_score:
@@ -45,20 +45,27 @@ def ClassifyScoreRelation(old_score, new_score):
     return 'improved'
   return 'worsened'
 
-def VerifyOneTarget(codec_names, rate, videofile, score):
+def VerifyOneTarget(codec_names, rate, videofile, scorer_function,
+                    old_scores, score):
+  # pylint: disable=too-many-arguments, too-many-locals
   change_counts = collections.Counter()
   for codec_name in codec_names:
     codec = pick_codec.PickCodec(codec_name)
-    my_optimizer = optimizer.Optimizer(codec)
-    bestsofar = my_optimizer.BestEncoding(rate, videofile)
+    old_optimizer = optimizer.Optimizer(codec, score_function=scorer_function,
+                                        scoredir=old_scores)
+    new_optimizer = optimizer.Optimizer(codec, score_function=scorer_function)
+    old_best_run = old_optimizer.BestEncoding(rate, videofile)
+    bestsofar = new_optimizer.RebaseEncoding(old_best_run)
+    bestsofar.Recover()
     if score:
       bestsofar.Execute().Store()
     try:
-      old_score = my_optimizer.Score(bestsofar, scoredir='snapshot')
+      old_score = old_optimizer.Score(old_best_run)
     except encoder.Error:
-      print 'No old score for %s, continuing' % (bestsofar.encoder.Hashname())
+      print 'No old score for %s %d %s, continuing' % \
+        (bestsofar.encoder.Hashname(), rate, videofile.filename)
       continue
-    new_score = my_optimizer.Score(bestsofar)
+    new_score = new_optimizer.Score(bestsofar)
     result = ClassifyScoreRelation(old_score, new_score)
     change_counts[result] += 1
     if result != 'no change':
@@ -67,15 +74,30 @@ def VerifyOneTarget(codec_names, rate, videofile, score):
         result,
         old_score if old_score else float('-inf'),
         new_score if new_score else float('-inf'))
+      print 'Command line:', old_best_run.EncodeCommandLine()
+      if 'encoder_version' in old_best_run.Result():
+        print 'Old version:', old_best_run.Result()['encoder_version']
+      else:
+        print 'Old version unknown'
+      print 'New version:', bestsofar.Result()['encoder_version']
+      print 'PSNR: %5.3f -> %5.3f' % (old_best_run.Result()['psnr'],
+                                      bestsofar.Result()['psnr'])
+      print 'Bitrate: %d -> %d' % (old_best_run.Result()['bitrate'],
+                                   bestsofar.Result()['bitrate'])
+      print 'Encode time: %5.3f -> %5.3f' % (
+          old_best_run.Result()['encode_cputime'],
+          bestsofar.Result()['encode_cputime'])
+      print
 
   return change_counts
 
-def VerifyResults(codec_names, score):
+def VerifyResults(codec_names, scorer_function, old_scores, score):
   change_counts = collections.Counter()
   for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
     videofile = encoder.Videofile(filename)
     change_counts.update(VerifyOneTarget(codec_names, rate,
-                                         videofile, score))
+                                         videofile, scorer_function,
+                                         old_scores, score))
     print 'Result so far:', dict(change_counts)
   return change_counts
 
@@ -84,8 +106,13 @@ def main():
   parser.add_argument('codec_names', nargs='*',
                       default=pick_codec.AllCodecNames())
   parser.add_argument('--score', action='store_true', default=False)
+  parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--old_scores', default='snapshot')
   args = parser.parse_args()
-  change_count = VerifyResults(args.codec_names, score=args.score)
+  scorer_function = score_tools.PickScorer(args.criterion)
+  change_count = VerifyResults(args.codec_names,
+                               scorer_function, old_scores=args.old_scores,
+                               score=args.score)
   print 'Change evaluations: ', dict(change_count)
   return 0
 

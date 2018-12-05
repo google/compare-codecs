@@ -23,8 +23,8 @@
 import argparse
 import sys
 
-import mpeg_settings
 import encoder
+import fileset_picker
 import optimizer
 import pick_codec
 import score_tools
@@ -44,13 +44,13 @@ def ListOneTarget(codecs, scorer_function, rate, videofile, do_score):
                                 my_optimizer.Score(bestsofar)),
   print ''
 
-def ListResults(codecs, scorer, do_score):
+def ListResults(codecs, scorer, fileset, do_score):
   scorer_function = score_tools.PickScorer(scorer)
   print '%-28s %5s' % ('File', 'Rate'),
   for codec in codecs:
     print '%17s' % pick_codec.ShortName(codec),
   print
-  for rate, filename in mpeg_settings.MpegFiles().AllFilesAndRates():
+  for rate, filename in fileset.AllFilesAndRates():
     videofile = encoder.Videofile(filename)
     ListOneTarget(codecs, scorer_function, rate, videofile, do_score)
 
@@ -58,10 +58,12 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--score', action='store_true', default=False)
   parser.add_argument('--criterion', default='psnr')
+  parser.add_argument('--fileset', default='mpeg_video')
   parser.add_argument('codecs', nargs='*',
                       default=pick_codec.AllCodecNames())
   args = parser.parse_args()
-  ListResults(args.codecs, args.criterion, args.score)
+  fileset = fileset_picker.PickFileset(args.fileset)
+  ListResults(args.codecs, args.criterion, fileset, args.score)
   return 0
 
 if __name__ == '__main__':

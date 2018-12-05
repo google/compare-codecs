@@ -16,6 +16,7 @@
 
 import encoder
 import filecmp
+import json
 import os
 import re
 import subprocess
@@ -36,31 +37,27 @@ class FileCodec(encoder.Codec):
       parameters, bitrate, videofile, encodedfile)
 
     print commandline
-    with open('/dev/null', 'r') as nullinput:
-      subprocess_cpu_start = os.times()[2]
+    with open(os.path.devnull, 'r') as nullinput:
+      times_start = os.times()
       returncode = subprocess.call(commandline, shell=True, stdin=nullinput)
-      subprocess_cpu = os.times()[2] - subprocess_cpu_start
-      print "Encode took %f seconds" % subprocess_cpu
+      times_end = os.times()
+      subprocess_cpu = times_end[2] - times_start[2]
+      elapsed_clock = times_end[4] - times_start[4]
+      print "Encode took %f CPU seconds %f clock seconds" % (
+          subprocess_cpu, elapsed_clock)
       if returncode:
         raise Exception("Encode failed with returncode %d" % returncode)
-      return subprocess_cpu
+      return (subprocess_cpu, elapsed_clock)
 
-  def Execute(self, parameters, bitrate, videofile, workdir):
-    encodedfile = '%s/%s.%s' % (workdir, videofile.basename, self.extension)
-    subprocess_cpu = self._EncodeFile(parameters, bitrate, videofile,
-                                      encodedfile)
-    result = {}
-
-    result['encode_cputime'] = subprocess_cpu
-    bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
-
-    tempyuvfile = "%s/%stempyuvfile.yuv" % (workdir, videofile.basename)
+  def _DecodeFile(self, videofile, encodedfile, workdir):
+    tempyuvfile = os.path.join(workdir,
+                               videofile.basename + 'tempyuvfile.yuv')
     if os.path.isfile(tempyuvfile):
       print "Removing tempfile before decode:", tempyuvfile
       os.unlink(tempyuvfile)
     commandline = self.DecodeCommandLine(videofile, encodedfile, tempyuvfile)
     print commandline
-    with open('/dev/null', 'r') as nullinput:
+    with open(os.path.devnull, 'r') as nullinput:
       subprocess_cpu_start = os.times()[2]
       returncode = subprocess.call(commandline, shell=True,
                                 stdin=nullinput)
@@ -68,13 +65,34 @@ class FileCodec(encoder.Codec):
         raise Exception('Decode failed with returncode %d' % returncode)
       subprocess_cpu = os.times()[2] - subprocess_cpu_start
       print "Decode took %f seconds" % subprocess_cpu
-      result['decode_cputime'] = subprocess_cpu
       commandline = encoder.Tool("psnr") + " %s %s %d %d 9999" % (
         videofile.filename, tempyuvfile, videofile.width,
         videofile.height)
       print commandline
       psnr = subprocess.check_output(commandline, shell=True, stdin=nullinput)
+      commandline = ['md5sum', tempyuvfile]
+      md5 = subprocess.check_output(commandline, shell=False)
+      yuv_md5 = md5.split(' ')[0]
     os.unlink(tempyuvfile)
+    return psnr, subprocess_cpu, yuv_md5
+
+  def Execute(self, parameters, bitrate, videofile, workdir):
+    encodedfile = os.path.join(workdir,
+                               '%s.%s' % (videofile.basename, self.extension))
+    subprocess_cpu, elapsed_clock = self._EncodeFile(parameters, bitrate,
+                                                     videofile, encodedfile)
+    result = {}
+
+    result['encode_cputime'] = subprocess_cpu
+    result['encode_clocktime'] = elapsed_clock
+    result['encoder_version'] = self.EncoderVersion()
+    bitrate = videofile.MeasuredBitrate(os.path.getsize(encodedfile))
+
+    psnr, decode_cputime, yuv_md5 = self._DecodeFile(
+        videofile, encodedfile, workdir)
+
+    result['decode_cputime'] = decode_cputime
+    result['yuv_md5'] = yuv_md5
     print "Bitrate", bitrate, "PSNR", psnr
     result['bitrate'] = int(bitrate)
     result['psnr'] = float(psnr)
@@ -106,6 +124,8 @@ class FileCodec(encoder.Codec):
     """Returns true if a new encode of the file gives exactly the same file."""
     old_encoded_file = '%s/%s.%s' % (workdir, videofile.basename,
                                      self.extension)
+    if not os.path.isfile(old_encoded_file):
+      raise encoder.Error('Old encoded file missing: %s' % old_encoded_file)
     new_encoded_file = '%s/%s_verify.%s' % (workdir, videofile.basename,
                                             self.extension)
     self._EncodeFile(parameters, bitrate, videofile,
@@ -116,6 +136,9 @@ class FileCodec(encoder.Codec):
       return False
     os.unlink(new_encoded_file)
     return True
+
+  def EncoderVersion(self):
+    raise encoder.Error('File codecs must define their own version')
 
 
 # Tools that may be called upon by the codec implementation if needed.
@@ -131,6 +154,24 @@ def MatroskaFrameInfo(encodedfile):
       # The mkvinfo tool gives frame size in bytes. We want bits.
       frameinfo.append({'size': int(match.group(1))*8})
 
+  return frameinfo
+
+
+def FfmpegFrameInfo(encodedfile):
+  # Uses the ffprobe tool to give frame info.
+  commandline = '%s -loglevel warning -show_frames -of json %s' % (
+      encoder.Tool('ffprobe'), encodedfile)
+  ffprobeinfo = subprocess.check_output(commandline, shell=True)
+  probeinfo = json.loads(ffprobeinfo)
+  previous_position = 0
+  frameinfo = []
+  for frame in probeinfo['frames']:
+    current_position = int(frame['pkt_pos'])
+    if previous_position != 0:
+      frameinfo.append({'size': 8 * (current_position - previous_position)})
+    previous_position = current_position
+  frameinfo.append({'size': 8 *
+                    (os.path.getsize(encodedfile) - previous_position)})
   return frameinfo
 
 

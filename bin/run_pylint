@@ -18,5 +18,5 @@
 echo "Running pylint"
 pylint --rcfile .pylint.rc $(ls lib/*.py | grep -v 'gviz_api.py')
 # There is a backslash below in order to avoid the grep finding itself.
-pylint --rcfile .pylint.rc $(grep -l '#\!/usr/bin/python' bin/*[a-z])
-    
+# For some reason, pylint can't find the y4m package when installed on travis.
+pylint --rcfile .pylint.rc $(grep -l '#\!/usr/bin/python' bin/*[a-z] | grep -v '^bin/unpack_y4m$')

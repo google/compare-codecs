@@ -21,19 +21,25 @@ import tempfile
 import unittest
 
 import encoder
+import encoder_configuration
 import optimizer
 
 def InitWorkDir():
   dirname = tempfile.mkdtemp(prefix='codec-unittest-workdir')
   if not os.path.isdir(dirname):
     os.mkdir(dirname)
-  os.environ['CODEC_WORKDIR'] = dirname
+  os.mkdir(os.path.join(dirname, 'workdir'))
+  encoder_configuration.conf.override_workdir_for_test(
+      os.path.join(dirname, 'workdir'))
+  encoder_configuration.conf.override_sysdir_for_test(dirname)
+  encoder_configuration.conf.override_scorepath_for_test([])
   return dirname
 
 def MakeYuvFileWithBlankFrames(name, count):
-  """ Make an YUV file with one or more blank frames (all zeroes).
+  """Make an YUV file with one or more blank frames (all zeroes).
+
   The size of the frame is encoded in the filename."""
-  videofile = encoder.Videofile('%s/%s' % (os.getenv('CODEC_WORKDIR'),
+  videofile = encoder.Videofile('%s/%s' % (encoder_configuration.conf.workdir(),
                                            name))
   # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
   framesize = videofile.width * videofile.height * 3 / 2
@@ -41,15 +47,34 @@ def MakeYuvFileWithBlankFrames(name, count):
     real_file.write('\0' * framesize * count)
   return videofile
 
+def MakeYuvFileWithNoisyFrames(name, count):
+  """Make an YUV file with one or more frames containing noise."""
+  videofile = encoder.Videofile('%s/%s' % (encoder_configuration.conf.workdir(),
+                                           name))
+  # Frame size in an YUV 4:2:0 file is 1.5 bytes per pixel.
+  framesize = videofile.width * videofile.height * 3 / 2
+  with open(videofile.filename, 'w') as real_file:
+    for frameno in xrange(count):
+      for videobyte in xrange(framesize):
+        real_file.write(str(chr((frameno + videobyte) % 256)))
+  return videofile
+
 def MakeYuvFileWithOneBlankFrame(name):
-  """ Make an YUV file with one black frame.
-  The size of the frame is encoded in the filename."""
+  """Make an YUV file with one black frame."""
   return MakeYuvFileWithBlankFrames(name, 1)
+
+def EmptyWorkDirectory():
+  dirname = encoder_configuration.conf.workdir()
+  if not dirname.startswith(tempfile.gettempdir()):
+    raise encoder.Error('Workdir is %s, not a tempfile' % dirname)
+  shutil.rmtree(dirname)
+  os.mkdir(dirname)
 
 def FinishWorkDir(dirname):
   # Verification of validity
-  if os.environ['CODEC_WORKDIR'] != dirname:
-    raise encoder.Error('Dirname was wrong in FinishWorkDir')
+  if encoder_configuration.conf.sysdir() != dirname:
+    raise encoder.Error('FinishWorkDir got dirname %s but expected %s'
+                        % (dirname, encoder_configuration.conf.sysdir()))
   shutil.rmtree(dirname)
 
 def TestFileSet():
@@ -60,7 +85,7 @@ def TestFileSet():
   the_set = optimizer.FileAndRateSet()
   filename = 'one_black_frame_1024_768_30.yuv'
   MakeYuvFileWithOneBlankFrame(filename)
-  my_directory = os.environ['CODEC_WORKDIR']
+  my_directory = encoder_configuration.conf.workdir()
   the_set.AddFilesAndRates([filename],
                            [300, 1000, 3000],
                            my_directory)
@@ -74,3 +99,6 @@ class FileUsingCodecTest(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     FinishWorkDir(cls._workdir)
+
+  def setUp(self):
+    encoder_configuration.conf.override_scorepath_for_test([])

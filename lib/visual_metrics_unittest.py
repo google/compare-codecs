@@ -174,6 +174,25 @@ class TestVisualMetricsFunctions(unittest.TestCase):
                                                  'codec1', ['codec2'])
     self.assertEquals(2, len(result))
     self.assertEquals('OVERALL avg', result[1]['file'])
+    self.assertIn('codec2', result[0])
+
+  def test_BuildComparisonTableSkipsNan(self):
+    datatable = {
+      # This generates a NaN, because the two slopes are opposite.
+      # The correct response is to not report on the result.
+      'codec1': {'dummyfile': [
+        {'result': {'bitrate': 100, 'psnr': 30.0}},
+        {'result': {'bitrate': 200, 'psnr': 40.0}}
+      ]},
+      'codec2': {'dummyfile': [
+        {'result': {'bitrate': 300, 'psnr': 50.0}},
+        {'result': {'bitrate': 400, 'psnr': 40.0}}
+      ]},
+    }
+    result = visual_metrics.BuildComparisonTable(datatable, 'drate',
+                                                 'codec1', ['codec2'])
+    self.assertEquals(2, len(result))
+    self.assertNotIn('codec2', result[0])
 
   def test_CrossPerformanceGvizTableWithoutData(self):
     datatable = {'dummy1':{}}

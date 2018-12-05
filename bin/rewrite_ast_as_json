@@ -1,0 +1,78 @@
+#!/usr/bin/python
+# Copyright 2015 Google.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""Tool to rewrite all AST-encoded result files as JSON."""
+import ast
+import collections
+import exceptions
+import json
+import glob
+import os
+import sys
+import encoder_configuration
+
+
+class Error(Exception):
+  pass
+
+
+def ReadAndMaybeRewriteResult(filename):
+  if os.path.isfile(filename):
+    rewrite = False
+    with open(filename, 'r') as resultfile:
+      stringbuffer = resultfile.read()
+      try:
+        result = json.loads(stringbuffer)
+        if result:
+          return 'OK'
+      except exceptions.ValueError:
+        try:
+          result = ast.literal_eval(stringbuffer)
+          if not result:
+            return 'Empty'
+          rewrite = True
+        except:
+          raise Error('Unexpected AST error: %s, filename was %s' %
+              (sys.exc_info()[0], filename))
+      except:
+        print stringbuffer
+        raise Error('Unexpected JSON error: %s, filename was %s' %
+            (sys.exc_info()[0], filename))
+
+      if rewrite:
+        os.rename(filename, '%s.OLD' % filename)
+        with open(filename, 'w') as new_resultfile:
+          json.dump(result, new_resultfile, indent=2)
+          return 'Rewrite'
+
+  return 'No file'
+
+def main():
+  resultfiles = glob.glob(encoder_configuration.conf.workdir()
+                          + '/*/*/*/*.result')
+  print len(resultfiles), 'files found'
+  counter = collections.Counter()
+  overall_counter = 0
+  for filename in resultfiles:
+    outcome = ReadAndMaybeRewriteResult(filename)
+    counter[outcome] += 1
+    overall_counter += 1
+  print counter
+  print 'Total: ', overall_counter
+  return 0
+
+
+if __name__ == '__main__':
+  sys.exit(main())

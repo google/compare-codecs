@@ -16,6 +16,7 @@
 
 import encoder
 import optimizer
+import os
 import test_tools
 import time
 import unittest
@@ -38,6 +39,10 @@ class CopyingCodec(file_codec.FileCodec):
   def DecodeCommandLine(self, videofile, inputfile, outputfile):
     return 'cp %s %s' % (inputfile, outputfile)
 
+  def EncoderVersion(self):
+    return 'CopyingCodec v1'
+
+
 class CorruptingCodec(file_codec.FileCodec):
   """A "codec" that gives a different result every time."""
   def __init__(self, name='corrupt'):
@@ -52,10 +57,14 @@ class CorruptingCodec(file_codec.FileCodec):
     return 'date +%%N > %s' % outputfile
 
   def DecodeCommandLine(self, videofile, inputfile, outputfile):
-    # pylint: disable=W0613
-    # We make the codec "work" by copying from the original file
-    # as a decode.
-    return 'cp %s %s' % (videofile.filename, outputfile)
+    # The result must be the same size as the input file, otherwise
+    # psnr computation will fail. We zero fill the rest.
+    return 'cp %s %s; truncate -r %s %s' % (
+        inputfile, outputfile,
+        videofile.filename, outputfile)
+
+  def EncoderVersion(self):
+    return 'CorruptingCodec v1'
 
 
 class TestFileCodec(test_tools.FileUsingCodecTest):
@@ -68,6 +77,9 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     encoding = my_optimizer.BestEncoding(1000, videofile)
     encoding.Execute()
     self.assertTrue(encoding.Result())
+    self.assertIn('encode_cputime', encoding.Result())
+    self.assertIn('encode_clocktime', encoding.Result())
+    self.assertIn('yuv_md5', encoding.Result())
 
   def test_VerifyOneBlackFrame(self):
     codec = CopyingCodec()
@@ -87,6 +99,17 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     encoding.Execute()
     self.assertFalse(encoding.VerifyEncode())
 
+  def test_VerifyMd5Varies(self):
+    codec = CorruptingCodec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+      'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    first_md5 = encoding.Result()['yuv_md5']
+    encoding.Execute()
+    self.assertNotEqual(first_md5, encoding.Result()['yuv_md5'])
+
   def test_VerifyMatroskaFile(self):
     codec = vp8.Vp8Codec()
     my_optimizer = optimizer.Optimizer(codec)
@@ -98,6 +121,34 @@ class TestFileCodec(test_tools.FileUsingCodecTest):
     # clock second. So wait a bit.
     time.sleep(1)
     self.assertTrue(encoding.VerifyEncode())
+
+  def test_MatroskaFrameInfo(self):
+    codec = vp8.Vp8Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # This line comes from file_codec.Execute()
+    encodedfile = '%s/%s.%s' % (encoding.Workdir(), videofile.basename,
+                                codec.extension)
+    frameinfo = file_codec.MatroskaFrameInfo(encodedfile)
+    self.assertEquals(len(frameinfo), 1)
+    self.assertGreater(os.path.getsize(encodedfile) * 8, frameinfo[0]['size'])
+
+  def test_FfmpegFrameInfo(self):
+    codec = vp8.Vp8Codec()
+    my_optimizer = optimizer.Optimizer(codec)
+    videofile = test_tools.MakeYuvFileWithOneBlankFrame(
+        'one_black_frame_1024_768_30.yuv')
+    encoding = my_optimizer.BestEncoding(1000, videofile)
+    encoding.Execute()
+    # This line comes from file_codec.Execute()
+    encodedfile = '%s/%s.%s' % (encoding.Workdir(), videofile.basename,
+                                codec.extension)
+    frameinfo = file_codec.FfmpegFrameInfo(encodedfile)
+    self.assertEquals(len(frameinfo), 1)
+    self.assertGreater(os.path.getsize(encodedfile) * 8, frameinfo[0]['size'])
 
 
 if __name__ == '__main__':

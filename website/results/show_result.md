@@ -18,7 +18,7 @@ Comparing the performance of codecs
   <div id="heading" class="col-md-12"></div>
 </div>
 <div class="row" id="table-and-graph">
-  <div class="col-md-6" id="bettertable"></div>
+  <div class="col-md-6"><div id="bettertable"></div></div>
   <div class="col-md-6" id="metricgraph" style="height:600px"></div>
 
 </div>

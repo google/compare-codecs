@@ -18,6 +18,7 @@ of H.264.
 """
 import encoder
 import file_codec
+import subprocess
 
 class X264Codec(file_codec.FileCodec):
   def __init__(self, name='x264', formatter=None):
@@ -35,6 +36,11 @@ class X264Codec(file_codec.FileCodec):
       encoder.ChoiceOption(['use-vbv-maxrate']),
       encoder.Option('profile', ['baseline', 'main', 'high']),
       encoder.Option('tune', ['psnr', 'ssim']),
+      # Experimentation on a 6-core, 12-thread system shows some gains on
+      # large videos for thread values up to the thread count, and up to the
+      # core count on smaller videos.
+      # There is some damage to PSNR with more threads.
+      encoder.IntegerOption('threads', 1, 6).Mandatory(),
       encoder.DummyOption('vbv-maxrate'),
       encoder.DummyOption('vbv-bufsize'),
     )
@@ -42,7 +48,7 @@ class X264Codec(file_codec.FileCodec):
   def StartEncoder(self, context):
     return encoder.Encoder(context, encoder.OptionValueSet(
       self.option_set,
-      '--preset slow --tune psnr',
+      '--preset slow --tune psnr --threads 1',
       formatter=self.option_formatter))
 
 
@@ -56,7 +62,6 @@ class X264Codec(file_codec.FileCodec):
       parameters = parameters.ChangeValue('vbv-bufsize', str(bitrate))
     commandline = ('%(x264)s '
       '--bitrate %(bitrate)d --fps %(framerate)d '
-      '--threads 1 '
       '--input-res %(width)dx%(height)d '
       '--quiet '
       '%(parameters)s '
@@ -81,3 +86,9 @@ class X264Codec(file_codec.FileCodec):
     more_results = {}
     more_results['frame'] = file_codec.MatroskaFrameInfo(encodedfile)
     return more_results
+
+  def EncoderVersion(self):
+    version_output = subprocess.check_output([encoder.Tool('x264'),
+                                              '--version'])
+    # The version is the first line of output.
+    return version_output.split('\n')[0]

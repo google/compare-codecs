@@ -25,7 +25,7 @@ The steps for running a comparision yourself are:
     Contributions to make it work on other systems are welcome!
 
   * Go to the main directory and run the `install_prerequisites.sh` script.
-    Run the `FIXME` script to install your test video clips.
+    Run the `video/get-stuff` script to install some test video clips.
 
   * Source the `init.sh` file. This sets your path and environment variables
     correctly.
@@ -43,12 +43,17 @@ In order to run a specific comparision:
 
   * compare_codecs --score <codec1> <codec2>
 
-  * compare_html <codec1> <codec2> > <html file of your choice>
-
 This may be appropriate after you have done specific tweaks, added a codec,
 done additional runs with new parameters, or just want to re-run.
 
 Use `list_codecs` to get a list of the codecs available.
+
+The default fileset is the MPEG clip set (mpeg_video), which is not publicly
+available. In order to run with the webm clip set (useful for evaluating
+videoconferencing scenarios), give the scripts the `--fileset webm` argument.
+
+If you wish to use your own clips, make a subdirectory called "local" under the
+"video" directory, and use the `--fileset local` argument.
 
 ### Using Others' Encoding Data
 
