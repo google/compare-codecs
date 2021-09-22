@@ -767,10 +767,14 @@ class EncodingDiskCache(object):
                         encoder=None):
     candidates = []
     for full_filename in files:
-      candidate = Encoding(
-        encoder or self._FileNameToEncoder(full_filename),
-        bitrate or _FileNameToBitrate(full_filename),
-        videofile or _FileNameToVideofile(full_filename))
+      try:
+        candidate = Encoding(
+          encoder or self._FileNameToEncoder(full_filename),
+          bitrate or _FileNameToBitrate(full_filename),
+          videofile or _FileNameToVideofile(full_filename))
+      except ParseError as err:
+        self.bad_encodings[full_filename] = err
+        continue
       try:
         candidate.Recover()
         candidates.append(candidate)
